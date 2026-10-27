@@ -1,0 +1,12 @@
+node_modules
+dist
+public/ldraw
+public/catalog.json
+public/ldraw-filemap.json
+# Part thumbnails are generated (npm run thumbs); the picker's 6 previews ship.
+public/thumbs/*
+!public/thumbs/builds
+public/ldraw-gen
+
+# LEGO instruction booklets (copyrighted, study material only)
+booklets
