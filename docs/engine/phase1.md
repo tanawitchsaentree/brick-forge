@@ -107,6 +107,38 @@ In order. Each must be measured on PARITY, never on agreement.
 3. **Outcome-tuned weights:** choose a few weights (the constants' terms, γ) by decoded PARITY on training models outside every bench set. That optimizes the objective directly, at the cost of decode time. It is a fallback if 1 and 2 don't move PARITY; it learns from the corpus's designs, but not from individual decisions.
 4. **Vocabulary:** 42 % of designer parts are outside the forms tried. Raising MAX_FORMS to ∞ cost PARITY in Phase 0. A better order (by use per level, or per region) is a separate lever, and probably the bigger one.
 
+## Second approach: weights chosen by what they build (not merged)
+
+Imitation can't price consequences, so `stackAbove` was tried first: the target cells left right above a part. It was learned at layer scope (re-extracted, 6,079 decisions) and got weight 0.004. In the designer's state, plates leave the next plate's cells empty too, so imitation has no signal for it. PARITY stayed at 0.044 / 0.083 (gates off / on). Regression (b) still 8 / 8 identical.
+
+Then `scripts/tune-weights.mjs`: coordinate search on the constants, objective = PARITY of what they build.
+- Formula: `src/engine/parity.ts`, checked equal to the bench's number on core8 (8 / 8, `parityTs` in each bench row).
+- Tuning set: 12 models (Junior / Creator / Advanced, 30–400 pieces), sets outside every bench set.
+- Forms: learned once from the other 314 models.
+- Cost: 73 evaluations, 11 min.
+
+| | tuning set | core8 | levels |
+|---|---|---|---|
+| baseline constants | 0.307 | **0.381** | **0.228** |
+| tuned: AIR 3.99, HOLD 1, FLOAT 225, PRIOR 2.25 | **0.353** | 0.342 | 0.222 |
+
+Per level, tuned against baseline:
+- core8: creator 0.382 → 0.417, advanced 0.339 → 0.356, junior 0.504 → 0.
+- levels: junior 0.161 → 0.165, creator 0.181 → 0.212, advanced 0.331 → 0.315, expert 0.242 → 0.185.
+
+Fails the gate. Why:
+
+1. **Tiny models make PARITY jump.** 30190-1 (32 pieces) went from 0.504 to 0 because smooth went from 1 to 0. Only a few studs show on it, and one stud off the designer's positions zeroes the product. IoU only fell from 0.747 to 0.684. Metric problem: `smooth` needs a floor or smoothing on models with few visible studs. Without it, small models dominate any comparison.
+2. **The tuning set has no large models.** Lower HOLD and FLOAT halved held on the Expert 21318 (0.544 → 0.244). Nothing over 400 pieces was in the tuning set to show it.
+3. **Twelve models are too few.** On core8, 4 models gained, 3 lost and 1 collapsed. The gain on the tuning set (+0.046) is within what the per-model variance allows.
+
+Next, in order:
+- (a) a tuning set stratified by size, up to Expert, of about 24 models;
+- (b) report PARITY with `smooth` floored on models with fewer than about 10 visible studs, alongside the frozen formula (not replacing it);
+- (c) then run the tuner again.
+
+Phase 2's new terms will need the same outcome-based fitting. Imitation won't fit them, for the same reason as `stackAbove`.
+
 ## Runtime
 
 - Extraction: anchor scope 167 s, layer scope 705 s, single thread.
