@@ -57,6 +57,7 @@ try {
   const { sculptArticulated } = await load("/src/engine/articulate.ts");
   const { prune } = await load("/src/engine/necessity.ts");
   const M = await load("/src/engine/benchMetrics.ts");
+  const { parityOf } = await load("/src/engine/parity.ts");
   const shapes = JSON.parse(fs.readFileSync(path.join(ROOT, "public/shapes.json"), "utf8"));
   S.installShapes(shapes);
   const corpus = JSON.parse(fs.readFileSync(path.join(ROOT, "public/corpus/index.json"), "utf8")).models;
@@ -136,6 +137,7 @@ try {
     console.log(JSON.stringify(row));
     // Phase 0 measurements (src/engine/benchMetrics.ts): kept off the console line above so it reads as before.
     row.tier = corpus.find((m) => m.id === id).tier;
+    row.parityTs = parityOf(real, target, r.bricks, made).parity; // must equal row.score (the tuner optimizes parity.ts)
     const mixO = M.mixOf(r.bricks), mixH = M.mixOf(real);
     row.mix = { ours: mixO, human: mixH, diff: M.mixDiff(mixO, mixH) };
     row.structure = { ours: M.structureOf(r.bricks), human: M.structureOf(real) };
