@@ -42,8 +42,13 @@ const scale = new Array(D).fill(0);
   for (let i = 0; i < D; i++) scale[i] = Math.sqrt(Math.max(1e-9, sq[i] / n - (sum[i] / n) ** 2)) || 1;
 }
 
+// The hand-tuned score as weights (sculpt.ts constantWeights), in scaled units: the start point and the reference.
+const CONST = { cover: 1, air: -3, studOk: 0, studBad: -40, pieces: -60, engaged: 2, float: -300, logUse: 3, repeat: -25 };
+const constScaled = names.map((n, i) => (CONST[n] ?? 0) * scale[i]);
+
 function fit(gamma, epochs = 60, lr = 0.05, l2 = 1e-3) {
-  const w = new Array(D).fill(0);
+  // Warm start from the constants: deterministic, and the loss starts where the old score is.
+  const w = constScaled.slice();
   const m = new Array(D).fill(0), v = new Array(D).fill(0); // Adam
   let t = 0;
   const prep = (d) => d.feats.map((f, k) => f.map((x, i) => x / scale[i] / d.cover[k] ** gamma));
@@ -76,7 +81,7 @@ function agreement(w, gamma, rows) {
   let top1 = 0, top5 = 0;
   for (const d of rows) {
     const s = d.feats.map((f, k) => f.reduce((a, x, i) => a + (x / scale[i]) * w[i], 0) / d.cover[k] ** gamma);
-    const better = s.filter((z, k) => k > 0 && z > s[0]).length;
+    const better = s.filter((z, k) => k > 0 && z >= s[0]).length; // ties count against the designer (as the extractor counts)
     if (better === 0) top1++;
     if (better < 5) top5++;
   }
@@ -89,6 +94,8 @@ const tried = grid.map((g) => {
   return { gamma: g, w, train: agreement(w, g, train), val: agreement(w, g, val) };
 });
 const best = tried.reduce((a, b) => (b.val.top1 > a.val.top1 ? b : a));
+// The reference: the constants (γ 0.7) on the same decisions, with the same tie rule.
+const reference = { train: agreement(constScaled, 0.7, train), val: agreement(constScaled, 0.7, val) };
 const raw = Object.fromEntries(names.map((n, i) => [n, +(best.w[i] / scale[i]).toPrecision(6)]));
 const hash = crypto.createHash("sha1").update([...sets].filter((s) => !valSets.has(s)).join(",")).digest("hex").slice(0, 12);
 const result = {
@@ -99,8 +106,9 @@ const result = {
   weights: raw,
   decisions: { train: train.length, val: val.length, sets: { train: sets.length - valSets.size, val: valSets.size } },
   agreement: { train: best.train, val: best.val },
+  constants: reference,
   grid: tried.map(({ gamma, train, val }) => ({ gamma, train, val })),
 };
 fs.mkdirSync(out.split("/").slice(0, -1).join("/") || ".", { recursive: true });
 fs.writeFileSync(out, JSON.stringify(result, null, 1));
-console.log(JSON.stringify({ gamma: best.gamma, val: best.val, train: best.train, grid: result.grid }));
+console.log(JSON.stringify({ gamma: best.gamma, val: best.val, train: best.train, constants: reference, grid: result.grid }));

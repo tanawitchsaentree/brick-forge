@@ -29,3 +29,4 @@ public/forms
 public/forms.json
 public/shapes.json
 .data.json
+data/*.jsonl
