@@ -83,7 +83,9 @@ try {
     const parts = [...new Set(learned.map((f) => f.partId))]; // tiles too: a smooth top is a form
     const motifs = links ? learnMotifs(train, trainSet.map((m) => links.get(m.id)), keep, opts.MOTIFS) : [];
     const forms = [...learned, ...parts.flatMap((p) => gridForms(p, 0)), ...motifs];
-    const real = models.get(id);
+    // REF_NO_BASEPLATE: a reference, not a gate. The designer's baseplates out of both the target and the
+    // comparison (metric v3 candidate): where Junior's ceiling would be without them.
+    const real = opts.REF_NO_BASEPLATE ? models.get(id).filter((b) => PARTS[b.partId]?.category !== "Baseplate") : models.get(id);
     const target = S.voxelize(real);
     // SHELL (program v2 S3): the inside filled first with the biggest plain parts, the sculptor on the skin.
     const inside = opts.SHELL ? interiorFill(target) : null;
