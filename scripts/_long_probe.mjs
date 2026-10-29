@@ -1,0 +1,31 @@
+import fs from "node:fs"; import path from "node:path"; import { createServer } from "vite";
+const ROOT = process.cwd();
+globalThis.fetch = async (u) => { const p = path.join(ROOT, "public", String(u)); return { ok: fs.existsSync(p), headers: { get: () => "application/json" }, json: async () => JSON.parse(fs.readFileSync(p, "utf8")) }; };
+const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
+const L = (m) => vite.ssrLoadModule(m);
+await (await L("/src/engine/catalog.ts")).loadCatalog();
+const S = await L("/src/engine/shape.ts"); const { sculpt, learnForms, gridForms, keepPart } = await L("/src/engine/sculpt.ts");
+const { importLDraw } = await L("/src/engine/ldrawImport.ts"); const { PARTS } = await L("/src/engine/parts.ts");
+const shapes = JSON.parse(fs.readFileSync("public/shapes.json", "utf8")); S.installShapes(shapes);
+const corpus = JSON.parse(fs.readFileSync("public/corpus/index.json", "utf8")).models;
+const isLong = (id) => PARTS[id] && (PARTS[id].w > 8 || PARTS[id].d > 8);
+const keep = (id) => keepPart(id, (x) => !!shapes[x], { long: true });
+for (const id of ["31009-1-310091", "21318-1-autumn", "10243-1"]) {
+  const set = corpus.find((m) => m.id === id).set;
+  const train = corpus.filter((m) => m.set !== set && m.tier !== "technic").map((m) => importLDraw(fs.readFileSync(`public/corpus/${m.id}.mpd`, "latin1"), m.id).bricks);
+  const all = learnForms(train, keep);
+  const longAll = all.filter((f) => isLong(f.partId));
+  const learned = all.filter((f) => f.use >= 2);
+  const parts = [...new Set(learned.map((f) => f.partId))];
+  const longPartsSeen = [...new Set(longAll.map((f) => f.partId))];
+  const longPartsInTable = parts.filter(isLong);
+  const forms = [...learned, ...parts.flatMap((p) => gridForms(p, 0))];
+  const sorted = [...forms].sort((a, b) => b.use - a.use);
+  const longRanks = sorted.map((f, i) => (isLong(f.partId) ? i : -1)).filter((i) => i >= 0);
+  const real = importLDraw(fs.readFileSync(`public/corpus/${id}.mpd`, "latin1"), id).bricks;
+  const realLong = real.filter((b) => isLong(b.partId));
+  const r = sculpt(S.voxelize(real), { forms, MAX_FORMS: 1e9 });
+  const ourLong = r.bricks.filter((b) => isLong(b.partId));
+  console.log(id, `| long forms seen ${longAll.length} (use≥2: ${longAll.filter((f) => f.use >= 2).length}); long parts seen ${longPartsSeen.length}, with grid forms ${longPartsInTable.length} | long in table ${longRanks.length}, best rank ${longRanks[0]} | designer long parts ${realLong.length} (${[...new Set(realLong.map((b) => b.partId))].join(" ")}) | ours long ${ourLong.length}`);
+}
+await vite.close();

@@ -98,6 +98,74 @@ In order of cost, each measured alone through the gate:
 - **The tuner** (`scripts/tune-weights.mjs`) optimizes PARITY_v2 by default (`OBJECTIVE`).
 - **Over-limit joints** are in no objective until the stability model is calibrated, which is the first task of Phase 3.
 
+## Results so far
+
+### Baseline v2 (frozen)
+
+Node changed from 24.15.0 to 24.22.1. Every build has the same hash on both (core8 8 / 8, levels 11 / 11). **PARITY_v2 baseline: core8 0.348, levels 0.183, the 19 gate models 0.2525.** Runs: `v2-base-core8`, `v2-base-levels`. The formula is frozen from here until Phase 2 ends.
+
+### Step 1, keep() long plain parts: no real gain, and nothing blocks them
+
+| run | core8 v1 / v2 | levels v1 / v2 | pieces×human core8 / levels | sculpt ms core8 / levels |
+|---|---|---|---|---|
+| baseline | 0.381 / 0.348 | 0.228 / 0.183 | 1.62 / 2.48 | 917 / 2891 |
+| KEEP_LONG, MAX_FORMS 1500 | 0.397 / 0.335 | 0.239 / 0.193 | 1.60 / 2.48 | 1909 / 5537 |
+| baseline, MAX_FORMS ∞ | 0.227 / 0.263 | 0.241 / 0.210 | 1.84 / 2.52 | 13036 / 40682 |
+| KEEP_LONG, MAX_FORMS ∞ | 0.233 / 0.277 | 0.242 / 0.215 | 1.86 / 2.50 | 22468 / 64426 |
+
+Against its fair reference (∞ against ∞): +0.014 core8, +0.005 levels (v2). Pieces don't move.
+
+Expected the opposite, so I looked for what keeps long parts out. Nothing does. They reach the table (best rank about 68) and are placed as much as the designer places them, or more:
+
+| model | designer's long parts | ours, KEEP_LONG ∞ |
+|---|---|---|
+| 31009 (Creator) | 4 | 18 |
+| 21318 (Expert) | 57 | 53 |
+| 10243 (Expert) | 44 | 87 |
+
+So the expectation was wrong. The excluded volume was mostly baseplates and platforms ("not structure"; the target includes them, see v3), not plates long enough to matter.
+
+### Where the extra pieces actually are: 1×1 parts
+
+Ours minus the designer's, summed over the gate models:
+
+| | extra pieces | of them 1×1 | by category |
+|---|---|---|---|
+| core8 | 714 | 695 (**97 %**) | tile +477, plate +251, snot +95, brick +60, slope −57 |
+| levels | 4,825 | 4,275 (**89 %**) | tile +3,089, plate +1,999, snot +314, slope +171 |
+
+Which pass makes them: core8's 4 biggest models, 851 designer pieces against 1,480 of ours. Post-passes switched off one at a time.
+
+| run | 1×1 tile | 1×1 plate | 1×1 brick |
+|---|---|---|---|
+| designer | 11 | 73 | 22 |
+| ours | 357 | 240 | 91 |
+| `capStuds` off | 145 | 240 | 91 |
+| `capStuds` + `finishTops` off | 68 | 317 | 91 |
+
+- `capStuds` adds 212 pieces, all 1×1 tiles on studs left showing: 34 % of the 629 extra.
+- The greedy itself leaves 317 + 68 one-by-one plates and tiles against the designer's 84: +301, 48 %. Set-cover greedy takes the big parts first and fills what's left with 1×1s.
+- `finishTops` only swaps 77 plates for tiles; it adds no pieces.
+
+### `capStuds` off (CAP: false): fails
+
+| | pieces×human | smooth_v2 | stud recall | PARITY_v2 (19) | wins |
+|---|---|---|---|---|---|
+| baseline | 1.62 / 2.48 | 0.712 / 0.539 | 0.650 / 0.452 | 0.2525 | — |
+| CAP false | 1.40 / 1.93 | 0.559 / 0.455 | 0.672 / 0.532 | 0.2233 | 5 / 19 |
+
+Fewer pieces, but smooth falls more: the studs it capped are on surfaces the designer keeps smooth. The caps solve a real problem the wrong way. The cause is the greedy leaving lone studs there, which is search's job (Phase 3), not a post-pass's.
+
+### Last weights round (closed)
+
+Tuner, 23 models stratified up to Expert, objective PARITY v1 (it loaded before v2 existed): 109 evaluations, 2 h 11 min, tuning set 0.266 → 0.343.
+- Constants found: AIR 6, GAMMA 0.5, STUD_BAD 30, REPEAT 50, MIN_COVER 24, FLOAT 399; HOLD and PRIOR unchanged.
+- Gate on the 19, PARITY_v2: 0.2525 → 0.2804, 11 wins out of 19, worst level Expert −0.009. **Fails by one win.**
+- On v1: 12 wins, but Junior −0.025. Fails.
+- By local frame: under 10 %, 0.312 → 0.328 (7 / 12 wins); the rest, 0.151 → 0.198 (4 / 7).
+
+Recorded, not merged. Weights work stops here, as decided.
+
 ## Open
 
 - A baseline rerun with PARITY_v2 is needed before the first gate. The builds must keep their hashes (Node changed from 24.15.0 to 24.22.1 on 2026-10-29: hashes to be checked on the new version). **PARITY_v2 is frozen from that run until Phase 2 ends;** metric faults found meanwhile are recorded for v3 (the baseplate in the target is the first).
