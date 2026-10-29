@@ -345,8 +345,9 @@ export interface Decision {
   partId: string;
   /** Its form is among the forms tried (the MAX_FORMS most used of the table). */
   known: boolean;
-  /** It overlaps parts already placed (voxelised designer parts can touch). */
+  /** It shares cells with parts already placed (voxelised designer parts can touch), and how many. */
   overlap: boolean;
+  shared?: number;
   /** Which old gates would drop it. */
   gate?: { fitNonPos: boolean; belowMinCover: boolean };
   /** Candidates the current score ranks above the designer's (ties count against it), out of how many. */
@@ -483,20 +484,26 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   // The raw terms of a placement (no gates, no weights), or null if it overlaps a
   // placed part. Written into one scratch object (evaluate runs millions of times;
   // a new object each time cost 45 % of the sculptor's time): copy it to keep it.
-  type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean };
-  const scratch: Terms = { cover: 0, air: 0, ok: 0, bad: 0, engaged: 0, repeat: false, grounded: false };
+  type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean; shared: number };
+  const scratch: Terms = { cover: 0, air: 0, ok: 0, bad: 0, engaged: 0, repeat: false, grounded: false, shared: 0 };
   // `full`: all terms even where a gate drops it (the replay); otherwise it stops
   // at the gate, before the stud loop, as the sculptor always did (that loop is
   // most of the time of a placement that would be dropped anyway).
-  const terms = (fi: number, ox: number, oy: number, oz: number, full = false): Terms | null => {
+  // `shareOk`: cells a placed part already fills count as neither cover nor air
+  // instead of ruling it out (a designer's part replayed: voxelised at a quarter
+  // stud, neighbours that touch can share a few cells).
+  const terms = (fi: number, ox: number, oy: number, oz: number, full = false, shareOk = false): Terms | null => {
     const f = forms[fi];
-    let engaged = 0, cover = 0, air = 0, same = 0, bottom = 0;
+    let engaged = 0, cover = 0, air = 0, same = 0, bottom = 0, shared = 0;
     for (const u of f.units) {
       const x = ox + u.dx, y = oy + u.dy, z = oz + u.dz;
       const t = wantG.get(x, y, z), have = taken.get(x, y, z);
-      if (have & u.mask) return null; // overlaps a placed part
+      if (have & u.mask) {
+        if (!shareOk) return null; // overlaps a placed part
+        shared += popcount(u.mask & have);
+      }
       cover += popcount(u.mask & t & ~have);
-      air += popcount(u.mask & ~t);
+      air += popcount(u.mask & ~t & ~have);
       engaged += popcount(u.mask & probed.get(x, y, z)); // placed studs into it
       if (u.dy === 0) {
         bottom++;
@@ -521,6 +528,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
     scratch.engaged = engaged;
     scratch.repeat = bottom > 0 && same === bottom;
     scratch.grounded = oy === y0;
+    scratch.shared = shared;
     return scratch;
   };
   // Per form, computed once (and for forms a replay adds).
@@ -695,9 +703,9 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
         fi = forms.length - 1;
       }
       if (R.keep(b.partId) && R.sample(i)) {
-        const t0r = terms(fi, ox, oy, oz, true);
+        const t0r = terms(fi, ox, oy, oz, true, true);
         const t = t0r && { ...t0r };
-        const d: Decision = { brick: i, partId: b.partId, known, overlap: !t };
+        const d: Decision = { brick: i, partId: b.partId, known, overlap: !t || t.shared > 0, shared: t?.shared };
         if (t) {
           d.gate = { fitNonPos: t.cover - AIR * t.air <= 0, belowMinCover: t.cover < MIN_COVER };
           const u0 = fd.units.find((u) => u.dy === 0)!;

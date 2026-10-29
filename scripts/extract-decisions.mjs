@@ -86,6 +86,7 @@ try {
             if (tableSigs.has(formSigOf(bricks[d.brick]))) stats.inTable++;
             if (d.known) stats.known++;
             if (d.overlap) stats.overlap++;
+            if (d.shared) (stats.sharedCells = (stats.sharedCells ?? 0) + d.shared), (stats.sharedSize = (stats.sharedSize ?? 0) + d.cover?.[0] + d.shared);
             if (d.gate?.fitNonPos) stats.fitNonPos++;
             if (d.gate?.belowMinCover) stats.belowMinCover++;
             if (d.gate && (d.gate.fitNonPos || d.gate.belowMinCover)) stats.eitherGate++;
