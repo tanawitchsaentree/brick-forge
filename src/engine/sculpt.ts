@@ -415,6 +415,8 @@ export interface SculptOptions {
   SEED?: number;
   /** Merge neighbouring plain parts into one bigger part (off: on the benchmark it cost held-together, see docs/engine.md). */
   MERGE?: boolean;
+  /** The merge pass (Phase 2): neighbouring plain parts that make a stock rectangle become one, connections kept. */
+  MERGE_PASS?: boolean;
   /** Try at most this many forms (the most used first). */
   MAX_FORMS?: number;
   /** Cap studs left showing on smooth surfaces with tiles (default on). */
@@ -938,6 +940,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   let residual = 0;
   for (const k of want.keys()) residual += popcount((want.get(k)! & ~taken.getK(k)) >>> 0);
   const built = bricks.filter((b): b is PlacedBrick => b !== null);
+  if (opts.MERGE_PASS) phase.merges = mergePass(built).merges;
   if (opts.FINISH !== false) finishTops(built, taken, studs);
   if (budget > 0) for (const b of built) if (b.why) b.why.searched = { tries, kept };
   let tp = performance.now();
@@ -1041,6 +1044,87 @@ function consolidate(bricks: PlacedBrick[]) {
           merged = true;
         }
   }
+}
+
+/**
+ * The merge pass (Phase 2, docs/engine/phase2.md): the greedy fills a region with
+ * its biggest part first and leaves strips that only small parts fit, so its
+ * builds are 1×1 and 1×2 heavy where a designer used one plate. Here neighbouring
+ * plain parts of one family, height and colour, side by side on one level, that
+ * together make a rectangle of a stock size become that one part, again and again
+ * until nothing merges.
+ *
+ * Unlike `consolidate` (MERGE, rejected at step 13 for losing precision), it only
+ * merges parts already on the grid, and it keeps a merge only if the new part
+ * still connects to every part either of the two connected to (engine/connect.ts),
+ * so it never loosens the build.
+ */
+function mergePass(bricks: PlacedBrick[]) {
+  const links = connections(bricks);
+  const nb = new Map<PlacedBrick, Set<PlacedBrick>>(bricks.map((b) => [b, new Set()]));
+  for (const l of links) {
+    nb.get(bricks[l.a])!.add(bricks[l.b]);
+    nb.get(bricks[l.b])!.add(bricks[l.a]);
+  }
+  let merges = 0, refused = 0;
+  for (let merged = true; merged; ) {
+    merged = false;
+    const at = new Map<string, PlacedBrick[]>();
+    for (const b of bricks) {
+      if (b.place || b.pose) continue;
+      const fam = familyOf(b.partId);
+      if (!fam) continue;
+      const k = `${b.y}:${fam}:${PARTS[b.partId].h}:${b.color}`;
+      (at.get(k) ?? at.set(k, []).get(k)!).push(b);
+    }
+    for (const list of at.values())
+      for (let i = 0; i < list.length; i++)
+        for (let j = i + 1; j < list.length; j++) {
+          const a = list[i], c = list[j];
+          if (!a || !c) continue;
+          const fa = footprintOf(a), fc = footprintOf(c);
+          let x0: number, z0: number, w: number, d: number;
+          if (fa.z === fc.z && fa.d === fc.d && (fa.x + fa.w === fc.x || fc.x + fc.w === fa.x)) {
+            x0 = Math.min(fa.x, fc.x); z0 = fa.z; w = fa.w + fc.w; d = fa.d;
+          } else if (fa.x === fc.x && fa.w === fc.w && (fa.z + fa.d === fc.z || fc.z + fc.d === fa.z)) {
+            x0 = fa.x; z0 = Math.min(fa.z, fc.z); w = fa.w; d = fa.d + fc.d;
+          } else continue;
+          const id = plainId(familyOf(a.partId)!, w, d);
+          if (!id) continue;
+          const p = PARTS[id];
+          const rot: Rot = p.w === w && p.d === d ? 0 : 1;
+          const next: PlacedBrick = { ...a, uid: a.uid, partId: id, x: x0, z: z0, rot };
+          // Everything either part held on to, the new one must hold on to.
+          const around = [...new Set([...nb.get(a)!, ...nb.get(c)!])].filter((o) => o !== a && o !== c);
+          if (around.length) {
+            const local = [next, ...around];
+            const held = new Set(connections(local).filter((l) => l.a === 0 || l.b === 0).map((l) => (l.a === 0 ? l.b : l.a)));
+            if (held.size < around.length) {
+              refused++;
+              continue;
+            }
+          }
+          if (next.why) next.why = { ...next.why, motif: `merged: one ${p.name} instead of two parts`, repeat: false };
+          // Swap a for the merged part, drop c, and carry the neighbours over.
+          bricks[bricks.indexOf(a)] = next;
+          bricks.splice(bricks.indexOf(c), 1);
+          const ns = new Set(around);
+          nb.delete(a);
+          nb.delete(c);
+          nb.set(next, ns);
+          for (const o of around) {
+            const s2 = nb.get(o)!;
+            s2.delete(a);
+            s2.delete(c);
+            s2.add(next);
+          }
+          list[i] = next;
+          list[j] = undefined as unknown as PlacedBrick;
+          merges++;
+          merged = true;
+        }
+  }
+  return { merges, refused };
 }
 
 const footprintOf = (b: PlacedBrick) => {
