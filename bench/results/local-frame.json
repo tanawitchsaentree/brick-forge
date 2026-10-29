@@ -1,0 +1,2503 @@
+{
+ "keepByTier": {
+  "creator": {
+   "kept": {
+    "parts": 89.04,
+    "volume": 72.62
+   },
+   "notStructure": {
+    "parts": 6.64,
+    "volume": 11.02
+   },
+   "oversize": {
+    "parts": 3.76,
+    "volume": 15.93
+   },
+   "printed": {
+    "parts": 0.55,
+    "volume": 0.43
+   },
+   "noShape": {
+    "parts": 0.01,
+    "volume": 0
+   }
+  },
+  "junior": {
+   "kept": {
+    "parts": 92.29,
+    "volume": 80.48
+   },
+   "notStructure": {
+    "parts": 5.24,
+    "volume": 11.6
+   },
+   "oversize": {
+    "parts": 2.05,
+    "volume": 7.53
+   },
+   "printed": {
+    "parts": 0.42,
+    "volume": 0.39
+   }
+  },
+  "advanced": {
+   "kept": {
+    "parts": 83.19,
+    "volume": 70.65
+   },
+   "oversize": {
+    "parts": 3.67,
+    "volume": 15.8
+   },
+   "notStructure": {
+    "parts": 12.12,
+    "volume": 12.43
+   },
+   "printed": {
+    "parts": 1.01,
+    "volume": 1.12
+   },
+   "noShape": {
+    "parts": 0.01,
+    "volume": 0
+   }
+  },
+  "expert": {
+   "kept": {
+    "parts": 80.53,
+    "volume": 66.68
+   },
+   "oversize": {
+    "parts": 4.78,
+    "volume": 21.63
+   },
+   "notStructure": {
+    "parts": 14.38,
+    "volume": 11.51
+   },
+   "printed": {
+    "parts": 0.3,
+    "volume": 0.18
+   }
+  },
+  "master": {
+   "oversize": {
+    "parts": 2.61,
+    "volume": 13.09
+   },
+   "kept": {
+    "parts": 87.83,
+    "volume": 71.46
+   },
+   "notStructure": {
+    "parts": 9.5,
+    "volume": 15.42
+   },
+   "printed": {
+    "parts": 0.05,
+    "volume": 0.03
+   }
+  }
+ },
+ "angles": {
+  "tilt": {
+   "total": 41752,
+   "top": [
+    {
+     "deg": 0,
+     "n": 5309,
+     "pct": 12.72
+    },
+    {
+     "deg": 16.5,
+     "n": 3687,
+     "pct": 8.83
+    },
+    {
+     "deg": 11,
+     "n": 2675,
+     "pct": 6.41
+    },
+    {
+     "deg": 2.5,
+     "n": 1872,
+     "pct": 4.48
+    },
+    {
+     "deg": 45,
+     "n": 1698,
+     "pct": 4.07
+    },
+    {
+     "deg": 20.5,
+     "n": 1558,
+     "pct": 3.73
+    },
+    {
+     "deg": 30,
+     "n": 1415,
+     "pct": 3.39
+    },
+    {
+     "deg": 15,
+     "n": 1308,
+     "pct": 3.13
+    },
+    {
+     "deg": 9,
+     "n": 1293,
+     "pct": 3.1
+    },
+    {
+     "deg": 5,
+     "n": 1244,
+     "pct": 2.98
+    },
+    {
+     "deg": 10,
+     "n": 1185,
+     "pct": 2.84
+    },
+    {
+     "deg": 12,
+     "n": 1029,
+     "pct": 2.46
+    },
+    {
+     "deg": 22.5,
+     "n": 1005,
+     "pct": 2.41
+    },
+    {
+     "deg": 35,
+     "n": 983,
+     "pct": 2.35
+    },
+    {
+     "deg": 34.5,
+     "n": 839,
+     "pct": 2.01
+    }
+   ]
+  },
+  "yaw": {
+   "total": 16340,
+   "top": [
+    {
+     "deg": 45,
+     "n": 3262,
+     "pct": 19.96
+    },
+    {
+     "deg": 30,
+     "n": 1928,
+     "pct": 11.8
+    },
+    {
+     "deg": 37,
+     "n": 877,
+     "pct": 5.37
+    },
+    {
+     "deg": 60,
+     "n": 818,
+     "pct": 5.01
+    },
+    {
+     "deg": 85,
+     "n": 620,
+     "pct": 3.79
+    },
+    {
+     "deg": 5,
+     "n": 580,
+     "pct": 3.55
+    },
+    {
+     "deg": 21,
+     "n": 456,
+     "pct": 2.79
+    },
+    {
+     "deg": 53,
+     "n": 380,
+     "pct": 2.33
+    },
+    {
+     "deg": 12.5,
+     "n": 334,
+     "pct": 2.04
+    },
+    {
+     "deg": 4,
+     "n": 326,
+     "pct": 2
+    }
+   ]
+  }
+ },
+ "perModel": [
+  {
+   "id": "30193-1",
+   "tier": "creator",
+   "parts": 20,
+   "localFrame": 0
+  },
+  {
+   "id": "4948-1",
+   "tier": "junior",
+   "parts": 22,
+   "localFrame": 0
+  },
+  {
+   "id": "4949-1",
+   "tier": "junior",
+   "parts": 24,
+   "localFrame": 1
+  },
+  {
+   "id": "4310-1",
+   "tier": "advanced",
+   "parts": 24,
+   "localFrame": 1
+  },
+  {
+   "id": "7453-1",
+   "tier": "junior",
+   "parts": 26,
+   "localFrame": 0
+  },
+  {
+   "id": "4308-1",
+   "tier": "advanced",
+   "parts": 28,
+   "localFrame": 1
+  },
+  {
+   "id": "4947-1",
+   "tier": "junior",
+   "parts": 28,
+   "localFrame": 1
+  },
+  {
+   "id": "7802-1",
+   "tier": "junior",
+   "parts": 28,
+   "localFrame": 0
+  },
+  {
+   "id": "30030-1",
+   "tier": "creator",
+   "parts": 29,
+   "localFrame": 0
+  },
+  {
+   "id": "30035-1",
+   "tier": "junior",
+   "parts": 30,
+   "localFrame": 1
+  },
+  {
+   "id": "4309-1",
+   "tier": "advanced",
+   "parts": 31,
+   "localFrame": 1
+  },
+  {
+   "id": "30194-1",
+   "tier": "creator",
+   "parts": 32,
+   "localFrame": 0
+  },
+  {
+   "id": "7613-1",
+   "tier": "junior",
+   "parts": 34,
+   "localFrame": 0
+  },
+  {
+   "id": "6623-1",
+   "tier": "creator",
+   "parts": 34,
+   "localFrame": 0
+  },
+  {
+   "id": "7611-1",
+   "tier": "creator",
+   "parts": 35,
+   "localFrame": 0
+  },
+  {
+   "id": "7612-1",
+   "tier": "creator",
+   "parts": 36,
+   "localFrame": 0
+  },
+  {
+   "id": "31027-1-kart",
+   "tier": "advanced",
+   "parts": 37,
+   "localFrame": 0.0541
+  },
+  {
+   "id": "7803-1",
+   "tier": "creator",
+   "parts": 38,
+   "localFrame": 0
+  },
+  {
+   "id": "30283-1",
+   "tier": "creator",
+   "parts": 40,
+   "localFrame": 0
+  },
+  {
+   "id": "7801-1",
+   "tier": "creator",
+   "parts": 41,
+   "localFrame": 0
+  },
+  {
+   "id": "6634-1",
+   "tier": "advanced",
+   "parts": 41,
+   "localFrame": 0.9512
+  },
+  {
+   "id": "6633-1",
+   "tier": "creator",
+   "parts": 42,
+   "localFrame": 0
+  },
+  {
+   "id": "8149-1-81491",
+   "tier": "creator",
+   "parts": 42,
+   "localFrame": 0
+  },
+  {
+   "id": "8195-1-81951",
+   "tier": "creator",
+   "parts": 42,
+   "localFrame": 0.0952
+  },
+  {
+   "id": "8192-1-81921",
+   "tier": "creator",
+   "parts": 43,
+   "localFrame": 0
+  },
+  {
+   "id": "8125-1-3",
+   "tier": "creator",
+   "parts": 43,
+   "localFrame": 0
+  },
+  {
+   "id": "8148-1-81481",
+   "tier": "advanced",
+   "parts": 44,
+   "localFrame": 0
+  },
+  {
+   "id": "8120-1-81201",
+   "tier": "advanced",
+   "parts": 46,
+   "localFrame": 0.0435
+  },
+  {
+   "id": "8194-1-81941",
+   "tier": "junior",
+   "parts": 46,
+   "localFrame": 0
+  },
+  {
+   "id": "7602-1",
+   "tier": "creator",
+   "parts": 46,
+   "localFrame": 0
+  },
+  {
+   "id": "8119-1-81191",
+   "tier": "creator",
+   "parts": 47,
+   "localFrame": 0
+  },
+  {
+   "id": "8125-1-2",
+   "tier": "creator",
+   "parts": 47,
+   "localFrame": 0
+  },
+  {
+   "id": "30192-1",
+   "tier": "creator",
+   "parts": 47,
+   "localFrame": 0
+  },
+  {
+   "id": "8193-1-81931",
+   "tier": "creator",
+   "parts": 49,
+   "localFrame": 0
+  },
+  {
+   "id": "8151-1-81511",
+   "tier": "creator",
+   "parts": 51,
+   "localFrame": 0
+  },
+  {
+   "id": "30195-1",
+   "tier": "creator",
+   "parts": 52,
+   "localFrame": 0
+  },
+  {
+   "id": "8150-1-81501",
+   "tier": "creator",
+   "parts": 54,
+   "localFrame": 0
+  },
+  {
+   "id": "31027-1-310271",
+   "tier": "advanced",
+   "parts": 59,
+   "localFrame": 0
+  },
+  {
+   "id": "8119-1-combinationwith8122",
+   "tier": "creator",
+   "parts": 60,
+   "localFrame": 0
+  },
+  {
+   "id": "6742-1-pickup",
+   "tier": "advanced",
+   "parts": 63,
+   "localFrame": 0.0476
+  },
+  {
+   "id": "30572-1",
+   "tier": "creator",
+   "parts": 68,
+   "localFrame": 0.0294
+  },
+  {
+   "id": "8193-1-combinationwith8195",
+   "tier": "creator",
+   "parts": 77,
+   "localFrame": 0.0519
+  },
+  {
+   "id": "8192-1-combinationwith8194",
+   "tier": "junior",
+   "parts": 79,
+   "localFrame": 0
+  },
+  {
+   "id": "8120-1-combinatonwith8121",
+   "tier": "creator",
+   "parts": 81,
+   "localFrame": 0.0247
+  },
+  {
+   "id": "8148-1-combinationwith8151",
+   "tier": "creator",
+   "parts": 91,
+   "localFrame": 0
+  },
+  {
+   "id": "6743-1-hotrod",
+   "tier": "creator",
+   "parts": 149,
+   "localFrame": 1
+  },
+  {
+   "id": "75870-1",
+   "tier": "creator",
+   "parts": 154,
+   "localFrame": 0
+  },
+  {
+   "id": "6743-1-67431",
+   "tier": "advanced",
+   "parts": 165,
+   "localFrame": 0
+  },
+  {
+   "id": "75895-1",
+   "tier": "creator",
+   "parts": 166,
+   "localFrame": 0
+  },
+  {
+   "id": "75878-1",
+   "tier": "creator",
+   "parts": 172,
+   "localFrame": 0.0116
+  },
+  {
+   "id": "75892-1",
+   "tier": "creator",
+   "parts": 187,
+   "localFrame": 0.0107
+  },
+  {
+   "id": "75893-1-2",
+   "tier": "advanced",
+   "parts": 188,
+   "localFrame": 0
+  },
+  {
+   "id": "75893-1-1",
+   "tier": "advanced",
+   "parts": 196,
+   "localFrame": 0
+  },
+  {
+   "id": "4939-1-49391",
+   "tier": "creator",
+   "parts": 207,
+   "localFrame": 0.0531
+  },
+  {
+   "id": "76897-1",
+   "tier": "creator",
+   "parts": 249,
+   "localFrame": 0.0482
+  },
+  {
+   "id": "5867-1",
+   "tier": "advanced",
+   "parts": 278,
+   "localFrame": 0.1835
+  },
+  {
+   "id": "7347-1-car",
+   "tier": "creator",
+   "parts": 379,
+   "localFrame": 0.0369
+  },
+  {
+   "id": "8143-1-1",
+   "tier": "advanced",
+   "parts": 513,
+   "localFrame": 0.1852
+  },
+  {
+   "id": "8143-1-2",
+   "tier": "advanced",
+   "parts": 513,
+   "localFrame": 0.1852
+  },
+  {
+   "id": "5767-1",
+   "tier": "creator",
+   "parts": 593,
+   "localFrame": 0.1602
+  },
+  {
+   "id": "8156-1",
+   "tier": "creator",
+   "parts": 624,
+   "localFrame": 0.1282
+  },
+  {
+   "id": "4993-1-49931",
+   "tier": "advanced",
+   "parts": 652,
+   "localFrame": 0.1733
+  },
+  {
+   "id": "31070-1",
+   "tier": "advanced",
+   "parts": 666,
+   "localFrame": 0.1336
+  },
+  {
+   "id": "4896-1-4wd",
+   "tier": "advanced",
+   "parts": 677,
+   "localFrame": 0.1521
+  },
+  {
+   "id": "8169-1-2",
+   "tier": "advanced",
+   "parts": 707,
+   "localFrame": 1
+  },
+  {
+   "id": "8169-1-1",
+   "tier": "advanced",
+   "parts": 712,
+   "localFrame": 1
+  },
+  {
+   "id": "4896-1-48961",
+   "tier": "advanced",
+   "parts": 924,
+   "localFrame": 0.118
+  },
+  {
+   "id": "10248-1",
+   "tier": "advanced",
+   "parts": 1157,
+   "localFrame": 0.2455
+  },
+  {
+   "id": "7209-1",
+   "tier": "advanced",
+   "parts": 28,
+   "localFrame": 0.2143
+  },
+  {
+   "id": "7210-1",
+   "tier": "creator",
+   "parts": 33,
+   "localFrame": 0.1818
+  },
+  {
+   "id": "7219-1",
+   "tier": "creator",
+   "parts": 34,
+   "localFrame": 0.0294
+  },
+  {
+   "id": "7796-1",
+   "tier": "junior",
+   "parts": 56,
+   "localFrame": 0
+  },
+  {
+   "id": "31063-1-boatsideharbor-1",
+   "tier": "junior",
+   "parts": 108,
+   "localFrame": 0.0185
+  },
+  {
+   "id": "345-1",
+   "tier": "junior",
+   "parts": 116,
+   "localFrame": 0
+  },
+  {
+   "id": "6365-1",
+   "tier": "creator",
+   "parts": 144,
+   "localFrame": 0.1389
+  },
+  {
+   "id": "346-2",
+   "tier": "creator",
+   "parts": 149,
+   "localFrame": 0.0067
+  },
+  {
+   "id": "31048-1-smallcabin",
+   "tier": "creator",
+   "parts": 181,
+   "localFrame": 0.0221
+  },
+  {
+   "id": "31063-1-beachsideshop",
+   "tier": "creator",
+   "parts": 190,
+   "localFrame": 0.1316
+  },
+  {
+   "id": "6349-1",
+   "tier": "creator",
+   "parts": 190,
+   "localFrame": 0
+  },
+  {
+   "id": "31009-1-skatershouse",
+   "tier": "creator",
+   "parts": 216,
+   "localFrame": 0.0278
+  },
+  {
+   "id": "6372-1",
+   "tier": "creator",
+   "parts": 217,
+   "localFrame": 0.0829
+  },
+  {
+   "id": "31009-1-windmill",
+   "tier": "creator",
+   "parts": 226,
+   "localFrame": 0.0619
+  },
+  {
+   "id": "31048-1-observatory",
+   "tier": "creator",
+   "parts": 227,
+   "localFrame": 0.0264
+  },
+  {
+   "id": "31009-1-310091",
+   "tier": "creator",
+   "parts": 260,
+   "localFrame": 0.0038
+  },
+  {
+   "id": "31063-1-310631",
+   "tier": "creator",
+   "parts": 264,
+   "localFrame": 0.1439
+  },
+  {
+   "id": "5766-1-twinhouse",
+   "tier": "creator",
+   "parts": 280,
+   "localFrame": 0.0607
+  },
+  {
+   "id": "5766-1-bridgehouse",
+   "tier": "creator",
+   "parts": 281,
+   "localFrame": 0.0569
+  },
+  {
+   "id": "31025-1-smalllodge",
+   "tier": "creator",
+   "parts": 320,
+   "localFrame": 0.0625
+  },
+  {
+   "id": "5891-1-holidayhouse",
+   "tier": "creator",
+   "parts": 342,
+   "localFrame": 0.0205
+  },
+  {
+   "id": "31048-1-310481",
+   "tier": "creator",
+   "parts": 358,
+   "localFrame": 0.0475
+  },
+  {
+   "id": "5766-1-57661",
+   "tier": "creator",
+   "parts": 360,
+   "localFrame": 0.1472
+  },
+  {
+   "id": "31025-1-mountaintoplockout",
+   "tier": "creator",
+   "parts": 362,
+   "localFrame": 0.0525
+  },
+  {
+   "id": "31038-1-automn",
+   "tier": "creator",
+   "parts": 375,
+   "localFrame": 0.0773
+  },
+  {
+   "id": "4954-1-housewithtruck-2",
+   "tier": "creator",
+   "parts": 375,
+   "localFrame": 0
+  },
+  {
+   "id": "31038-1-winter",
+   "tier": "creator",
+   "parts": 381,
+   "localFrame": 0.1785
+  },
+  {
+   "id": "5891-1-smallhouse",
+   "tier": "creator",
+   "parts": 390,
+   "localFrame": 0.0333
+  },
+  {
+   "id": "4996-1-apartmentbuilding",
+   "tier": "creator",
+   "parts": 393,
+   "localFrame": 0.0178
+  },
+  {
+   "id": "4954-1-housewithtruck-1",
+   "tier": "creator",
+   "parts": 398,
+   "localFrame": 0
+  },
+  {
+   "id": "4996-1-cozycafe",
+   "tier": "creator",
+   "parts": 426,
+   "localFrame": 0.0657
+  },
+  {
+   "id": "4956-1-smallhouses",
+   "tier": "creator",
+   "parts": 509,
+   "localFrame": 0.0334
+  },
+  {
+   "id": "5891-1-58911",
+   "tier": "creator",
+   "parts": 539,
+   "localFrame": 0.0278
+  },
+  {
+   "id": "31025-1-310251",
+   "tier": "creator",
+   "parts": 541,
+   "localFrame": 0.0074
+  },
+  {
+   "id": "31038-1-310381",
+   "tier": "creator",
+   "parts": 544,
+   "localFrame": 0.079
+  },
+  {
+   "id": "4954-1-school",
+   "tier": "advanced",
+   "parts": 767,
+   "localFrame": 0.0104
+  },
+  {
+   "id": "31153-1",
+   "tier": "advanced",
+   "parts": 930,
+   "localFrame": 0.086
+  },
+  {
+   "id": "4954-1-49541",
+   "tier": "advanced",
+   "parts": 1174,
+   "localFrame": 0.0102
+  },
+  {
+   "id": "2133-1",
+   "tier": "junior",
+   "parts": 12,
+   "localFrame": 0
+  },
+  {
+   "id": "7610-1",
+   "tier": "junior",
+   "parts": 18,
+   "localFrame": 0
+  },
+  {
+   "id": "6600-1-modelb",
+   "tier": "creator",
+   "parts": 20,
+   "localFrame": 0.3
+  },
+  {
+   "id": "6603-1",
+   "tier": "creator",
+   "parts": 21,
+   "localFrame": 0
+  },
+  {
+   "id": "6605-1",
+   "tier": "advanced",
+   "parts": 23,
+   "localFrame": 0.3043
+  },
+  {
+   "id": "6608-1",
+   "tier": "advanced",
+   "parts": 23,
+   "localFrame": 0.3043
+  },
+  {
+   "id": "30022-1",
+   "tier": "advanced",
+   "parts": 24,
+   "localFrame": 0.1667
+  },
+  {
+   "id": "625-1",
+   "tier": "junior",
+   "parts": 25,
+   "localFrame": 0
+  },
+  {
+   "id": "6600-1-66001",
+   "tier": "advanced",
+   "parts": 25,
+   "localFrame": 0.24
+  },
+  {
+   "id": "30023-1",
+   "tier": "junior",
+   "parts": 25,
+   "localFrame": 0
+  },
+  {
+   "id": "6601-1",
+   "tier": "junior",
+   "parts": 26,
+   "localFrame": 0
+  },
+  {
+   "id": "30027-1-2",
+   "tier": "creator",
+   "parts": 26,
+   "localFrame": 0.0769
+  },
+  {
+   "id": "6606-1",
+   "tier": "creator",
+   "parts": 27,
+   "localFrame": 0.5926
+  },
+  {
+   "id": "7608-1",
+   "tier": "advanced",
+   "parts": 27,
+   "localFrame": 0.2593
+  },
+  {
+   "id": "6607-1",
+   "tier": "creator",
+   "parts": 28,
+   "localFrame": 0.25
+  },
+  {
+   "id": "7609-1",
+   "tier": "creator",
+   "parts": 28,
+   "localFrame": 0
+  },
+  {
+   "id": "30542-1-turkey",
+   "tier": "advanced",
+   "parts": 28,
+   "localFrame": 0.3571
+  },
+  {
+   "id": "6596-1-3",
+   "tier": "junior",
+   "parts": 30,
+   "localFrame": 1
+  },
+  {
+   "id": "6535-1",
+   "tier": "junior",
+   "parts": 33,
+   "localFrame": 0
+  },
+  {
+   "id": "7603-1",
+   "tier": "junior",
+   "parts": 33,
+   "localFrame": 0
+  },
+  {
+   "id": "7607-1",
+   "tier": "junior",
+   "parts": 33,
+   "localFrame": 0.7879
+  },
+  {
+   "id": "31088-1-310881-4",
+   "tier": "advanced",
+   "parts": 33,
+   "localFrame": 1
+  },
+  {
+   "id": "7808-1",
+   "tier": "creator",
+   "parts": 34,
+   "localFrame": 0.0294
+  },
+  {
+   "id": "31088-1-310881-3",
+   "tier": "advanced",
+   "parts": 36,
+   "localFrame": 1
+  },
+  {
+   "id": "6594-1-2",
+   "tier": "creator",
+   "parts": 39,
+   "localFrame": 0
+  },
+  {
+   "id": "30027-1-1",
+   "tier": "advanced",
+   "parts": 40,
+   "localFrame": 0
+  },
+  {
+   "id": "7601-1",
+   "tier": "advanced",
+   "parts": 41,
+   "localFrame": 0.1463
+  },
+  {
+   "id": "7875-1",
+   "tier": "advanced",
+   "parts": 41,
+   "localFrame": 0.3659
+  },
+  {
+   "id": "6596-1-2",
+   "tier": "creator",
+   "parts": 42,
+   "localFrame": 1
+  },
+  {
+   "id": "6363-1-2",
+   "tier": "junior",
+   "parts": 43,
+   "localFrame": 1
+  },
+  {
+   "id": "6536-1",
+   "tier": "junior",
+   "parts": 43,
+   "localFrame": 0
+  },
+  {
+   "id": "30472-1",
+   "tier": "advanced",
+   "parts": 43,
+   "localFrame": 0.3488
+  },
+  {
+   "id": "6537-1",
+   "tier": "junior",
+   "parts": 44,
+   "localFrame": 0
+  },
+  {
+   "id": "6357-1-3",
+   "tier": "creator",
+   "parts": 46,
+   "localFrame": 0
+  },
+  {
+   "id": "6581-1-2",
+   "tier": "creator",
+   "parts": 46,
+   "localFrame": 1
+  },
+  {
+   "id": "30542-1-koala",
+   "tier": "advanced",
+   "parts": 46,
+   "localFrame": 0.0435
+  },
+  {
+   "id": "6350-1-2",
+   "tier": "junior",
+   "parts": 47,
+   "localFrame": 1
+  },
+  {
+   "id": "31092-1-gliderplane",
+   "tier": "junior",
+   "parts": 47,
+   "localFrame": 0
+  },
+  {
+   "id": "6354-1-2",
+   "tier": "creator",
+   "parts": 51,
+   "localFrame": 0.9804
+  },
+  {
+   "id": "6562-1-3",
+   "tier": "creator",
+   "parts": 51,
+   "localFrame": 1
+  },
+  {
+   "id": "30284-1",
+   "tier": "advanced",
+   "parts": 51,
+   "localFrame": 0.0784
+  },
+  {
+   "id": "6357-1-2",
+   "tier": "creator",
+   "parts": 52,
+   "localFrame": 0.0385
+  },
+  {
+   "id": "30181-1",
+   "tier": "creator",
+   "parts": 52,
+   "localFrame": 0.1154
+  },
+  {
+   "id": "6596-1-1",
+   "tier": "creator",
+   "parts": 53,
+   "localFrame": 0.0189
+  },
+  {
+   "id": "31088-1-whale-2",
+   "tier": "advanced",
+   "parts": 55,
+   "localFrame": 1
+  },
+  {
+   "id": "30024-1",
+   "tier": "creator",
+   "parts": 56,
+   "localFrame": 0
+  },
+  {
+   "id": "30025-1",
+   "tier": "creator",
+   "parts": 59,
+   "localFrame": 0
+  },
+  {
+   "id": "41615-1-2",
+   "tier": "advanced",
+   "parts": 61,
+   "localFrame": 0.0984
+  },
+  {
+   "id": "30026-1",
+   "tier": "creator",
+   "parts": 61,
+   "localFrame": 0.0164
+  },
+  {
+   "id": "30571-1",
+   "tier": "advanced",
+   "parts": 62,
+   "localFrame": 0
+  },
+  {
+   "id": "6552-1-2",
+   "tier": "creator",
+   "parts": 64,
+   "localFrame": 0
+  },
+  {
+   "id": "6344-1",
+   "tier": "creator",
+   "parts": 66,
+   "localFrame": 0.1212
+  },
+  {
+   "id": "6562-1-2",
+   "tier": "junior",
+   "parts": 68,
+   "localFrame": 0.0147
+  },
+  {
+   "id": "30542-1-cutepug",
+   "tier": "advanced",
+   "parts": 68,
+   "localFrame": 0.4559
+  },
+  {
+   "id": "20014-1",
+   "tier": "creator",
+   "parts": 69,
+   "localFrame": 0.087
+  },
+  {
+   "id": "41618-1-2",
+   "tier": "advanced",
+   "parts": 71,
+   "localFrame": 0
+  },
+  {
+   "id": "6357-1-1",
+   "tier": "creator",
+   "parts": 71,
+   "localFrame": 0.0141
+  },
+  {
+   "id": "6581-1-1",
+   "tier": "creator",
+   "parts": 72,
+   "localFrame": 0.6389
+  },
+  {
+   "id": "30285-1",
+   "tier": "advanced",
+   "parts": 73,
+   "localFrame": 1
+  },
+  {
+   "id": "20011-1",
+   "tier": "advanced",
+   "parts": 74,
+   "localFrame": 0.1351
+  },
+  {
+   "id": "31092-1-powerboat",
+   "tier": "creator",
+   "parts": 75,
+   "localFrame": 0
+  },
+  {
+   "id": "41613-1-2",
+   "tier": "advanced",
+   "parts": 77,
+   "localFrame": 0
+  },
+  {
+   "id": "41612-1-1",
+   "tier": "advanced",
+   "parts": 80,
+   "localFrame": 0.0125
+  },
+  {
+   "id": "41612-1-2",
+   "tier": "advanced",
+   "parts": 80,
+   "localFrame": 0.0375
+  },
+  {
+   "id": "6545-1-2",
+   "tier": "creator",
+   "parts": 80,
+   "localFrame": 1
+  },
+  {
+   "id": "6594-1-1",
+   "tier": "creator",
+   "parts": 80,
+   "localFrame": 0
+  },
+  {
+   "id": "31088-1-310881-2",
+   "tier": "advanced",
+   "parts": 80,
+   "localFrame": 0.9875
+  },
+  {
+   "id": "31088-1-whale-1",
+   "tier": "advanced",
+   "parts": 80,
+   "localFrame": 1
+  },
+  {
+   "id": "31088-1-310881-1",
+   "tier": "advanced",
+   "parts": 81,
+   "localFrame": 1
+  },
+  {
+   "id": "1869-1",
+   "tier": "junior",
+   "parts": 82,
+   "localFrame": 0
+  },
+  {
+   "id": "41613-1-1",
+   "tier": "advanced",
+   "parts": 83,
+   "localFrame": 0
+  },
+  {
+   "id": "6346-1-3",
+   "tier": "creator",
+   "parts": 87,
+   "localFrame": 1
+  },
+  {
+   "id": "6350-1-1",
+   "tier": "junior",
+   "parts": 87,
+   "localFrame": 0
+  },
+  {
+   "id": "6562-1-1",
+   "tier": "advanced",
+   "parts": 87,
+   "localFrame": 1
+  },
+  {
+   "id": "20015-1",
+   "tier": "advanced",
+   "parts": 89,
+   "localFrame": 0.382
+  },
+  {
+   "id": "6363-1-1",
+   "tier": "junior",
+   "parts": 93,
+   "localFrame": 0
+  },
+  {
+   "id": "30029-1",
+   "tier": "advanced",
+   "parts": 94,
+   "localFrame": 0.2553
+  },
+  {
+   "id": "6346-1-2",
+   "tier": "creator",
+   "parts": 95,
+   "localFrame": 0.0211
+  },
+  {
+   "id": "6354-1-1",
+   "tier": "creator",
+   "parts": 97,
+   "localFrame": 0.9381
+  },
+  {
+   "id": "6348-1-2",
+   "tier": "creator",
+   "parts": 98,
+   "localFrame": 1
+  },
+  {
+   "id": "41604-1",
+   "tier": "advanced",
+   "parts": 101,
+   "localFrame": 0.1584
+  },
+  {
+   "id": "41605-1",
+   "tier": "advanced",
+   "parts": 105,
+   "localFrame": 0.1714
+  },
+  {
+   "id": "6598-1-2",
+   "tier": "creator",
+   "parts": 106,
+   "localFrame": 1
+  },
+  {
+   "id": "31031-1-fish",
+   "tier": "advanced",
+   "parts": 106,
+   "localFrame": 0.1509
+  },
+  {
+   "id": "31045-1-submarine",
+   "tier": "advanced",
+   "parts": 106,
+   "localFrame": 0.0283
+  },
+  {
+   "id": "41621-1-2",
+   "tier": "advanced",
+   "parts": 107,
+   "localFrame": 0
+  },
+  {
+   "id": "6592-1",
+   "tier": "creator",
+   "parts": 107,
+   "localFrame": 0.0561
+  },
+  {
+   "id": "41601-1",
+   "tier": "advanced",
+   "parts": 108,
+   "localFrame": 0
+  },
+  {
+   "id": "41624-1",
+   "tier": "advanced",
+   "parts": 109,
+   "localFrame": 0.0183
+  },
+  {
+   "id": "40270-1",
+   "tier": "advanced",
+   "parts": 112,
+   "localFrame": 0.2143
+  },
+  {
+   "id": "41606-1",
+   "tier": "advanced",
+   "parts": 113,
+   "localFrame": 0
+  },
+  {
+   "id": "40273-1",
+   "tier": "advanced",
+   "parts": 114,
+   "localFrame": 0.0439
+  },
+  {
+   "id": "41614-1-2",
+   "tier": "advanced",
+   "parts": 114,
+   "localFrame": 0
+  },
+  {
+   "id": "31092-1-310921",
+   "tier": "advanced",
+   "parts": 114,
+   "localFrame": 0.2632
+  },
+  {
+   "id": "41611-1-2",
+   "tier": "advanced",
+   "parts": 117,
+   "localFrame": 0
+  },
+  {
+   "id": "6355-1",
+   "tier": "junior",
+   "parts": 118,
+   "localFrame": 0.0169
+  },
+  {
+   "id": "41602-1",
+   "tier": "advanced",
+   "parts": 119,
+   "localFrame": 0
+  },
+  {
+   "id": "41615-1-1",
+   "tier": "advanced",
+   "parts": 119,
+   "localFrame": 0
+  },
+  {
+   "id": "41614-1-1",
+   "tier": "advanced",
+   "parts": 120,
+   "localFrame": 0
+  },
+  {
+   "id": "41611-1-1",
+   "tier": "advanced",
+   "parts": 122,
+   "localFrame": 0
+  },
+  {
+   "id": "31088-1-anglerfish",
+   "tier": "advanced",
+   "parts": 122,
+   "localFrame": 0.377
+  },
+  {
+   "id": "41616-1",
+   "tier": "advanced",
+   "parts": 124,
+   "localFrame": 0
+  },
+  {
+   "id": "41620-1",
+   "tier": "advanced",
+   "parts": 124,
+   "localFrame": 0
+  },
+  {
+   "id": "40271-1",
+   "tier": "advanced",
+   "parts": 126,
+   "localFrame": 0.119
+  },
+  {
+   "id": "31031-1-chameleon",
+   "tier": "advanced",
+   "parts": 126,
+   "localFrame": 0.2381
+  },
+  {
+   "id": "6362-1",
+   "tier": "creator",
+   "parts": 127,
+   "localFrame": 0.2677
+  },
+  {
+   "id": "41603-1",
+   "tier": "advanced",
+   "parts": 130,
+   "localFrame": 0
+  },
+  {
+   "id": "41617-1",
+   "tier": "advanced",
+   "parts": 130,
+   "localFrame": 0
+  },
+  {
+   "id": "41618-1-1",
+   "tier": "advanced",
+   "parts": 130,
+   "localFrame": 0
+  },
+  {
+   "id": "10214-1",
+   "tier": "creator",
+   "parts": 134,
+   "localFrame": 0
+  },
+  {
+   "id": "41607-1",
+   "tier": "advanced",
+   "parts": 136,
+   "localFrame": 0
+  },
+  {
+   "id": "41621-1-1",
+   "tier": "advanced",
+   "parts": 138,
+   "localFrame": 0
+  },
+  {
+   "id": "31088-1-squid",
+   "tier": "advanced",
+   "parts": 139,
+   "localFrame": 0.6978
+  },
+  {
+   "id": "41608-1",
+   "tier": "advanced",
+   "parts": 141,
+   "localFrame": 0
+  },
+  {
+   "id": "6545-1-1",
+   "tier": "creator",
+   "parts": 141,
+   "localFrame": 0.0071
+  },
+  {
+   "id": "6353-1",
+   "tier": "creator",
+   "parts": 142,
+   "localFrame": 1
+  },
+  {
+   "id": "6352-1",
+   "tier": "creator",
+   "parts": 143,
+   "localFrame": 0.1538
+  },
+  {
+   "id": "31045-1-aircraft",
+   "tier": "creator",
+   "parts": 144,
+   "localFrame": 0
+  },
+  {
+   "id": "6356-1",
+   "tier": "creator",
+   "parts": 146,
+   "localFrame": 0
+  },
+  {
+   "id": "40272-1",
+   "tier": "advanced",
+   "parts": 149,
+   "localFrame": 0.0134
+  },
+  {
+   "id": "41609-1",
+   "tier": "advanced",
+   "parts": 149,
+   "localFrame": 0.0134
+  },
+  {
+   "id": "6331-1",
+   "tier": "creator",
+   "parts": 149,
+   "localFrame": 0.1141
+  },
+  {
+   "id": "6334-1",
+   "tier": "creator",
+   "parts": 149,
+   "localFrame": 0.0805
+  },
+  {
+   "id": "6552-1-1",
+   "tier": "creator",
+   "parts": 153,
+   "localFrame": 0.0261
+  },
+  {
+   "id": "6361-1",
+   "tier": "creator",
+   "parts": 157,
+   "localFrame": 0
+  },
+  {
+   "id": "6351-1",
+   "tier": "creator",
+   "parts": 164,
+   "localFrame": 0.0061
+  },
+  {
+   "id": "40448-1",
+   "tier": "advanced",
+   "parts": 180,
+   "localFrame": 0.0167
+  },
+  {
+   "id": "6348-1-1",
+   "tier": "advanced",
+   "parts": 184,
+   "localFrame": 0.1576
+  },
+  {
+   "id": "10277-1-4",
+   "tier": "creator",
+   "parts": 185,
+   "localFrame": 0
+  },
+  {
+   "id": "6541-1-2",
+   "tier": "creator",
+   "parts": 187,
+   "localFrame": 0
+  },
+  {
+   "id": "10190-1-5",
+   "tier": "creator",
+   "parts": 198,
+   "localFrame": 0.2727
+  },
+  {
+   "id": "31045-1-310451",
+   "tier": "advanced",
+   "parts": 213,
+   "localFrame": 0.0188
+  },
+  {
+   "id": "31031-1-310311",
+   "tier": "advanced",
+   "parts": 215,
+   "localFrame": 0.4093
+  },
+  {
+   "id": "6346-1-1",
+   "tier": "creator",
+   "parts": 217,
+   "localFrame": 0.8341
+  },
+  {
+   "id": "10190-1-4",
+   "tier": "creator",
+   "parts": 247,
+   "localFrame": 0.0931
+  },
+  {
+   "id": "10190-1-3",
+   "tier": "creator",
+   "parts": 261,
+   "localFrame": 0.0345
+  },
+  {
+   "id": "10190-1-2",
+   "tier": "creator",
+   "parts": 265,
+   "localFrame": 0.117
+  },
+  {
+   "id": "10277-1-3",
+   "tier": "creator",
+   "parts": 269,
+   "localFrame": 0.0372
+  },
+  {
+   "id": "10277-1-2",
+   "tier": "advanced",
+   "parts": 272,
+   "localFrame": 0.0368
+  },
+  {
+   "id": "10190-1-1",
+   "tier": "creator",
+   "parts": 297,
+   "localFrame": 0.0976
+  },
+  {
+   "id": "6540-1",
+   "tier": "creator",
+   "parts": 316,
+   "localFrame": 0.2753
+  },
+  {
+   "id": "851-1",
+   "tier": "creator",
+   "parts": 317,
+   "localFrame": 0.1893
+  },
+  {
+   "id": "952-1",
+   "tier": "advanced",
+   "parts": 318,
+   "localFrame": 0.3113
+  },
+  {
+   "id": "6541-1-1",
+   "tier": "creator",
+   "parts": 318,
+   "localFrame": 0.0283
+  },
+  {
+   "id": "10233-1-3",
+   "tier": "creator",
+   "parts": 339,
+   "localFrame": 0.1062
+  },
+  {
+   "id": "6598-1-1",
+   "tier": "creator",
+   "parts": 350,
+   "localFrame": 0.3829
+  },
+  {
+   "id": "10018-1",
+   "tier": "creator",
+   "parts": 353,
+   "localFrame": 0
+  },
+  {
+   "id": "10277-1-1",
+   "tier": "advanced",
+   "parts": 360,
+   "localFrame": 0.0139
+  },
+  {
+   "id": "10019-1-3",
+   "tier": "advanced",
+   "parts": 360,
+   "localFrame": 0.3167
+  },
+  {
+   "id": "6571-1",
+   "tier": "creator",
+   "parts": 401,
+   "localFrame": 0.1546
+  },
+  {
+   "id": "10233-1-2",
+   "tier": "advanced",
+   "parts": 412,
+   "localFrame": 0.0825
+  },
+  {
+   "id": "21311-1-lions-3",
+   "tier": "advanced",
+   "parts": 436,
+   "localFrame": 0
+  },
+  {
+   "id": "10232-1-3",
+   "tier": "advanced",
+   "parts": 450,
+   "localFrame": 0.56
+  },
+  {
+   "id": "21302-1",
+   "tier": "creator",
+   "parts": 452,
+   "localFrame": 0.0531
+  },
+  {
+   "id": "21311-1-lions-2",
+   "tier": "advanced",
+   "parts": 454,
+   "localFrame": 0.0242
+  },
+  {
+   "id": "10224-1-4",
+   "tier": "creator",
+   "parts": 459,
+   "localFrame": 0.0458
+  },
+  {
+   "id": "10185-1-3",
+   "tier": "creator",
+   "parts": 521,
+   "localFrame": 0.1228
+  },
+  {
+   "id": "10224-1-3",
+   "tier": "creator",
+   "parts": 531,
+   "localFrame": 0.0075
+  },
+  {
+   "id": "10182-1-3",
+   "tier": "creator",
+   "parts": 532,
+   "localFrame": 0.0921
+  },
+  {
+   "id": "10246-1-3",
+   "tier": "creator",
+   "parts": 554,
+   "localFrame": 0.056
+  },
+  {
+   "id": "10233-1-1",
+   "tier": "advanced",
+   "parts": 566,
+   "localFrame": 0.0495
+  },
+  {
+   "id": "10019-1-2",
+   "tier": "advanced",
+   "parts": 568,
+   "localFrame": 0.2923
+  },
+  {
+   "id": "10182-1-2",
+   "tier": "creator",
+   "parts": 578,
+   "localFrame": 0.2405
+  },
+  {
+   "id": "10224-1-2",
+   "tier": "creator",
+   "parts": 586,
+   "localFrame": 0.0444
+  },
+  {
+   "id": "10232-1-2",
+   "tier": "creator",
+   "parts": 589,
+   "localFrame": 0.073
+  },
+  {
+   "id": "10185-1-2",
+   "tier": "creator",
+   "parts": 594,
+   "localFrame": 0.0892
+  },
+  {
+   "id": "10246-1-2",
+   "tier": "creator",
+   "parts": 616,
+   "localFrame": 0.0568
+  },
+  {
+   "id": "10124-1",
+   "tier": "advanced",
+   "parts": 667,
+   "localFrame": 0.3073
+  },
+  {
+   "id": "21303-1",
+   "tier": "advanced",
+   "parts": 678,
+   "localFrame": 0.441
+  },
+  {
+   "id": "7181-1",
+   "tier": "advanced",
+   "parts": 694,
+   "localFrame": 0.951
+  },
+  {
+   "id": "10297-1-3",
+   "tier": "advanced",
+   "parts": 737,
+   "localFrame": 0.2985
+  },
+  {
+   "id": "21307-1",
+   "tier": "advanced",
+   "parts": 768,
+   "localFrame": 1
+  },
+  {
+   "id": "6597-1",
+   "tier": "advanced",
+   "parts": 801,
+   "localFrame": 0.3683
+  },
+  {
+   "id": "10278-1-3",
+   "tier": "advanced",
+   "parts": 814,
+   "localFrame": 0.0467
+  },
+  {
+   "id": "10019-1-1",
+   "tier": "advanced",
+   "parts": 820,
+   "localFrame": 0.0488
+  },
+  {
+   "id": "10258-1-2",
+   "tier": "advanced",
+   "parts": 837,
+   "localFrame": 0.1278
+  },
+  {
+   "id": "10258-1-1",
+   "tier": "advanced",
+   "parts": 845,
+   "localFrame": 0.1266
+  },
+  {
+   "id": "21311-1-lions-1",
+   "tier": "advanced",
+   "parts": 852,
+   "localFrame": 0.2289
+  },
+  {
+   "id": "10278-1-2",
+   "tier": "advanced",
+   "parts": 853,
+   "localFrame": 0.0469
+  },
+  {
+   "id": "21321-1",
+   "tier": "advanced",
+   "parts": 860,
+   "localFrame": 0.4395
+  },
+  {
+   "id": "10226-1",
+   "tier": "advanced",
+   "parts": 864,
+   "localFrame": 0.1644
+  },
+  {
+   "id": "10182-1-1",
+   "tier": "advanced",
+   "parts": 931,
+   "localFrame": 0.2084
+  },
+  {
+   "id": "10271-1",
+   "tier": "advanced",
+   "parts": 942,
+   "localFrame": 0.2994
+  },
+  {
+   "id": "10185-1-1",
+   "tier": "advanced",
+   "parts": 947,
+   "localFrame": 0.0644
+  },
+  {
+   "id": "6542-1",
+   "tier": "advanced",
+   "parts": 950,
+   "localFrame": 0.0642
+  },
+  {
+   "id": "10218-1-2",
+   "tier": "advanced",
+   "parts": 960,
+   "localFrame": 0.1229
+  },
+  {
+   "id": "10297-1-2",
+   "tier": "advanced",
+   "parts": 996,
+   "localFrame": 0.3845
+  },
+  {
+   "id": "10232-1-1",
+   "tier": "advanced",
+   "parts": 1018,
+   "localFrame": 0.3114
+  },
+  {
+   "id": "10269-1",
+   "tier": "advanced",
+   "parts": 1029,
+   "localFrame": 0.6239
+  },
+  {
+   "id": "10194-1",
+   "tier": "advanced",
+   "parts": 1032,
+   "localFrame": 0.0368
+  },
+  {
+   "id": "21319-1",
+   "tier": "advanced",
+   "parts": 1037,
+   "localFrame": 0.4041
+  },
+  {
+   "id": "10174-1",
+   "tier": "advanced",
+   "parts": 1043,
+   "localFrame": 0.8888
+  },
+  {
+   "id": "10246-1-1",
+   "tier": "advanced",
+   "parts": 1053,
+   "localFrame": 0.0427
+  },
+  {
+   "id": "10218-1-1",
+   "tier": "advanced",
+   "parts": 1055,
+   "localFrame": 0.0417
+  },
+  {
+   "id": "10242-1",
+   "tier": "advanced",
+   "parts": 1076,
+   "localFrame": 0.1896
+  },
+  {
+   "id": "10298-1",
+   "tier": "advanced",
+   "parts": 1103,
+   "localFrame": 1
+  },
+  {
+   "id": "10252-1",
+   "tier": "advanced",
+   "parts": 1154,
+   "localFrame": 0.2158
+  },
+  {
+   "id": "10359-1",
+   "tier": "advanced",
+   "parts": 1177,
+   "localFrame": 0.1351
+  },
+  {
+   "id": "10295-1-911turbo",
+   "tier": "advanced",
+   "parts": 1183,
+   "localFrame": 0.2164
+  },
+  {
+   "id": "10175-1",
+   "tier": "advanced",
+   "parts": 1197,
+   "localFrame": 0.4194
+  },
+  {
+   "id": "10224-1-1",
+   "tier": "advanced",
+   "parts": 1222,
+   "localFrame": 0.1457
+  },
+  {
+   "id": "10278-1-1",
+   "tier": "advanced",
+   "parts": 1224,
+   "localFrame": 0.0645
+  },
+  {
+   "id": "10295-1-102951",
+   "tier": "advanced",
+   "parts": 1277,
+   "localFrame": 0.2616
+  },
+  {
+   "id": "10297-1-1",
+   "tier": "advanced",
+   "parts": 1279,
+   "localFrame": 0.326
+  },
+  {
+   "id": "10262-1",
+   "tier": "advanced",
+   "parts": 1290,
+   "localFrame": 0.0915
+  },
+  {
+   "id": "7191-1",
+   "tier": "advanced",
+   "parts": 1298,
+   "localFrame": 0.9738
+  },
+  {
+   "id": "10315-1",
+   "tier": "advanced",
+   "parts": 1314,
+   "localFrame": 0.3889
+  },
+  {
+   "id": "10220-1",
+   "tier": "advanced",
+   "parts": 1335,
+   "localFrame": 0.0689
+  },
+  {
+   "id": "10265-1-102651",
+   "tier": "advanced",
+   "parts": 1346,
+   "localFrame": 0.1947
+  },
+  {
+   "id": "10265-1-bmodel",
+   "tier": "advanced",
+   "parts": 1438,
+   "localFrame": 1
+  },
+  {
+   "id": "10129-1",
+   "tier": "advanced",
+   "parts": 1452,
+   "localFrame": 0.9731
+  },
+  {
+   "id": "10227-1",
+   "tier": "advanced",
+   "parts": 1484,
+   "localFrame": 0.9589
+  },
+  {
+   "id": "10134-1",
+   "tier": "advanced",
+   "parts": 1493,
+   "localFrame": 0.9739
+  },
+  {
+   "id": "10241-1",
+   "tier": "expert",
+   "parts": 1512,
+   "localFrame": 0.0311
+  },
+  {
+   "id": "10240-1",
+   "tier": "expert",
+   "parts": 1549,
+   "localFrame": 0.5991
+  },
+  {
+   "id": "75144-1",
+   "tier": "expert",
+   "parts": 1689,
+   "localFrame": 0.537
+  },
+  {
+   "id": "75181-1",
+   "tier": "expert",
+   "parts": 1914,
+   "localFrame": 0.9603
+  },
+  {
+   "id": "75060-1",
+   "tier": "expert",
+   "parts": 1995,
+   "localFrame": 0.9719
+  },
+  {
+   "id": "21325-1",
+   "tier": "expert",
+   "parts": 2124,
+   "localFrame": 0.2533
+  },
+  {
+   "id": "10197-1",
+   "tier": "expert",
+   "parts": 2256,
+   "localFrame": 0.0984
+  },
+  {
+   "id": "21311-1-213111",
+   "tier": "expert",
+   "parts": 2317,
+   "localFrame": 0.6569
+  },
+  {
+   "id": "10251-1",
+   "tier": "expert",
+   "parts": 2351,
+   "localFrame": 0.0672
+  },
+  {
+   "id": "10264-1",
+   "tier": "expert",
+   "parts": 2355,
+   "localFrame": 0.3134
+  },
+  {
+   "id": "10270-1",
+   "tier": "expert",
+   "parts": 2455,
+   "localFrame": 0.1145
+  },
+  {
+   "id": "10243-1",
+   "tier": "expert",
+   "parts": 2477,
+   "localFrame": 0.1425
+  },
+  {
+   "id": "21318-1-213181",
+   "tier": "expert",
+   "parts": 2886,
+   "localFrame": 0.4785
+  },
+  {
+   "id": "21318-1-autumn",
+   "tier": "expert",
+   "parts": 2886,
+   "localFrame": 0.4785
+  },
+  {
+   "id": "10030-1",
+   "tier": "expert",
+   "parts": 3009,
+   "localFrame": 0.8451
+  },
+  {
+   "id": "10143-1",
+   "tier": "expert",
+   "parts": 3233,
+   "localFrame": 0.5067
+  },
+  {
+   "id": "21323-1",
+   "tier": "expert",
+   "parts": 3514,
+   "localFrame": 0.1098
+  },
+  {
+   "id": "10253-1",
+   "tier": "master",
+   "parts": 4162,
+   "localFrame": 0.0793
+  },
+  {
+   "id": "10261-1",
+   "tier": "master",
+   "parts": 4203,
+   "localFrame": 0.2079
+  },
+  {
+   "id": "10179-1",
+   "tier": "master",
+   "parts": 5194,
+   "localFrame": 0.4659
+  },
+  {
+   "id": "10256-1",
+   "tier": "master",
+   "parts": 5962,
+   "localFrame": 0.1221
+  },
+  {
+   "id": "10276-1",
+   "tier": "master",
+   "parts": 9060,
+   "localFrame": 0.7281
+  },
+  {
+   "id": "30190-1",
+   "tier": "junior",
+   "parts": 32,
+   "localFrame": 0.0625
+  },
+  {
+   "id": "7452-1",
+   "tier": "junior",
+   "parts": 34,
+   "localFrame": 0
+  },
+  {
+   "id": "6604-1",
+   "tier": "advanced",
+   "parts": 37,
+   "localFrame": 1
+  },
+  {
+   "id": "8123-1-2",
+   "tier": "creator",
+   "parts": 41,
+   "localFrame": 0
+  },
+  {
+   "id": "8123-1-3",
+   "tier": "creator",
+   "parts": 41,
+   "localFrame": 0
+  },
+  {
+   "id": "6743-1-speedcar",
+   "tier": "creator",
+   "parts": 130,
+   "localFrame": 0.0231
+  },
+  {
+   "id": "4939-1-formula1",
+   "tier": "creator",
+   "parts": 131,
+   "localFrame": 0.0534
+  },
+  {
+   "id": "392-1",
+   "tier": "creator",
+   "parts": 194,
+   "localFrame": 0
+  },
+  {
+   "id": "5540-1-55401",
+   "tier": "creator",
+   "parts": 429,
+   "localFrame": 0.1026
+  },
+  {
+   "id": "7221-1-robot2",
+   "tier": "creator",
+   "parts": 23,
+   "localFrame": 0.3478
+  },
+  {
+   "id": "7221-1-72211",
+   "tier": "advanced",
+   "parts": 25,
+   "localFrame": 0.48
+  },
+  {
+   "id": "7910-1",
+   "tier": "advanced",
+   "parts": 25,
+   "localFrame": 0.24
+  },
+  {
+   "id": "1969-1",
+   "tier": "advanced",
+   "parts": 33,
+   "localFrame": 0.1212
+  },
+  {
+   "id": "41502-1",
+   "tier": "advanced",
+   "parts": 46,
+   "localFrame": 0.1522
+  },
+  {
+   "id": "41504-1",
+   "tier": "advanced",
+   "parts": 50,
+   "localFrame": 0.22
+  },
+  {
+   "id": "41505-1",
+   "tier": "advanced",
+   "parts": 51,
+   "localFrame": 0.1176
+  },
+  {
+   "id": "41500-1",
+   "tier": "advanced",
+   "parts": 58,
+   "localFrame": 0.6552
+  },
+  {
+   "id": "41503-1",
+   "tier": "advanced",
+   "parts": 67,
+   "localFrame": 0.7313
+  },
+  {
+   "id": "41501-1",
+   "tier": "advanced",
+   "parts": 69,
+   "localFrame": 0.5507
+  },
+  {
+   "id": "41512-1",
+   "tier": "advanced",
+   "parts": 69,
+   "localFrame": 0.1014
+  },
+  {
+   "id": "4917-1-49171",
+   "tier": "advanced",
+   "parts": 77,
+   "localFrame": 0.3896
+  },
+  {
+   "id": "4917-1-pliers",
+   "tier": "advanced",
+   "parts": 78,
+   "localFrame": 0.6154
+  },
+  {
+   "id": "6889-1",
+   "tier": "advanced",
+   "parts": 130,
+   "localFrame": 0.4615
+  },
+  {
+   "id": "5764-1",
+   "tier": "creator",
+   "parts": 151,
+   "localFrame": 0
+  },
+  {
+   "id": "6949-1",
+   "tier": "advanced",
+   "parts": 341,
+   "localFrame": 0.4692
+  },
+  {
+   "id": "70814-1",
+   "tier": "advanced",
+   "parts": 695,
+   "localFrame": 0.3453
+  },
+  {
+   "id": "897-1-2",
+   "tier": "advanced",
+   "parts": 35,
+   "localFrame": 0
+  },
+  {
+   "id": "358-1-2",
+   "tier": "junior",
+   "parts": 91,
+   "localFrame": 0.2967
+  },
+  {
+   "id": "6544-1-2",
+   "tier": "advanced",
+   "parts": 122,
+   "localFrame": 0.0492
+  },
+  {
+   "id": "40335-1",
+   "tier": "advanced",
+   "parts": 150,
+   "localFrame": 0.5533
+  },
+  {
+   "id": "6339-1-2",
+   "tier": "advanced",
+   "parts": 190,
+   "localFrame": 0.0526
+  },
+  {
+   "id": "1682-1-2",
+   "tier": "advanced",
+   "parts": 200,
+   "localFrame": 0.05
+  },
+  {
+   "id": "31066-1-shuttle",
+   "tier": "advanced",
+   "parts": 272,
+   "localFrame": 0.3015
+  },
+  {
+   "id": "10213-1",
+   "tier": "advanced",
+   "parts": 1196,
+   "localFrame": 0.1237
+  },
+  {
+   "id": "21309-1",
+   "tier": "expert",
+   "parts": 1845,
+   "localFrame": 0.3902
+  },
+  {
+   "id": "10283-1",
+   "tier": "expert",
+   "parts": 2302,
+   "localFrame": 0.9422
+  }
+ ]
+}

@@ -54,11 +54,38 @@ The tilted parts aren't noise: deviation from the nearest axis has median 0.29 a
 
 So Phase 2 can reach at most about 12 % of kept parts by generating poses, and about 9 % more by ordering. The other 28 % need frames, not forms. This is the scope.
 
+## What keep() leaves out, by volume
+
+`scripts/corpus-poses.mjs`, all non-Technic corpus models. The target is the designer's *whole* model, so the volume of parts the sculptor can never use has to be filled with others, small ones.
+
+| level | oversize (> 8 × 8 × 9), parts / volume | not structure, parts / volume | total excluded volume |
+|---|---|---|---|
+| Junior | 2.1 % / **7.5 %** | 5.2 % / 11.6 % | 19.5 % |
+| Creator | 3.8 % / **15.9 %** | 6.6 % / 11.0 % | 27.4 % |
+| Advanced | 3.7 % / 15.8 % | 12.1 % / 12.4 % | 29.4 % |
+| Expert | 4.8 % / **21.6 %** | 14.4 % / 11.5 % | 33.3 % |
+| Master | 2.6 % / 13.1 % | 9.5 % / 15.4 % | 28.5 % |
+
+What it is, by share of all volume:
+- Junior: baseplates 8.0 % (24×32, 16×16, 8×16); plain plates longer than 8 studs 5.2 % (4×10, 6×12, 8×16, 6×10, 1×10); Brick 2×10 0.5 %; Wing 4×9 0.5 %.
+- Creator: platforms and baseplates 4.9 %; plain plates and bricks longer than 8 about 7 % (16×16, 8×16, 6×10, 1×10, 2×10, 2×12, 6×12, 2×16).
+
+The oversize cut takes out **plain plates and bricks just for being longer than 8**. Letting them in is a `keep()` change, the cheapest item here, and the one most likely to help where we overspend pieces worst. It goes first, measured alone.
+
+Baseplates are a different matter. They're the ground the designer built on, yet the target includes them, so the sculptor has to tile a 24×32 baseplate's volume with plates. Fixing that changes what the benchmark asks, which makes it a metric change. **Recorded for PARITY v3, not done in Phase 2.**
+
 ## Phase 2 plan (vocabulary first)
 
-1. **Generated poses.** For every structure part in the table, its sideways turns (studs to ±x, ±z: 4 turns × 4 yaws, distinct ones), upside down, and half-stud offsets, voxelised from its scanned shape like `gridForms` does. Prior: use 0, or the use of the same part's learned forms, spread over its poses (to be decided by measurement).
-2. **Side anchors.** The generator anchors forms only from their bottom unit. A sideways form also anchors from a side unit when the target's surface normal there is horizontal. This is also the cause behind Phase 0's unconnected pieces: parts inside the shape that touch neighbours only sideways (20 per model on core8, up to 590 on Expert). The goal is to raise held without touching HOLD or FLOAT.
-3. **Ordering.** Forms tried per level, or per region, instead of the global top 1,500.
+In order of cost, each measured alone through the gate:
+
+0. **keep(): plain plates, bricks and tiles longer than 8 studs.** Raise the size limit for plain parts only; everything else keeps its policy. Expected: fewer pieces, Junior first.
+1. **Order forms per level** (a, 8.7 %): each level tries its own most used forms first, instead of the global top 1,500, where big parts sink below rank 1,500 because all levels are counted together. Almost free.
+2. **Sideways poses (SNOT), with side anchors**, the largest part of (b1), 7.5 %:
+   - generate the sideways turns of structure parts from their scanned shapes;
+   - anchor them from a side unit, but only where the target's surface normal (from its SDF) is horizontal, not at every unit;
+   - runtime measured every time;
+   - pass criterion: unconnected pieces and held improve with HOLD and FLOAT untouched.
+3. **Last, if at all:** upside down (0.8 %) and half-stud offsets (1.7 %). Half-stud offsets change the anchor unit for the whole system, which costs more than 1.7 % is worth.
 4. Then the surface terms (normal, curvature, visibility-weighted finish). Fitted only by outcome (the tuner), never by imitation.
 
 ## Measurement changes made first
@@ -73,5 +100,6 @@ So Phase 2 can reach at most about 12 % of kept parts by generating poses, and a
 
 ## Open
 
-- A baseline rerun with PARITY_v2 is needed before the first gate. The builds must keep their hashes.
+- A baseline rerun with PARITY_v2 is needed before the first gate. The builds must keep their hashes (Node changed from 24.15.0 to 24.22.1 on 2026-10-29: hashes to be checked on the new version). **PARITY_v2 is frozen from that run until Phase 2 ends;** metric faults found meanwhile are recorded for v3 (the baseplate in the target is the first).
+- The gate also reports models with local-frame share < 10 % (12 of the 19) apart from the rest (7), so Phase 2 isn't judged on parts it can't reach (docs/engine/phase5.md).
 - If tuning resumes: random search or CMA-ES over all 9 constants, with a validation set separate from both the tuning set and every bench set. The same goes for the lookahead and surface terms.

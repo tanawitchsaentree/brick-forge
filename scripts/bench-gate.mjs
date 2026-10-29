@@ -34,6 +34,19 @@ for (const m of base) {
 const drops = Object.entries(levels).map(([k, L]) => ({ level: k, n: L.n, base: +(L.base / L.n).toFixed(4), cand: +(L.cand / L.n).toFixed(4), delta: +((L.cand - L.base) / L.n).toFixed(4) }));
 const mean = (xs) => +(xs.reduce((s, m) => s + m[o.METRIC], 0) / xs.length).toFixed(4);
 const pass = wins >= o.WINS && drops.every((d) => d.delta >= -o.DROP);
+// Split by how much of the designer's model needs a local frame (tilted or turned
+// off the quarter, scripts/corpus-poses.mjs): Phase 2 can't reach those parts, so
+// it's reported apart on models where they're under 10 % and on the rest.
+const lfPath = path.join(ROOT, "bench/results/local-frame.json");
+if (fs.existsSync(lfPath)) {
+  const lf = new Map(JSON.parse(fs.readFileSync(lfPath, "utf8")).perModel.map((m) => [m.id, m.localFrame]));
+  for (const [name, test] of [["local frame < 10 %", (v) => v < 0.1], ["local frame ≥ 10 %", (v) => v >= 0.1]]) {
+    const ids = base.filter((m) => test(lf.get(m.id) ?? 0));
+    if (!ids.length) continue;
+    const w = ids.filter((m) => byId.get(m.id)[o.METRIC] - m[o.METRIC] > o.EPS).length;
+    console.log(`${name.padEnd(20)} n ${ids.length}: ${mean(ids)} → ${mean(ids.map((m) => byId.get(m.id)))}, wins ${w}`);
+  }
+}
 console.log(lines.join("\n"));
 console.log(drops.map((d) => `${d.level.padEnd(9)} n ${d.n}  ${d.base} → ${d.cand}  (${d.delta >= 0 ? "+" : ""}${d.delta})`).join("\n"));
 console.log(`${o.METRIC}: mean ${mean(base)} → ${mean(cand)} | wins ${wins}, losses ${losses}, ties ${ties} of ${base.length} | gate (≥ ${o.WINS} wins, no level −${o.DROP}): ${pass ? "PASS" : "FAIL"}`);
