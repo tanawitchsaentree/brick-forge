@@ -5,6 +5,7 @@ import { components, connections, studsOf } from "./connect";
 import { apply, mul, partMatrix, translate, type Mat4 } from "./pose";
 import { PLATE_H } from "./units";
 import { toGrid } from "./ldrawImport";
+import { CATEGORIES, categoryOf } from "./category";
 
 // The sculptor: builds a target solid out of real parts, choosing each part by
 // how well its measured shape fits the target there (engine/shape.ts).
@@ -171,6 +172,15 @@ function formOfMany(list: PlacedBrick[]) {
   };
 }
 
+/** A single-part form's identity, as formOf's `sig` writes it (to find a designer's part among the forms). */
+export function sigOf(f: Form) {
+  const units = [...f.units].sort((a, b) => a.dy - b.dy || a.dz - b.dz || a.dx - b.dx);
+  return `${f.partId}|${units.map((u) => `${u.dx},${u.dy},${u.dz}:${u.mask}`).join(";")}`;
+}
+
+/** A placed part's form identity (null if it fills no cells). */
+export const formSigOf = (b: PlacedBrick) => formOf(b)?.sig ?? null;
+
 /** Upright grid forms of a part (its distinct quarter turns). */
 export function gridForms(partId: string, use = 0): Form[] {
   const out = new Map<string, Form>();
@@ -293,8 +303,69 @@ export function learnMotifs(models: PlacedBrick[][], links: { a: number; b: numb
   return [...motifs.values()].filter((m) => m.use >= minUse);
 }
 
+/**
+ * The terms of a placement's score, kept apart so their weights can be learned
+ * from designers (docs/engine/phase1.md). With the constants below as weights
+ * and the gates on, the score is exactly the hand-tuned one.
+ *
+ *   cover, air      target cells it fills / cells it fills that should be empty
+ *   studOk, studBad its studs left showing where the target shows studs / on a smooth surface
+ *   pieces          parts it is (1 + a motif's extra parts)
+ *   engaged         min(4, studs engaged with placed parts, either way)
+ *   float           1 if nothing holds it and it isn't on the bottom layer
+ *   logUse          log(1 + times designers used this form)
+ *   repeat          1 if stacked exactly on an identical copy of itself
+ *   belowMinCover   1 if cover < MIN_COVER (the old gate, as a feature)
+ *   fitNonPos       1 if cover − AIR·air ≤ 0 (the other old gate)
+ *   size            cells of the form
+ *   cat_*           one-hot of the part's category (engine/category.ts)
+ */
+export const FEATURES = ["cover", "air", "studOk", "studBad", "pieces", "engaged", "float", "logUse", "repeat", "belowMinCover", "fitNonPos", "size", ...CATEGORIES.map((c) => `cat_${c}`)] as const;
+export type Feature = (typeof FEATURES)[number];
+export interface Weights {
+  version?: string;
+  gamma: number;
+  /** Keep the old hard gates (fit > 0, cover ≥ MIN_COVER). Off: they are only features. */
+  gates: boolean;
+  weights: Partial<Record<Feature, number>>;
+}
+/** The hand-tuned score as weights: the regression reference (same builds, voxel for voxel). */
+export function constantWeights(o: { AIR?: number; PIECE?: number; HOLD?: number; FLOAT?: number; PRIOR?: number; GAMMA?: number; STUD_OK?: number; STUD_BAD?: number; REPEAT?: number } = {}): Weights {
+  return {
+    version: "constants",
+    gamma: o.GAMMA ?? 0.7,
+    gates: true,
+    weights: { cover: 1, air: -(o.AIR ?? 3), studOk: o.STUD_OK ?? 0, studBad: -(o.STUD_BAD ?? 40), pieces: -(o.PIECE ?? 60), engaged: o.HOLD ?? 2, float: -(o.FLOAT ?? 300), logUse: o.PRIOR ?? 3, repeat: -(o.REPEAT ?? 25) },
+  };
+}
+
+/** One designer decision, replayed (`SculptOptions.REPLAY`). Candidate 0 is the designer's. */
+export interface Decision {
+  brick: number;
+  partId: string;
+  /** Its form is among the forms tried (the MAX_FORMS most used of the table). */
+  known: boolean;
+  /** It overlaps parts already placed (voxelised designer parts can touch). */
+  overlap: boolean;
+  /** Which old gates would drop it. */
+  gate?: { fitNonPos: boolean; belowMinCover: boolean };
+  /** Candidates the current score ranks above the designer's (ties count against it), out of how many. */
+  better?: number;
+  candidates?: number;
+  feats?: number[][];
+  cover?: number[];
+}
+
 export interface SculptOptions {
   forms: Form[];
+  /** Score with these weights (learned, or constantWeights() for the reference) instead of the constants. */
+  WEIGHTS?: Weights;
+  /**
+   * Replay a designer's build instead of sculpting: parts in layer order (then
+   * step), and at each one sampled, the designer's form and the candidates at
+   * its anchor (top K by the current score, plus R feasible ones at random).
+   */
+  REPLAY?: { bricks: PlacedBrick[]; K: number; R: number; seed: number; sample: (i: number) => boolean; keep: (id: string) => boolean; emit: (d: Decision) => void };
   /** Parts already in place (kept from a parent design): built around, and part of the result. */
   fixed?: PlacedBrick[];
   AIR?: number;
@@ -407,19 +478,17 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   const placedAt: { fi: number; x: number; y: number; z: number; at: number[]; alive: boolean }[] = [];
 
   let nEval = 0, nBest = 0;
-  const evaluate = (fi: number, ox: number, oy: number, oz: number, why?: Why) => {
-    nEval++;
+  // The raw terms of a placement (no gates, no weights), or null if it overlaps a placed part.
+  type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean };
+  const terms = (fi: number, ox: number, oy: number, oz: number): Terms | null => {
     const f = forms[fi];
-    let fit = 0, engaged = 0, cover = 0, air = 0, same = 0, bottom = 0;
+    let engaged = 0, cover = 0, air = 0, same = 0, bottom = 0;
     for (const u of f.units) {
       const x = ox + u.dx, y = oy + u.dy, z = oz + u.dz;
       const t = wantG.get(x, y, z), have = taken.get(x, y, z);
       if (have & u.mask) return null; // overlaps a placed part
-      const c = popcount(u.mask & t & ~have);
-      const a = popcount(u.mask & ~t);
-      cover += c;
-      air += a;
-      fit += c - AIR * a;
+      cover += popcount(u.mask & t & ~have);
+      air += popcount(u.mask & ~t);
       engaged += popcount(u.mask & probed.get(x, y, z)); // placed studs into it
       if (u.dy === 0) {
         bottom++;
@@ -428,22 +497,65 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
         if (p && forms[p.fi].partId === f.partId && p.x === ox && p.z === oz && forms[p.fi].units.length === f.units.length) same++;
       }
     }
-    if (fit <= 0 || cover < MIN_COVER) return null;
-    // The same part stacked exactly on itself: two plates where one brick or a different part would do.
-    const repeat = bottom > 0 && same === bottom;
-    let finish = 0;
+    let ok = 0, bad = 0;
     for (const p of f.probes) {
       if (taken.get(ox + p.dx, oy + p.dy, oz + p.dz) & (1 << p.bit)) engaged++; // its studs into placed parts
       // A stud left in the open: right where the target shows studs, wrong on a smooth surface.
       const cell = vkey(ox * UX + p.cx, oy * UY + p.cy, oz * UZ + p.cz);
-      if (studs && !target.cells.has(cell)) finish += studs.has(cell) ? STUD_OK : -STUD_BAD;
+      if (studs && !target.cells.has(cell)) studs.has(cell) ? ok++ : bad++;
     }
-    const grounded = oy === y0;
-    const gain = fit + finish - PIECE * (1 + (f.extra?.length ?? 0)) + HOLD * Math.min(4, engaged) - (engaged || grounded ? 0 : FLOAT) + prior[fi] - (repeat ? REPEAT : 0);
-    // Ranked per cell covered (set-cover greedy): one part that fits well beats
-    // several precise small ones, each of which costs a piece.
-    const rank = gain / cover ** GAMMA;
-    if (why) Object.assign(why, { role: "structure", cover, air, finish, engaged, prior: prior[fi], repeat, rank });
+    // The same part stacked exactly on itself: two plates where one brick or a different part would do.
+    return { cover, air, ok, bad, engaged, repeat: bottom > 0 && same === bottom, grounded: oy === y0 };
+  };
+  // Per form, computed once (and for forms a replay adds).
+  const formSize: number[] = [], formCat: number[] = [];
+  const formInfo = (fi: number) => {
+    if (formSize[fi] === undefined) {
+      formSize[fi] = forms[fi].units.reduce((a, u) => a + popcount(u.mask), 0);
+      formCat[fi] = CATEGORIES.indexOf(categoryOf(forms[fi].partId));
+    }
+  };
+  /** The feature vector of a placement, in FEATURES order. */
+  const featsOf = (fi: number, t: Terms) => {
+    formInfo(fi);
+    const v = [t.cover, t.air, t.ok, t.bad, 1 + (forms[fi].extra?.length ?? 0), Math.min(4, t.engaged), t.engaged || t.grounded ? 0 : 1, Math.log1p(forms[fi].use), t.repeat ? 1 : 0, t.cover < MIN_COVER ? 1 : 0, t.cover - AIR * t.air <= 0 ? 1 : 0, formSize[fi]];
+    for (let c = 0; c < CATEGORIES.length; c++) v.push(formCat[fi] === c ? 1 : 0);
+    return v;
+  };
+  const W = opts.WEIGHTS;
+  const wv = W ? FEATURES.map((n) => W.weights[n] ?? 0) : [];
+  const iLog = FEATURES.indexOf("logUse"), iRep = FEATURES.indexOf("repeat");
+  /** The score of a placement from its terms: the hand-tuned one, or weighted features. Null if a gate drops it. */
+  const score = (fi: number, t: Terms) => {
+    const f = forms[fi];
+    if (!W) {
+      const fit = t.cover - AIR * t.air;
+      if (fit <= 0 || t.cover < MIN_COVER) return null;
+      const finish = t.ok * STUD_OK - t.bad * STUD_BAD;
+      const gain = fit + finish - PIECE * (1 + (f.extra?.length ?? 0)) + HOLD * Math.min(4, t.engaged) - (t.engaged || t.grounded ? 0 : FLOAT) + prior[fi] - (t.repeat ? REPEAT : 0);
+      // Ranked per cell covered (set-cover greedy): one part that fits well beats
+      // several precise small ones, each of which costs a piece.
+      return gain / t.cover ** GAMMA;
+    }
+    if (W.gates ? t.cover + (W.weights.air ?? 0) * t.air <= 0 || t.cover < MIN_COVER : t.cover <= 0) return null;
+    const v = featsOf(fi, t);
+    // Integer terms first, then the prior, then the repeat term, then the rest: in
+    // this order constantWeights() gives the hand-tuned score bit for bit.
+    let gain = 0;
+    for (let i = 0; i < v.length; i++) if (i !== iLog && i !== iRep && i < 9) gain += wv[i] * v[i];
+    gain += wv[iLog] * v[iLog];
+    gain += wv[iRep] * v[iRep];
+    for (let i = 9; i < v.length; i++) gain += wv[i] * v[i];
+    return gain / t.cover ** W.gamma;
+  };
+  const evaluate = (fi: number, ox: number, oy: number, oz: number, why?: Why) => {
+    nEval++;
+    const t = terms(fi, ox, oy, oz);
+    if (!t) return null;
+    const rank = score(fi, t);
+    if (rank === null) return null;
+    const finish = t.ok * STUD_OK - t.bad * STUD_BAD;
+    if (why) Object.assign(why, { role: "structure", cover: t.cover, air: t.air, finish, engaged: t.engaged, prior: prior[fi], repeat: t.repeat, rank });
     return rank;
   };
 
@@ -541,6 +653,80 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
     return cover - AIR * air + finish - PIECE * (1 + (f.extra?.length ?? 0)) + HOLD * Math.min(4, engaged) - (held ? 0 : FLOAT) + prior[r.fi];
   };
 
+  /**
+   * A designer's build, replayed through this sculptor's own state (Phase 1,
+   * docs/engine/phase1.md): parts in layer order, then step, then file order.
+   * At each sampled part, its form at its own position and every candidate at
+   * the same anchor that this sculptor would consider: the top K by the current
+   * score are the negatives, plus R feasible ones at random. Then the designer's
+   * part is put in place, so the next decision sees the designer's build so far.
+   */
+  const replay = (R: NonNullable<SculptOptions["REPLAY"]>) => {
+    const rr = mulberry(R.seed);
+    const table = forms.length; // candidates come from the table, not from parts the replay adds
+    const index = new Map<string, number>();
+    forms.forEach((f, i) => !f.extra && !index.has(sigOf(f)) && index.set(sigOf(f), i));
+    const order = R.bricks
+      .map((b, i) => ({ b, i, f: formOf(b) }))
+      .filter((o): o is { b: PlacedBrick; i: number; f: NonNullable<ReturnType<typeof formOf>> } => !!o.f)
+      .sort((p, q) => p.f.origin[1] - q.f.origin[1] || (p.b.step ?? 0) - (q.b.step ?? 0) || p.i - q.i);
+    for (const { b, i, f: fd } of order) {
+      const [ox, oy, oz] = fd.origin;
+      let fi = index.get(fd.sig) ?? -1;
+      const known = fi >= 0;
+      if (!known) {
+        forms.push({ partId: b.partId, units: fd.units, probes: fd.probes, use: 0 });
+        prior.push(PRIOR * Math.log1p(0));
+        bottoms.push(fd.units.filter((u) => u.dy === 0));
+        fi = forms.length - 1;
+      }
+      if (R.keep(b.partId) && R.sample(i)) {
+        const t = terms(fi, ox, oy, oz);
+        const d: Decision = { brick: i, partId: b.partId, known, overlap: !t };
+        if (t) {
+          d.gate = { fitNonPos: t.cover - AIR * t.air <= 0, belowMinCover: t.cover < MIN_COVER };
+          const u0 = fd.units.find((u) => u.dy === 0)!;
+          const ax = ox + u0.dx, az = oz + u0.dz;
+          const here = taken.get(ax, oy, az);
+          const open = (wantG.get(ax, oy, az) & ~here) >>> 0;
+          const cands: { fi: number; t: Terms; s: number | null }[] = [];
+          for (let c = 0; c < table; c++)
+            for (const u of bottoms[c]) {
+              if (!(u.mask & open) || u.mask & here) continue;
+              const x = ax - u.dx, z = az - u.dz;
+              if (c === fi && x === ox && z === oz) continue; // the designer's own
+              const tc = terms(c, x, oy, z);
+              if (!tc || tc.cover <= 0) continue;
+              cands.push({ fi: c, t: tc, s: score(c, tc) });
+            }
+          const ds = t.cover > 0 ? score(fi, t) : null;
+          d.candidates = cands.length;
+          d.better = cands.filter((c) => c.s !== null && (ds === null || c.s >= ds)).length;
+          // Negatives: the K best by the current score, then R more at random from the rest (gated ones included).
+          const ranked = cands.filter((c) => c.s !== null).sort((p, q) => q.s! - p.s! || p.fi - q.fi);
+          const top = ranked.slice(0, R.K);
+          const rest = cands.filter((c) => !top.includes(c));
+          const extra: typeof cands = [];
+          for (let k = 0; k < R.R && rest.length; k++) extra.push(rest.splice(Math.floor(rr() * rest.length), 1)[0]);
+          if (t.cover > 0) {
+            const all = [{ fi, t }, ...top, ...extra];
+            d.feats = all.map((c) => featsOf(c.fi, c.t));
+            d.cover = all.map((c) => c.t.cover);
+          }
+        }
+        R.emit(d);
+      }
+      // The designer's part, in place.
+      const rec = { fi, x: ox, y: oy, z: oz, at: [] as number[], alive: true };
+      placedAt.push(rec);
+      for (const u of forms[fi].units) {
+        taken.or(ox + u.dx, oy + u.dy, oz + u.dz, u.mask);
+        owner.set(ukey(ox + u.dx, oy + u.dy, oz + u.dz), placedAt.length - 1);
+      }
+      for (const p of forms[fi].probes) addProbe(ox + p.dx, oy + p.dy, oz + p.dz, p.bit);
+    }
+  };
+
   // Layer by layer, best placement first; a candidate is re-scored only when
   // the part just placed took one of its units (or its anchor). `inside`
   // limits anchors to a region (the search refills regions); `noise` breaks
@@ -570,6 +756,11 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
     }
     return made;
   };
+  if (opts.REPLAY) {
+    replay(opts.REPLAY);
+    return { bricks: [], residual: 0, ms: performance.now() - t0, phase };
+  }
+
   const tFill = performance.now();
   fill();
   phase.fill = performance.now() - tFill;

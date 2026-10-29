@@ -32,6 +32,9 @@ const flat = (v) => (Array.isArray(v) ? v : Object.values(v).flat());
 const arg = process.argv[2] || DEFAULT;
 const ids = arg.startsWith("@") ? arg.slice(1).split("+").flatMap((k) => flat(SETS[k])) : arg.split(",");
 const RUN = process.env.BENCH_RUN;
+// Git state when the code is loaded (edits during a long run don't change what ran).
+const git = (c) => { try { return execSync(c, { cwd: ROOT }).toString().trim(); } catch { return null; } };
+const GIT = { hash: git("git rev-parse --short HEAD"), dirty: !!git("git status --porcelain -uno -- src scripts") };
 // The frozen Phase 0 baseline config (docs/engine/phase0.md): it reproduces the
 // documented 0.382. Options given on the command line override it.
 const BASELINE = { MAX_FORMS: 1500, MOTIFS: 4 };
@@ -43,7 +46,10 @@ try {
   const load = (m) => vite.ssrLoadModule(m);
   await (await load("/src/engine/catalog.ts")).loadCatalog();
   const S = await load("/src/engine/shape.ts");
-  const { sculpt, learnForms, learnMotifs, gridForms, isStructure } = await load("/src/engine/sculpt.ts");
+  const { sculpt, learnForms, learnMotifs, gridForms, isStructure, constantWeights } = await load("/src/engine/sculpt.ts");
+  // WEIGHTS: "constants" (the hand-tuned score as weights, the regression reference) or a weights file (Phase 1).
+  if (opts.WEIGHTS === "constants") opts.WEIGHTS = constantWeights(opts);
+  else if (typeof opts.WEIGHTS === "string") opts.WEIGHTS = JSON.parse(fs.readFileSync(path.join(ROOT, opts.WEIGHTS), "utf8"));
   const { importLDraw } = await load("/src/engine/ldrawImport.ts");
   const { connections, components } = await load("/src/engine/connect.ts");
   const { PARTS } = await load("/src/engine/parts.ts");
@@ -156,9 +162,8 @@ try {
         worstJoint: +Math.max(...rows.map((r) => r.structure.ours.worst)).toFixed(3), msMean: m((r) => r.ms),
       };
     };
-    const git = (c) => { try { return execSync(c, { cwd: ROOT }).toString().trim(); } catch { return null; } };
     const out = {
-      run: RUN, date: new Date().toISOString(), git: git("git rev-parse --short HEAD"), dirty: !!git("git status --porcelain -uno -- src scripts"),
+      run: RUN, date: new Date().toISOString(), git: GIT.hash, dirty: GIT.dirty,
       arg, ids, idsHash: crypto.createHash("sha1").update(ids.join(",")).digest("hex").slice(0, 12), opts, node: process.version,
       all: agg(res.filter((r) => r.tier !== "technic")), byLevel: Object.fromEntries(Object.entries(levels).map(([k, v]) => [k, agg(v)])), models: res,
     };
