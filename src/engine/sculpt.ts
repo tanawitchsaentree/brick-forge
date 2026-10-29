@@ -319,8 +319,11 @@ export function learnMotifs(models: PlacedBrick[][], links: { a: number; b: numb
  *   fitNonPos       1 if cover − AIR·air ≤ 0 (the other old gate)
  *   size            cells of the form
  *   cat_*           one-hot of the part's category (engine/category.ts)
+ *   stackAbove      target cells still empty right above the part's top units: what
+ *                   it leaves to fill on top of it (a plate at the foot of a brick-tall
+ *                   region leaves two plates' worth; a brick that reaches the top, none)
  */
-export const FEATURES = ["cover", "air", "studOk", "studBad", "pieces", "engaged", "float", "logUse", "repeat", "belowMinCover", "fitNonPos", "size", ...CATEGORIES.map((c) => `cat_${c}`)] as const;
+export const FEATURES = ["cover", "air", "studOk", "studBad", "pieces", "engaged", "float", "logUse", "repeat", "belowMinCover", "fitNonPos", "size", ...CATEGORIES.map((c) => `cat_${c}`), "stackAbove"] as const;
 export type Feature = (typeof FEATURES)[number];
 export interface Weights {
   version?: string;
@@ -495,8 +498,8 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   // The raw terms of a placement (no gates, no weights), or null if it overlaps a
   // placed part. Written into one scratch object (evaluate runs millions of times;
   // a new object each time cost 45 % of the sculptor's time): copy it to keep it.
-  type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean; shared: number };
-  const scratch: Terms = { cover: 0, air: 0, ok: 0, bad: 0, engaged: 0, repeat: false, grounded: false, shared: 0 };
+  type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean; shared: number; x: number; y: number; z: number };
+  const scratch: Terms = { cover: 0, air: 0, ok: 0, bad: 0, engaged: 0, repeat: false, grounded: false, shared: 0, x: 0, y: 0, z: 0 };
   // `full`: all terms even where a gate drops it (the replay); otherwise it stops
   // at the gate, before the stud loop, as the sculptor always did (that loop is
   // most of the time of a placement that would be dropped anyway).
@@ -540,6 +543,9 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
     scratch.repeat = bottom > 0 && same === bottom;
     scratch.grounded = oy === y0;
     scratch.shared = shared;
+    scratch.x = ox;
+    scratch.y = oy;
+    scratch.z = oz;
     return scratch;
   };
   // Per form, computed once (and for forms a replay adds).
@@ -551,10 +557,16 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
     }
   };
   /** The feature vector of a placement, in FEATURES order. */
+  const tops: { dx: number; dy: number; dz: number; mask: number }[][] = [];
+  const topsOf = (fi: number) =>
+    (tops[fi] ??= forms[fi].units.filter((u) => !forms[fi].units.some((w) => w.dx === u.dx && w.dz === u.dz && w.dy === u.dy + 1)));
   const featsOf = (fi: number, t: Terms) => {
     formInfo(fi);
+    let above = 0;
+    for (const u of topsOf(fi)) above += popcount(wantG.get(t.x + u.dx, t.y + u.dy + 1, t.z + u.dz) & ~taken.get(t.x + u.dx, t.y + u.dy + 1, t.z + u.dz));
     const v = [t.cover, t.air, t.ok, t.bad, 1 + (forms[fi].extra?.length ?? 0), Math.min(4, t.engaged), t.engaged || t.grounded ? 0 : 1, Math.log1p(forms[fi].use), t.repeat ? 1 : 0, t.cover < MIN_COVER ? 1 : 0, t.cover - AIR * t.air <= 0 ? 1 : 0, formSize[fi]];
     for (let c = 0; c < CATEGORIES.length; c++) v.push(formCat[fi] === c ? 1 : 0);
+    v.push(above);
     return v;
   };
   const iLog = FEATURES.indexOf("logUse"), iRep = FEATURES.indexOf("repeat");
