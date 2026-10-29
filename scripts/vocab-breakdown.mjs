@@ -63,7 +63,19 @@ try {
     if (toGrid(b)) return "grid";
     const m = b.place;
     const upright = Math.abs(m[5] - 1) < 1e-3 && Math.abs(m[1]) < 1e-3 && Math.abs(m[9]) < 1e-3;
-    return upright ? "uprightOffset" : "rotated";
+    const frac = (v) => Math.abs(v - Math.round(v)) > 1e-3;
+    if (upright) {
+      // Off the grid how: a quarter turn about y with x or z off by a half stud, a
+      // turn that isn't a quarter, or a height between plates.
+      const quarter = [m[0], m[2], m[8], m[10]].every((v) => Math.abs(Math.abs(v) - Math.round(Math.abs(v))) < 1e-3);
+      if (!quarter) return "uprightOffset_yaw";
+      if (frac(m[13] / 0.4)) return "uprightOffset_height";
+      return "uprightOffset_halfStud";
+    }
+    // Rotated how: every axis onto an axis (sideways SNOT, upside down) or not (tilted).
+    const axis = [0, 1, 2, 4, 5, 6, 8, 9, 10].every((i) => Math.abs(Math.abs(m[i]) - Math.round(Math.abs(m[i]))) < 1e-3);
+    if (!axis) return "rotated_tilted";
+    return Math.abs(m[5] + 1) < 1e-3 ? "rotated_upsideDown" : "rotated_sideways";
   };
   const T = {}; // cause → count
   const byCat = {}; // cause → category → count
