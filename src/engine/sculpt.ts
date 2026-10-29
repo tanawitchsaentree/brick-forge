@@ -940,7 +940,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   let residual = 0;
   for (const k of want.keys()) residual += popcount((want.get(k)! & ~taken.getK(k)) >>> 0);
   const built = bricks.filter((b): b is PlacedBrick => b !== null);
-  if (opts.MERGE_PASS) phase.merges = mergePass(built).merges;
+  if (opts.MERGE_PASS) Object.assign(phase, mergePass(built));
   if (opts.FINISH !== false) finishTops(built, taken, studs);
   if (budget > 0) for (const b of built) if (b.why) b.why.searched = { tries, kept };
   let tp = performance.now();
@@ -1070,11 +1070,18 @@ function mergePass(bricks: PlacedBrick[]) {
   for (let merged = true; merged; ) {
     merged = false;
     const at = new Map<string, PlacedBrick[]>();
+    // Grid parts, and exact ones that sit exactly on the grid (learned forms come
+    // out as matrices even when upright): those get their grid placement here, and
+    // keep their matrix unless they merge.
+    const gridOf = new Map<PlacedBrick, Pick<PlacedBrick, "x" | "y" | "z" | "rot">>();
     for (const b of bricks) {
-      if (b.place || b.pose) continue;
+      if (b.pose) continue;
       const fam = familyOf(b.partId);
       if (!fam) continue;
-      const k = `${b.y}:${fam}:${PARTS[b.partId].h}:${b.color}`;
+      const g = b.place ? toGrid(b) : { x: b.x, y: b.y, z: b.z, rot: b.rot };
+      if (!g) continue;
+      gridOf.set(b, g);
+      const k = `${g.y}:${fam}:${PARTS[b.partId].h}:${b.color}`;
       (at.get(k) ?? at.set(k, []).get(k)!).push(b);
     }
     for (const list of at.values())
@@ -1082,7 +1089,7 @@ function mergePass(bricks: PlacedBrick[]) {
         for (let j = i + 1; j < list.length; j++) {
           const a = list[i], c = list[j];
           if (!a || !c) continue;
-          const fa = footprintOf(a), fc = footprintOf(c);
+          const fa = footprintOf({ ...a, ...gridOf.get(a)! }), fc = footprintOf({ ...c, ...gridOf.get(c)! });
           let x0: number, z0: number, w: number, d: number;
           if (fa.z === fc.z && fa.d === fc.d && (fa.x + fa.w === fc.x || fc.x + fc.w === fa.x)) {
             x0 = Math.min(fa.x, fc.x); z0 = fa.z; w = fa.w + fc.w; d = fa.d;
@@ -1093,7 +1100,9 @@ function mergePass(bricks: PlacedBrick[]) {
           if (!id) continue;
           const p = PARTS[id];
           const rot: Rot = p.w === w && p.d === d ? 0 : 1;
-          const next: PlacedBrick = { ...a, uid: a.uid, partId: id, x: x0, z: z0, rot };
+          const next: PlacedBrick = { ...a, uid: a.uid, partId: id, x: x0, y: gridOf.get(a)!.y, z: z0, rot };
+          delete next.place;
+          gridOf.set(next, { x: x0, y: next.y, z: z0, rot });
           // Everything either part held on to, the new one must hold on to.
           const around = [...new Set([...nb.get(a)!, ...nb.get(c)!])].filter((o) => o !== a && o !== c);
           if (around.length) {

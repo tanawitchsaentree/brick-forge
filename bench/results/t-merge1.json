@@ -1,0 +1,143 @@
+{
+ "run": "t-merge1",
+ "date": "2026-10-29T10:46:53.515Z",
+ "git": "a1b1c23",
+ "dirty": true,
+ "arg": "31009-1-310091",
+ "ids": [
+  "31009-1-310091"
+ ],
+ "idsHash": "153562a018b5",
+ "opts": {
+  "MAX_FORMS": 1500,
+  "MOTIFS": 4,
+  "MERGE_PASS": true
+ },
+ "node": "v24.22.1",
+ "all": {
+  "n": 1,
+  "parity": 0.523,
+  "parityV2": 0.507,
+  "smoothV2": 0.92,
+  "studRecall": 0.891,
+  "iou": 0.898,
+  "smooth": 0.95,
+  "heldVsHuman": 0.904,
+  "repeats": 0.045,
+  "piecesXHuman": 1.9577,
+  "copy": 0.495,
+  "vsmooth": 0.993,
+  "mixL1": 0.6838,
+  "oneDiff": 0.324,
+  "overLimit": 5,
+  "unconnected": 38,
+  "worstJoint": 3.744,
+  "msMean": 3599
+ },
+ "byLevel": {
+  "creator": {
+   "n": 1,
+   "parity": 0.523,
+   "parityV2": 0.507,
+   "smoothV2": 0.92,
+   "studRecall": 0.891,
+   "iou": 0.898,
+   "smooth": 0.95,
+   "heldVsHuman": 0.904,
+   "repeats": 0.045,
+   "piecesXHuman": 1.9577,
+   "copy": 0.495,
+   "vsmooth": 0.993,
+   "mixL1": 0.6838,
+   "oneDiff": 0.324,
+   "overLimit": 5,
+   "unconnected": 38,
+   "worstJoint": 3.744,
+   "msMean": 3599
+  }
+ },
+ "models": [
+  {
+   "id": "31009-1-310091",
+   "human": 260,
+   "ours": 509,
+   "iou": 0.898,
+   "finish": 0.798,
+   "held": 0.904,
+   "repeats": 0.045,
+   "made": 3,
+   "pruned": 0,
+   "forms": 20366,
+   "ms": 3599,
+   "smooth": 0.95,
+   "heldVsHuman": 0.904,
+   "copy": 0.495,
+   "score": 0.523,
+   "tier": "creator",
+   "parityTs": 0.523,
+   "smoothV2": 0.92,
+   "studRecall": 0.891,
+   "scoreV2": 0.507,
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.332,
+      "brick": 0.1709,
+      "tile": 0.2986,
+      "slope": 0.0668,
+      "snot": 0.0806,
+      "technic": 0,
+      "other": 0.0511
+     },
+     "one": 0.4971
+    },
+    "human": {
+     "share": {
+      "plate": 0.2962,
+      "brick": 0.3192,
+      "tile": 0.0654,
+      "slope": 0.1769,
+      "snot": 0.0077,
+      "technic": 0.0077,
+      "other": 0.1269
+     },
+     "one": 0.1731
+    },
+    "diff": {
+     "d": {
+      "plate": 0.0358,
+      "brick": -0.1483,
+      "tile": 0.2332,
+      "slope": -0.1101,
+      "snot": 0.0729,
+      "technic": -0.0077,
+      "other": -0.0758
+     },
+     "one": 0.324,
+     "l1": 0.6838
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 38,
+     "overLimit": 5,
+     "worst": 3.744,
+     "floating": 37
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 4,
+     "worst": 4.934,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0.993,
+   "studsPerCm2": 0.141,
+   "humanStudsPerCm2": 0.152,
+   "wallMs": 44090,
+   "merges": 6,
+   "mergeRefused": 0,
+   "outHash": "5c5bb9ee722f0093"
+  }
+ ]
+}

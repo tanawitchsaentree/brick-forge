@@ -7,6 +7,9 @@ import { sculpt, unpackForms, type Form, type PackedForm, type SculptOptions } f
 import type { Tier } from "./style";
 import { sculptArticulated } from "./articulate";
 import { prune } from "./necessity";
+import { generateBuild } from "./assembly";
+import { scaleUp } from "./morph";
+import type { Kind } from "./assembly/kinds";
 
 /** Per tier: Junior wants few, big, upright parts; Master spends pieces on finish. */
 const TIER_WEIGHTS: Record<Tier, Partial<SculptOptions>> = {
@@ -68,7 +71,38 @@ export interface InitMessage {
   shapes: Record<string, [number, number, number, string]>;
 }
 
-self.onmessage = async (e: MessageEvent<BuildRequest | InitMessage>) => {
+/** A rig build (dinosaurs, F1: engine/assembly), here so a 5,000-part one doesn't freeze the page. */
+export interface RigRequest {
+  type: "rig";
+  ticket: number;
+  kind: Kind;
+  opts: Parameters<typeof generateBuild>[1];
+}
+
+/** A Master target scaled up and smoothed (engine/morph.ts scaleUp): 1–2 s each, too long for the page's thread. */
+export interface ScaleRequest {
+  type: "scale";
+  ticket: number;
+  keys: Int32Array;
+  colors: Int32Array;
+  studs: Int32Array;
+  s: number;
+}
+
+self.onmessage = async (e: MessageEvent<BuildRequest | InitMessage | RigRequest | ScaleRequest>) => {
+  if ("type" in e.data && e.data.type === "scale") {
+    const { ticket, keys, colors, studs, s } = e.data;
+    const v = scaleUp({ cells: new Map(Array.from(keys, (k, i) => [k, colors[i]])), studs: new Set(studs) }, s);
+    const k2 = Int32Array.from(v.cells.keys()), c2 = Int32Array.from(k2, (k) => v.cells.get(k)!), s2 = Int32Array.from(v.studs ?? []);
+    (self as unknown as Worker).postMessage({ ticket, keys: k2, colors: c2, studs: s2 }, [k2.buffer, c2.buffer, s2.buffer]);
+    return;
+  }
+  if ("type" in e.data && e.data.type === "rig") {
+    await ready;
+    const { ticket, kind, opts } = e.data;
+    (self as unknown as Worker).postMessage({ ticket, build: generateBuild(kind, opts) });
+    return;
+  }
   if ("type" in e.data) {
     await loadCatalog(e.data.catalog);
     installShapes(e.data.shapes);

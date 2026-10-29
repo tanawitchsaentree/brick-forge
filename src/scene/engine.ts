@@ -1,9 +1,11 @@
 import type { Tier } from "../engine/style";
 import { hasShape, installShapeBits, installShapes, partShape, voxelize, type Voxels } from "../engine/shape";
 import { scanPart } from "./shapeScan";
-import { blend, blockify, lengthAxis, moveCells, scaleUp, seat, seatOffset, stretch, stretchParts } from "../engine/morph";
+import { blend, blockify, lengthAxis, moveCells, seat, seatOffset, stretch, stretchParts } from "../engine/morph";
 import { PARTS } from "../engine/parts";
-import type { BuildReply, BuildRequest, InitMessage } from "../engine/sculptWorker";
+import type { BuildReply, BuildRequest, InitMessage, RigRequest, ScaleRequest } from "../engine/sculptWorker";
+import type { Build, generateBuild } from "../engine/assembly";
+import type { Kind } from "../engine/assembly/kinds";
 import type { PackedForm } from "../engine/sculpt";
 import { catalogData } from "../engine/catalog";
 import type { PlacedBrick } from "../engine/grid";
@@ -36,12 +38,15 @@ const formsOf = (tier: Tier) => {
  * Workers start with what they share (catalog, part shapes), fetched once by
  * the page rather than once per worker.
  */
+let quick: (typeof workers)[number] | undefined;
 function ensure() {
   shared ??= (async () => {
     const [catalog, shapes] = await Promise.all([catalogData(), fetch("/shapes.json").then((r) => r.json())]);
     installShapes(shapes);
     const n = parallel();
-    for (let i = 0; i < n; i++) {
+    // One more worker for the short jobs (rig builds, scaling a target): on the
+    // others they waited behind a minute-long sculpt.
+    for (let i = 0; i <= n; i++) {
       const w = new Worker(new URL("../engine/sculptWorker.ts", import.meta.url), { type: "module" });
       const slot = { w, busy: 0, tiers: new Set<Tier>() };
       w.onmessage = (e: MessageEvent<BuildReply>) => {
@@ -50,7 +55,8 @@ function ensure() {
         waiting.delete(e.data.ticket);
       };
       w.postMessage({ type: "init", catalog: catalog!, shapes } satisfies InitMessage);
-      workers.push(slot);
+      if (i === n) quick = slot;
+      else workers.push(slot);
     }
   })();
   return shared;
@@ -96,7 +102,7 @@ async function targetOf(base: CorpusModel, v: Variation, tier: Tier): Promise<{ 
   if (tier === "junior") shape = blockify(shape);
   const scale = SCALE[tier];
   if (scale > 1) {
-    shape = scaleUp(shape, scale);
+    shape = await scaleUpOff(shape, scale);
     donors = [];
   }
   const [dx, dy, dz] = seatOffset(shape);
@@ -143,4 +149,36 @@ export async function engineDesign(base: CorpusModel, v: Variation, tier: Tier, 
   });
   await makeParts(reply.made.map((def) => ({ id: def.id, name: def.name, ldraw: def.made!, inline: true, def })));
   return { bricks: reply.bricks, fit: reply.fit, held: reply.held, made: reply.made.length, reused: reply.reused, ms: reply.ms };
+}
+
+/**
+ * A rig build (dinosaurs, F1) in a worker: a Master one is 5,000 parts and took
+ * 1.5–2.8 s on the page's own thread, freezing it while the studio filled.
+ */
+export async function rigBuild(kind: Kind, opts: Parameters<typeof generateBuild>[1]): Promise<Build> {
+  await ensure();
+  const slot = quick!;
+  slot.busy++;
+  const t = ++ticket;
+  const reply = await new Promise<BuildReply>((resolve) => {
+    waiting.set(t, resolve);
+    slot.w.postMessage({ type: "rig", ticket: t, kind, opts } satisfies RigRequest);
+  });
+  return (reply as unknown as { build: Build }).build;
+}
+
+/** scaleUp in a worker (the result is the same; 1–2 s a Master target, off the page's thread). */
+async function scaleUpOff(v: Voxels, s: number): Promise<Voxels> {
+  if (s <= 1) return v;
+  await ensure();
+  const slot = quick!;
+  slot.busy++;
+  const t = ++ticket;
+  const keys = Int32Array.from(v.cells.keys());
+  const req: ScaleRequest = { type: "scale", ticket: t, keys, colors: Int32Array.from(keys, (k) => v.cells.get(k)!), studs: Int32Array.from(v.studs ?? []), s };
+  const reply = (await new Promise<BuildReply>((resolve) => {
+    waiting.set(t, resolve);
+    slot.w.postMessage(req, [req.keys.buffer, req.colors.buffer, req.studs.buffer]);
+  })) as unknown as { keys: Int32Array; colors: Int32Array; studs: Int32Array };
+  return { cells: new Map(Array.from(reply.keys, (k, i) => [k, reply.colors[i]])), studs: new Set(reply.studs) };
 }

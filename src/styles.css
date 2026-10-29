@@ -695,3 +695,6 @@ button.link.danger { color: var(--ds-status-critical-mark); }
 .preview-facts { font-size: var(--ds-type-caption); color: var(--ds-text-secondary); font-variant-numeric: tabular-nums; }
 .preview-actions { display: flex; gap: var(--ds-gap-sm); flex: none; }
 @media (max-width: 640px) { .preview-foot { flex-direction: column; align-items: stretch; } .preview-actions > * { flex: 1; } }
+
+/* How long a design has been building (Studio). */
+.tile-from .elapsed { color: var(--ds-text-secondary); font-variant-numeric: tabular-nums; }

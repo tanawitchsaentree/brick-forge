@@ -146,6 +146,7 @@ try {
     row.structure = { ours: M.structureOf(r.bricks), human: M.structureOf(real) };
     Object.assign(row, M.visibleSmooth(ours, target));
     row.wallMs = Math.round(performance.now() - w0);
+    if (r.phase?.merges !== undefined) Object.assign(row, { merges: r.phase.merges, mergeRefused: r.phase.refused });
     // The build itself, hashed: a refactor that should change nothing must give the same hash (phase regression tests).
     const canon = r.bricks.map((b) => [b.partId, b.color, b.rot, b.x, b.y, b.z, b.place ? b.place.map((v) => +v.toFixed(4)) : null]);
     row.outHash = crypto.createHash("sha1").update(JSON.stringify(canon)).digest("hex").slice(0, 16);

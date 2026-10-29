@@ -7,6 +7,9 @@ import { colorOf } from "../engine/colors";
 import { partMatrix } from "../engine/pose";
 import { bodyGeometry, edgeGeometry } from "./geometry";
 import { edgeMaterial, instantiate, loadTemplate } from "./ldraw";
+import { buildMerged } from "./Merged";
+/** Above this many parts a picture is drawn merged (off: measured slower, see docs/engine/phase2.md). */
+const MERGE_FROM_PARTS = Infinity;
 
 // Catalogue-style 3D thumbnails, rendered off-screen by one shared renderer
 // and cached as data URLs (per part and colour).
@@ -208,8 +211,12 @@ export async function renderModelImageLDraw(
   ctx ??= setup();
   const { renderer, scene, camera } = ctx;
   const lineMat = new THREE.LineBasicMaterial({ color: "#000", transparent: true, opacity: 0.22 });
-  const model = new THREE.Group();
-  for (const b of bricks) {
+  // Big builds as one merged mesh per colour (scene/Merged.tsx): a group per part
+  // took 8–10 s for 5,000 parts. Instruction pages (fresh) keep their own path.
+  const ready = new Map([...templates].filter((e): e is [string, THREE.Group] => !!e[1]));
+  const merged = !opts.fresh && bricks.length > MERGE_FROM_PARTS ? buildMerged(bricks, ready, (b) => ({ hex: colorOf(b.color).hex, alpha: colorOf(b.color).alpha ?? 1 })) : null;
+  const model = merged ? merged.root : new THREE.Group();
+  for (const b of merged ? [] : bricks) {
     const part = PARTS[b.partId];
     const tpl = templates.get(b.partId);
     if (!part) continue;
@@ -255,6 +262,10 @@ export async function renderModelImageLDraw(
   scene.remove(wrapper);
   renderer.setSize(SIZE, SIZE, false);
   lineMat.dispose();
+  if (merged) {
+    merged.root.traverse((o) => (o as THREE.Mesh).geometry?.dispose());
+    merged.own.forEach((m) => m.dispose());
+  }
   return url;
 }
 

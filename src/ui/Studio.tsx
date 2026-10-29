@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { KINDS, type Kind } from "../engine/assembly/kinds";
-import { F1_ANCHOR, LIVERIES, SPECIES, evaluateBuild, generateBuild, kindLabel, type Build } from "../engine/assembly";
+import { F1_ANCHOR, LIVERIES, SPECIES, evaluateBuild, kindLabel, type Build } from "../engine/assembly";
 import { totalPieces, type Inventory } from "../engine/inventory";
 import type { PlacedBrick } from "../engine/grid";
 import { TIERS, tierLabel, type Tier } from "../engine/style";
 import { corpusIndex, inBand, loadDesign, recolor, SCHEME_COUNT, type CorpusModel } from "../scene/corpus";
-import { describe, engineDesign, parallel, type Variation } from "../scene/engine";
+import { describe, engineDesign, parallel, rigBuild, type Variation } from "../scene/engine";
 import { renderModelImageLDraw } from "../scene/thumbnails";
 import { colorOf } from "../engine/colors";
 import { PARTS } from "../engine/parts";
@@ -30,6 +30,8 @@ interface Tile {
   build?: Build;
   from?: string;
   img?: string;
+  /** When it started (the pending tile shows how long it's been). */
+  t0?: number;
 }
 
 interface Props {
@@ -75,10 +77,14 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
 
   /** Add a batch of new tiles and fill them one by one. */
   const opened = useRef(false);
+  // Costly levels (Master; Expert at L) take about a minute a design on the
+  // engine's workers: a batch of as many as there are workers, so none waits in
+  // a queue behind the others (a sixth design came in after 2 min 17 s).
+  const batchSize = () => (level === "master" || (level === "expert" && size === 2) ? parallel() : BATCH);
   async function generate(fresh = false) {
     const token = fresh ? ++run.current : run.current;
     const models = await corpusIndex();
-    const batch: Tile[] = Array.from({ length: BATCH }, () => ({ id: nextId.current++, status: "pending", label: "Designing…" }));
+    const batch: Tile[] = Array.from({ length: batchSize() }, () => ({ id: nextId.current++, status: "pending", label: "Designing…", t0: Date.now() }));
     setTiles((ts) => (fresh ? batch : [...ts, ...batch]));
     setWorking(true);
     // The first batch waits for the panel's opening rise (--slow, 420 ms): building
@@ -150,7 +156,7 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     // Expert goes a scale up (still posable, ×1.9 at most); Master is a statue on the
     // grid: about 1,000 / 3,400 / 5,000+ pieces for S / M / L (engine/assembly/dino.ts).
     const scale = level === "master" ? [4, 6, 7][size] : Math.min(3, size + (level === "expert" ? 1 : 0));
-    const build = generateBuild("dino", { size: scale, level: detail, seed: (Math.random() * 1e9) | 0, mode: "any", inv: inventory, species: sp.id });
+    const build = await rigBuild("dino", { size: scale, level: detail, seed: (Math.random() * 1e9) | 0, mode: "any", inv: inventory, species: sp.id });
     update(t.id, { status: "done", build, from: `${sp.latin}, from its body plan · ${tierLabel(level)}`, label: "" });
     update(t.id, { img: await renderModelImageLDraw(build.bricks, 360) });
   }
@@ -167,7 +173,7 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     await new Promise((r) => setTimeout(r));
     const detail = level === "junior" ? 0 : level === "creator" ? 1 : 2;
     const scale = Math.min(2, size + (level === "expert" || level === "master" ? 1 : 0));
-    const build = generateBuild("racer", { size: scale, level: detail, seed: (Math.random() * 1e9) | 0, mode: "any", inv: inventory, plan: { ...F1_ANCHOR(scale), livery } });
+    const build = await rigBuild("racer", { size: scale, level: detail, seed: (Math.random() * 1e9) | 0, mode: "any", inv: inventory, plan: { ...F1_ANCHOR(scale), livery } });
     update(t.id, { status: "done", build, from: `${LIVERIES[livery].name} livery · built like Speed Champions 77244`, label: "" });
     update(t.id, { img: await renderModelImageLDraw(build.bricks, 360) });
   }
@@ -271,7 +277,10 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
                     {open === t.id && <Details build={b} />}
                   </>
                 ) : (
-                  <p className="tile-from">{t.label}</p>
+                  <p className="tile-from">
+                    {t.label}
+                    {t.status === "pending" && t.t0 && <Elapsed since={t.t0} />}
+                  </p>
                 )}
               </div>
             </Card>
@@ -296,7 +305,7 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
       })()}
       {mode === "new" && tiles.length > 0 && !working && (
         <Button variant="glass" className="wide" onClick={() => generate(false)}>
-          {BATCH} more designs
+          {batchSize()} more designs
         </Button>
       )}
     </div>
@@ -341,4 +350,15 @@ function Details({ build }: { build: Build }) {
       )}
     </div>
   );
+}
+
+/** "· 0:42": how long a design has been building, so a minute's wait reads as work, not a hang. */
+function Elapsed({ since }: { since: number }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const s = Math.floor((Date.now() - since) / 1000);
+  return s < 3 ? null : <span className="elapsed"> · {Math.floor(s / 60)}:{String(s % 60).padStart(2, "0")}</span>;
 }

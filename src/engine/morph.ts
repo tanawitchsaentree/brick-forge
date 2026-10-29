@@ -119,18 +119,24 @@ function density(v: Voxels, box: Box, r: number) {
   const blur = (src: Float32Array, dims: [number, number, number], axis: number) => {
     const out = new Float32Array(src.length);
     const [sx, sy, sz] = dims;
+    // Along the axis by its stride, without a coordinate array per sample (that
+    // made a Master target take 10 s on the page's thread); the same sums in the
+    // same order, so the same result to the bit.
+    const stride = axis === 0 ? 1 : axis === 1 ? sx * sz : sx;
+    const n = axis === 0 ? sx : axis === 1 ? sy : sz;
     for (let y = 0; y < sy; y++)
       for (let z = 0; z < sz; z++)
         for (let x = 0; x < sx; x++) {
+          const at = axis === 0 ? x : axis === 1 ? y : z;
+          const i0 = x + sx * (z + sz * y);
           let s = 0, c = 0;
           for (let d = -r; d <= r; d++) {
-            const p = [x, y, z];
-            p[axis] += d;
-            if (p[0] < 0 || p[1] < 0 || p[2] < 0 || p[0] >= sx || p[1] >= sy || p[2] >= sz) continue;
-            s += src[p[0] + sx * (p[2] + sz * p[1])];
+            const q = at + d;
+            if (q < 0 || q >= n) continue;
+            s += src[i0 + d * stride];
             c++;
           }
-          out[x + sx * (z + sz * y)] = s / c;
+          out[i0] = s / c;
         }
     return out;
   };

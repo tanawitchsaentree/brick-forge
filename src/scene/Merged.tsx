@@ -62,6 +62,78 @@ interface Props {
   colorOf: (b: PlacedBrick) => { hex: string; alpha: number };
 }
 
+/**
+ * The merged scene itself, outside React: one mesh per colour and one line set
+ * per edge colour for every part with a template. The editor's scene draws it
+ * (MergedBricks), and so do model pictures of big builds (scene/thumbnails.ts),
+ * where one object per part took 8–10 s for 5,000 parts.
+ */
+export function buildMerged(bricks: PlacedBrick[], templates: Map<string, THREE.Group>, colorOf: Props["colorOf"]) {
+  const meshes = new Map<string, { mat: THREE.Material; geos: THREE.BufferGeometry[] }>();
+  const lines = new Map<string, { mat: THREE.Material; geos: THREE.BufferGeometry[] }>();
+  const own = new Map<string, THREE.Material>();
+  const add = (to: typeof meshes, key: string, mat: THREE.Material, g: THREE.BufferGeometry) => {
+    const e = to.get(key) ?? { mat, geos: [] };
+    e.geos.push(g);
+    to.set(key, e);
+  };
+  for (const b of bricks) {
+    const part = PARTS[b.partId];
+    const t = templates.get(b.partId);
+    if (!part || !t) continue;
+    const { hex, alpha } = colorOf(b);
+    const M = brickMatrix(b, part);
+    t.updateMatrixWorld(true);
+    t.traverse((o) => {
+      const isLine = (o as THREE.LineSegments).isLineSegments;
+      const mesh = o as THREE.Mesh;
+      if (!isLine && !mesh.isMesh) return;
+      const world = new THREE.Matrix4().multiplyMatrices(M, o.matrixWorld);
+      const all = flat(mesh.geometry, !isLine).applyMatrix4(world);
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const groups = Array.isArray(mesh.material) && mesh.geometry.groups.length ? mesh.geometry.groups : null;
+      for (const [mat, g] of groups
+        ? groups.map((gr) => [mats[gr.materialIndex ?? 0], slice(all, gr.start, gr.count)] as const)
+        : [[mats[0], all] as const]) place(mat, g, isLine);
+    });
+    function place(mat: THREE.Material, g: THREE.BufferGeometry, isLine: boolean) {
+      if (!g.getAttribute("position")?.count) return;
+      if (isLine) {
+        const m = isMain(mat) ? edgeMaterial(hex) : mat;
+        add(lines, m.uuid, m, g);
+      } else if (isMain(mat)) {
+        const key = `${hex}:${alpha}`;
+        let m = own.get(key);
+        if (!m) {
+          m = new THREE.MeshStandardMaterial({
+            color: hex,
+            roughness: 0.3,
+            transparent: alpha < 1,
+            opacity: alpha < 1 ? Math.max(0.35, alpha * 0.85) : 1,
+            depthWrite: alpha >= 1,
+          });
+          own.set(key, m);
+        }
+        add(meshes, key, m, g);
+      } else add(meshes, mat.uuid, mat, g);
+    }
+  }
+  const root = new THREE.Group();
+  for (const { mat, geos } of meshes.values()) {
+    const mesh = new THREE.Mesh(mergeGeometries(geos), mat);
+    mesh.castShadow = mesh.receiveShadow = true;
+    mesh.raycast = noRaycast; // picking hits the per-part boxes below
+    root.add(mesh);
+  }
+  for (const { mat, geos } of lines.values()) {
+    const line = new THREE.LineSegments(mergeGeometries(geos), mat);
+    line.raycast = noRaycast;
+    root.add(line);
+  }
+  for (const g of [...meshes.values(), ...lines.values()].flatMap((e) => e.geos)) g.dispose();
+  return { root, own: [...own.values()] };
+}
+
 export function MergedBricks({ bricks, colorOf }: Props) {
   // Every distinct part's template, loaded once.
   const [templates, setTemplates] = useState<Map<string, THREE.Group> | null>(null);
@@ -77,72 +149,7 @@ export function MergedBricks({ bricks, colorOf }: Props) {
     };
   }, [ids]);
 
-  const scene = useMemo(() => {
-    if (!templates) return null;
-    const meshes = new Map<string, { mat: THREE.Material; geos: THREE.BufferGeometry[] }>();
-    const lines = new Map<string, { mat: THREE.Material; geos: THREE.BufferGeometry[] }>();
-    const own = new Map<string, THREE.Material>();
-    const add = (to: typeof meshes, key: string, mat: THREE.Material, g: THREE.BufferGeometry) => {
-      const e = to.get(key) ?? { mat, geos: [] };
-      e.geos.push(g);
-      to.set(key, e);
-    };
-    for (const b of bricks) {
-      const part = PARTS[b.partId];
-      const t = templates.get(b.partId);
-      if (!part || !t) continue;
-      const { hex, alpha } = colorOf(b);
-      const M = brickMatrix(b, part);
-      t.updateMatrixWorld(true);
-      t.traverse((o) => {
-        const isLine = (o as THREE.LineSegments).isLineSegments;
-        const mesh = o as THREE.Mesh;
-        if (!isLine && !mesh.isMesh) return;
-        const world = new THREE.Matrix4().multiplyMatrices(M, o.matrixWorld);
-        const all = flat(mesh.geometry, !isLine).applyMatrix4(world);
-        const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-        const groups = Array.isArray(mesh.material) && mesh.geometry.groups.length ? mesh.geometry.groups : null;
-        for (const [mat, g] of groups
-          ? groups.map((gr) => [mats[gr.materialIndex ?? 0], slice(all, gr.start, gr.count)] as const)
-          : [[mats[0], all] as const]) place(mat, g, isLine);
-      });
-      function place(mat: THREE.Material, g: THREE.BufferGeometry, isLine: boolean) {
-        if (!g.getAttribute("position")?.count) return;
-        if (isLine) {
-          const m = isMain(mat) ? edgeMaterial(hex) : mat;
-          add(lines, m.uuid, m, g);
-        } else if (isMain(mat)) {
-          const key = `${hex}:${alpha}`;
-          let m = own.get(key);
-          if (!m) {
-            m = new THREE.MeshStandardMaterial({
-              color: hex,
-              roughness: 0.3,
-              transparent: alpha < 1,
-              opacity: alpha < 1 ? Math.max(0.35, alpha * 0.85) : 1,
-              depthWrite: alpha >= 1,
-            });
-            own.set(key, m);
-          }
-          add(meshes, key, m, g);
-        } else add(meshes, mat.uuid, mat, g);
-      }
-    }
-    const root = new THREE.Group();
-    for (const { mat, geos } of meshes.values()) {
-      const mesh = new THREE.Mesh(mergeGeometries(geos), mat);
-      mesh.castShadow = mesh.receiveShadow = true;
-      mesh.raycast = noRaycast; // picking hits the per-part boxes below
-      root.add(mesh);
-    }
-    for (const { mat, geos } of lines.values()) {
-      const line = new THREE.LineSegments(mergeGeometries(geos), mat);
-      line.raycast = noRaycast;
-      root.add(line);
-    }
-    for (const g of [...meshes.values(), ...lines.values()].flatMap((e) => e.geos)) g.dispose();
-    return { root, own: [...own.values()] };
-  }, [templates, bricks, colorOf]);
+  const scene = useMemo(() => (templates ? buildMerged(bricks, templates, colorOf) : null), [templates, bricks, colorOf]);
 
   useEffect(
     () => () => {
