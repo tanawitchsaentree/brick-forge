@@ -21,6 +21,7 @@ globalThis.fetch = async (u) => {
   return { ok: fs.existsSync(p), headers: { get: () => "application/json" }, json: async () => JSON.parse(fs.readFileSync(p, "utf8")) };
 };
 const OUT = process.argv[2] || "data/tuned.json";
+// OBJECTIVE: "parityV2" (default, see src/engine/parity.ts) or "parity" (the frozen formula).
 const o = { N: 12, ROUNDS: 3, SEED: 20261029, MAX_FORMS: 1500, MOTIFS: 4, MIN_USE: 2, MIN_GAIN: 0.002, ...JSON.parse(process.argv[3] || "{}") };
 
 const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
@@ -91,7 +92,7 @@ try {
         return parityOf(reals[i], targets[i], r.bricks, made);
       });
       const mean = (k) => +(rows.reduce((s, r) => s + r[k], 0) / rows.length).toFixed(4);
-      return { parity: mean("parity"), iou: mean("iou"), smooth: mean("smooth"), heldVsHuman: mean("heldVsHuman"), piecesXHuman: mean("piecesXHuman"), repeats: mean("repeats"), s: Math.round((performance.now() - t0) / 1000), rows: rows.map((r) => r.parity) };
+      return { parity: mean(o.OBJECTIVE ?? "parityV2"), parityV1: mean("parity"), parityV2: mean("parityV2"), iou: mean("iou"), smooth: mean("smooth"), heldVsHuman: mean("heldVsHuman"), piecesXHuman: mean("piecesXHuman"), repeats: mean("repeats"), s: Math.round((performance.now() - t0) / 1000), rows: rows.map((r) => r.parity) };
     };
     // The constants and how each is varied.
     const start = { AIR: 3, PIECE: 60, HOLD: 2, FLOAT: 300, PRIOR: 3, GAMMA: 0.7, STUD_BAD: 40, REPEAT: 25, MIN_COVER: 16 };

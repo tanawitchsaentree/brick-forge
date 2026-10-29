@@ -137,7 +137,9 @@ try {
     console.log(JSON.stringify(row));
     // Phase 0 measurements (src/engine/benchMetrics.ts): kept off the console line above so it reads as before.
     row.tier = corpus.find((m) => m.id === id).tier;
-    row.parityTs = parityOf(real, target, r.bricks, made).parity; // must equal row.score (the tuner optimizes parity.ts)
+    const pv = parityOf(real, target, r.bricks, made);
+    row.parityTs = pv.parity; // must equal row.score (the tuner optimizes parity.ts)
+    Object.assign(row, { smoothV2: pv.smoothV2, studRecall: pv.studRecall, scoreV2: pv.parityV2 });
     const mixO = M.mixOf(r.bricks), mixH = M.mixOf(real);
     row.mix = { ours: mixO, human: mixH, diff: M.mixDiff(mixO, mixH) };
     row.structure = { ours: M.structureOf(r.bricks), human: M.structureOf(real) };
@@ -157,7 +159,7 @@ try {
       const m = (f) => +(rows.reduce((s, r) => s + f(r), 0) / rows.length).toFixed(4);
       return {
         n: rows.length,
-        parity: m((r) => r.score), iou: m((r) => r.iou), smooth: m((r) => r.smooth), heldVsHuman: m((r) => r.heldVsHuman),
+        parity: m((r) => r.score), parityV2: m((r) => r.scoreV2), smoothV2: m((r) => r.smoothV2), studRecall: m((r) => r.studRecall), iou: m((r) => r.iou), smooth: m((r) => r.smooth), heldVsHuman: m((r) => r.heldVsHuman),
         repeats: m((r) => r.repeats), piecesXHuman: m((r) => r.ours / r.human), copy: m((r) => r.copy),
         vsmooth: m((r) => r.vsmooth), mixL1: m((r) => r.mix.diff.l1), oneDiff: m((r) => r.mix.diff.one),
         overLimit: m((r) => r.structure.ours.overLimit), unconnected: m((r) => r.structure.ours.unconnected),
@@ -173,6 +175,7 @@ try {
     fs.writeFileSync(path.join(ROOT, "bench/results", `${RUN}.json`), JSON.stringify(out, null, 1));
     console.log(`wrote bench/results/${RUN}.json`);
   }
+  console.log(`PARITY_v2 ${(res.filter((r) => r.tier !== "technic").reduce((s, r) => s + r.scoreV2, 0) / Math.max(1, res.filter((r) => r.tier !== "technic").length)).toFixed(3)} (smooth_v2, see src/engine/parity.ts)`);
   console.log(`MEAN iou ${avg("iou")} smooth ${avg("smooth")} held÷human ${avg("heldVsHuman")} repeats ${avg("repeats")} pieces×human ${(res.reduce((s, r) => s + r.ours / r.human, 0) / res.length).toFixed(2)} | copy ${avg("copy")} | PARITY ${avg("score")}`);
 } finally {
   await vite.close();
