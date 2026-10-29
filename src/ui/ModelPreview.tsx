@@ -80,19 +80,35 @@ export function ModelPreview({ title, from, bricks, facts, onInstructions, onEdi
 const FOV = 32;
 
 /**
- * Frame the model once its parts are in (they load async): from the front right
- * and a little above, the whole of it in view with a margin. Bounds come from
- * what was drawn, so they match however the parts were placed.
+ * Frame the model from what was drawn: from the front right and a little above,
+ * the whole of it in view with a margin. Its parts load in batches, so it keeps
+ * re-framing while the bounds still change, and stops once they've held for 15
+ * frames, or when you take hold of it.
  */
 function Fit({ model }: { model: React.RefObject<THREE.Group | null> }) {
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
-  const controls = useThree((s) => s.controls) as unknown as { target: THREE.Vector3; update: () => void } | null;
+  const controls = useThree((s) => s.controls) as unknown as { target: THREE.Vector3; update: () => void; addEventListener: (t: string, f: () => void) => void; removeEventListener: (t: string, f: () => void) => void } | null;
   const invalidate = useThree((s) => s.invalidate);
-  const done = useRef(false);
+  const state = useRef({ done: false, still: 0, last: "" });
+  useEffect(() => {
+    if (!controls) return;
+    const stop = () => (state.current.done = true);
+    controls.addEventListener("start", stop);
+    return () => controls.removeEventListener("start", stop);
+  }, [controls]);
   useFrame(() => {
-    if (done.current || !model.current || !controls) return;
+    const st = state.current;
+    if (st.done || !model.current || !controls) return;
+    invalidate(); // keep frames coming until it's settled
     const box = new THREE.Box3().setFromObject(model.current);
-    if (box.isEmpty()) return void invalidate(); // not drawn yet: look again next frame
+    if (box.isEmpty()) return;
+    const key = [...box.min.toArray(), ...box.max.toArray()].map((v) => v.toFixed(2)).join(",");
+    if (key === st.last) {
+      if (++st.still >= 15) st.done = true;
+      return;
+    }
+    st.last = key;
+    st.still = 0;
     const sphere = box.getBoundingSphere(new THREE.Sphere());
     const dist = (sphere.radius / Math.sin(((FOV / 2) * Math.PI) / 180)) * 1.08;
     const dir = new THREE.Vector3(0.62, 0.45, 0.64).normalize();
@@ -102,8 +118,6 @@ function Fit({ model }: { model: React.RefObject<THREE.Group | null> }) {
     camera.updateProjectionMatrix();
     controls.target.copy(sphere.center);
     controls.update();
-    done.current = true;
-    invalidate();
   });
   useEffect(() => invalidate(), [invalidate]);
   return null;

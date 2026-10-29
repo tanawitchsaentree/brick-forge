@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",
-    "pane-react": "file:vendor/pane-react-0.5.0.tgz",
+    "pane-react": "file:vendor/pane-react-0.6.0.tgz",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "three": "^0.186.1"
