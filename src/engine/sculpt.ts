@@ -478,9 +478,17 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   const placedAt: { fi: number; x: number; y: number; z: number; at: number[]; alive: boolean }[] = [];
 
   let nEval = 0, nBest = 0;
-  // The raw terms of a placement (no gates, no weights), or null if it overlaps a placed part.
+  const W = opts.WEIGHTS;
+  const wv = W ? FEATURES.map((n) => W.weights[n] ?? 0) : [];
+  // The raw terms of a placement (no gates, no weights), or null if it overlaps a
+  // placed part. Written into one scratch object (evaluate runs millions of times;
+  // a new object each time cost 45 % of the sculptor's time): copy it to keep it.
   type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean };
-  const terms = (fi: number, ox: number, oy: number, oz: number): Terms | null => {
+  const scratch: Terms = { cover: 0, air: 0, ok: 0, bad: 0, engaged: 0, repeat: false, grounded: false };
+  // `full`: all terms even where a gate drops it (the replay); otherwise it stops
+  // at the gate, before the stud loop, as the sculptor always did (that loop is
+  // most of the time of a placement that would be dropped anyway).
+  const terms = (fi: number, ox: number, oy: number, oz: number, full = false): Terms | null => {
     const f = forms[fi];
     let engaged = 0, cover = 0, air = 0, same = 0, bottom = 0;
     for (const u of f.units) {
@@ -497,6 +505,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
         if (p && forms[p.fi].partId === f.partId && p.x === ox && p.z === oz && forms[p.fi].units.length === f.units.length) same++;
       }
     }
+    if (!full && (W ? (W.gates ? cover + (W.weights.air ?? 0) * air <= 0 || cover < MIN_COVER : cover <= 0) : cover - AIR * air <= 0 || cover < MIN_COVER)) return null;
     let ok = 0, bad = 0;
     for (const p of f.probes) {
       if (taken.get(ox + p.dx, oy + p.dy, oz + p.dz) & (1 << p.bit)) engaged++; // its studs into placed parts
@@ -505,7 +514,14 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
       if (studs && !target.cells.has(cell)) studs.has(cell) ? ok++ : bad++;
     }
     // The same part stacked exactly on itself: two plates where one brick or a different part would do.
-    return { cover, air, ok, bad, engaged, repeat: bottom > 0 && same === bottom, grounded: oy === y0 };
+    scratch.cover = cover;
+    scratch.air = air;
+    scratch.ok = ok;
+    scratch.bad = bad;
+    scratch.engaged = engaged;
+    scratch.repeat = bottom > 0 && same === bottom;
+    scratch.grounded = oy === y0;
+    return scratch;
   };
   // Per form, computed once (and for forms a replay adds).
   const formSize: number[] = [], formCat: number[] = [];
@@ -522,8 +538,6 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
     for (let c = 0; c < CATEGORIES.length; c++) v.push(formCat[fi] === c ? 1 : 0);
     return v;
   };
-  const W = opts.WEIGHTS;
-  const wv = W ? FEATURES.map((n) => W.weights[n] ?? 0) : [];
   const iLog = FEATURES.indexOf("logUse"), iRep = FEATURES.indexOf("repeat");
   /** The score of a placement from its terms: the hand-tuned one, or weighted features. Null if a gate drops it. */
   const score = (fi: number, t: Terms) => {
@@ -681,7 +695,8 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
         fi = forms.length - 1;
       }
       if (R.keep(b.partId) && R.sample(i)) {
-        const t = terms(fi, ox, oy, oz);
+        const t0r = terms(fi, ox, oy, oz, true);
+        const t = t0r && { ...t0r };
         const d: Decision = { brick: i, partId: b.partId, known, overlap: !t };
         if (t) {
           d.gate = { fitNonPos: t.cover - AIR * t.air <= 0, belowMinCover: t.cover < MIN_COVER };
@@ -695,9 +710,9 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
               if (!(u.mask & open) || u.mask & here) continue;
               const x = ax - u.dx, z = az - u.dz;
               if (c === fi && x === ox && z === oz) continue; // the designer's own
-              const tc = terms(c, x, oy, z);
+              const tc = terms(c, x, oy, z, true);
               if (!tc || tc.cover <= 0) continue;
-              cands.push({ fi: c, t: tc, s: score(c, tc) });
+              cands.push({ fi: c, t: { ...tc }, s: score(c, tc) });
             }
           const ds = t.cover > 0 ? score(fi, t) : null;
           d.candidates = cands.length;
