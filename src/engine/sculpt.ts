@@ -227,6 +227,19 @@ export const isStructure = (id: string) => {
   const p = PARTS[id];
   return !!p && STRUCTURE.test(p.category) && !/Technic (Pin|Bush|Axle)/.test(p.name);
 };
+/**
+ * Which parts the sculptor may use: structure, not printed, at most 8 × 8 studs and
+ * 9 plates (the benchmark's rule since it began). `long` (Phase 2, docs/engine/phase2.md)
+ * also lets in plain plates, bricks and tiles up to 16 studs long: the size cut took
+ * 16–22 % of Creator to Expert volume, nearly all of it plain long plates and bricks,
+ * which the sculptor then rebuilt from small ones.
+ */
+export function keepPart(id: string, hasShape: (id: string) => boolean, o: { long?: boolean } = {}) {
+  const p = PARTS[id];
+  if (!p || !hasShape(id) || !isStructure(id) || p.printed) return false;
+  if (p.w <= 8 && p.d <= 8 && p.h <= 9) return true;
+  return !!o.long && /^(Plate|Brick|Tile)$/.test(p.category) && p.w <= 16 && p.d <= 16 && p.h <= 9;
+}
 /** Technic is its own system: beams, liftarms, panels and the pins and axles that join them are its structure. */
 export const isTechnicStructure = (id: string) => {
   const p = PARTS[id];

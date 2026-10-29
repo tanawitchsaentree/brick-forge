@@ -46,7 +46,7 @@ try {
   const load = (m) => vite.ssrLoadModule(m);
   await (await load("/src/engine/catalog.ts")).loadCatalog();
   const S = await load("/src/engine/shape.ts");
-  const { sculpt, learnForms, learnMotifs, gridForms, isStructure, constantWeights } = await load("/src/engine/sculpt.ts");
+  const { sculpt, learnForms, learnMotifs, gridForms, isStructure, constantWeights, keepPart } = await load("/src/engine/sculpt.ts");
   // WEIGHTS: "constants" (the hand-tuned score as weights, the regression reference) or a weights file (Phase 1).
   if (opts.WEIGHTS === "constants") opts.WEIGHTS = constantWeights(opts);
   else if (typeof opts.WEIGHTS === "string") opts.WEIGHTS = JSON.parse(fs.readFileSync(path.join(ROOT, opts.WEIGHTS), "utf8"));
@@ -65,7 +65,8 @@ try {
   const links = opts.MOTIFS ? new Map([...models].map(([id, b]) => [id, connections(b)])) : null;
   // Which designs to learn from: every tier but Technic unless asked (FROM: ["creator", …]).
   const learnable = (m) => (opts.FROM ? opts.FROM.includes(m.tier) : m.tier !== "technic");
-  const keep = (id) => shapes[id] && isStructure(id) && !PARTS[id].printed && PARTS[id].w <= 8 && PARTS[id].d <= 8 && PARTS[id].h <= 9;
+  // KEEP_LONG: plain plates, bricks and tiles up to 16 long too (sculpt.ts keepPart, Phase 2 step 1).
+  const keep = (id) => keepPart(id, (x) => !!shapes[x], { long: !!opts.KEEP_LONG });
   // Units where a stud shows (finish is compared per stud × plate unit).
   const studUnits = (v) => new Set([...v.studs].map((k) => {
     const [x, y, z] = S.unkey(k);
