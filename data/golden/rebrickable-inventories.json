@@ -1,0 +1,2843 @@
+{
+ "30714-1": [
+  {
+   "part": "10187",
+   "name": "Weapon Bladed Claw Spread",
+   "color": "Flat Silver",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "10187",
+   "name": "Weapon Bladed Claw Spread",
+   "color": "Flat Silver",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11458",
+   "name": "Plate Special 1 x 2 with Pin Hole on Top",
+   "color": "Reddish Orange",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "11833",
+   "name": "Plate Round 4 x 4 with 2 x 2 Round Opening",
+   "color": "Yellow",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "13547",
+   "name": "Brick Curved Inverted 4 x 1",
+   "color": "Orange",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "14769pr1116",
+   "name": "Tile Round 2 x 2 with Eye, Blue Iris, Black Pupil Print",
+   "color": "White",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "15068",
+   "name": "Brick Curved 2 x 2 x 2/3",
+   "color": "Orange",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "15070",
+   "name": "Plate Special 1 x 1 with Vertical Tooth",
+   "color": "White",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "15573",
+   "name": "Plate Special 1 x 2 with 1 Stud with Groove and Inside Stud Holder (Jumper)",
+   "color": "White",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "24246",
+   "name": "Tile Round 1 x 1 Half Circle",
+   "color": "Orange",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "24246",
+   "name": "Tile Round 1 x 1 Half Circle",
+   "color": "Orange",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "25269",
+   "name": "Tile Round 1 x 1 Quarter",
+   "color": "Bright Pink",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "25269",
+   "name": "Tile Round 1 x 1 Quarter",
+   "color": "White",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "25269",
+   "name": "Tile Round 1 x 1 Quarter",
+   "color": "White",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "25269",
+   "name": "Tile Round 1 x 1 Quarter",
+   "color": "Bright Pink",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "26601",
+   "name": "Wedge Plate 2 x 2 Cut Corner",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3003",
+   "name": "Brick 2 x 2",
+   "color": "Orange",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Orange",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3021",
+   "name": "Plate 2 x 3",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3022",
+   "name": "Plate 2 x 2",
+   "color": "White",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3069b",
+   "name": "Tile 1 x 2 with Groove",
+   "color": "Orange",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "32803",
+   "name": "Brick Curved Inverted 2 x 2 x 2/3",
+   "color": "Reddish Orange",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "35480",
+   "name": "Plate Special 1 x 2 Rounded with 2 Open Studs",
+   "color": "Tan",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3941",
+   "name": "Brick Round 2 x 2 with Axle Hole",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "44861",
+   "name": "Plate Special 1 x 2, Top Clip [Open O]",
+   "color": "White",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "4697b",
+   "name": "Pneumatic T-Piece (T Bar) [New Style]",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "4697b",
+   "name": "Pneumatic T-Piece (T Bar) [New Style]",
+   "color": "White",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "49307",
+   "name": "Brick Curved 1 x 1 x 2/3 Double Curved Top, No Studs",
+   "color": "White",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "5066",
+   "name": "Plate Special 2 x 2 with Horizontal T-Bar Underneath",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "5843",
+   "name": "Brick Arch 1 x 3 x 1 2/3 Curved Top",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "60470b",
+   "name": "Plate Special 1 x 2 with Clips Horizontal [Open O Clips]",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "60474",
+   "name": "Plate Round 4 x 4 with Pin Hole",
+   "color": "Medium Azure",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "60897",
+   "name": "Plate Special 1 x 1 with Clip Vertical [Thick Open O Clip]",
+   "color": "White",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "61332",
+   "name": "Technic Pin with Friction Ridges Lengthwise with No Center Slots",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "61332",
+   "name": "Technic Pin with Friction Ridges Lengthwise with No Center Slots",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "6541",
+   "name": "Technic Brick 1 x 1 with Pin Hole",
+   "color": "White",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "79491",
+   "name": "Plate Round Corner 2 x 2 with 1 x 1 Cutout",
+   "color": "White",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "85080",
+   "name": "Brick Round Corner 2 x 2 Macaroni with Stud Notch and Reinforced Underside [New Style]",
+   "color": "Medium Azure",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "85861",
+   "name": "Plate Round 1 x 1 with Open Stud",
+   "color": "White",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "85861",
+   "name": "Plate Round 1 x 1 with Open Stud",
+   "color": "White",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "99781",
+   "name": "Bracket 1 x 2 - 1 x 2",
+   "color": "Orange",
+   "qty": 1,
+   "spare": false
+  }
+ ],
+ "31058-1": [
+  {
+   "part": "11090",
+   "name": "Bar Holder with Clip",
+   "color": "White",
+   "qty": 5,
+   "spare": false
+  },
+  {
+   "part": "11153",
+   "name": "Brick Curved 4 x 1 No Studs [Stud Holder with Symmetric Ridges]",
+   "color": "Green",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "11458",
+   "name": "Plate Special 1 x 2 with Pin Hole on Top",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11476",
+   "name": "Plate Special 1 x 2 with Clip Horizontal on Side",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11477",
+   "name": "Brick Curved 2 x 1 No Studs [1/2 Bow]",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11477",
+   "name": "Brick Curved 2 x 1 No Studs [1/2 Bow]",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "14417",
+   "name": "Plate Special 1 x 2 with 5.9mm Centre Side Towball",
+   "color": "Dark Bluish Gray",
+   "qty": 5,
+   "spare": false
+  },
+  {
+   "part": "14418",
+   "name": "Plate Special 1 x 2 5.9mm Towball Socket",
+   "color": "Light Bluish Gray",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "14704",
+   "name": "Plate Special 1 x 2 5.9mm Centre Side Towball Socket",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "15068",
+   "name": "Brick Curved 2 x 2 x 2/3",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "15208",
+   "name": "Plate Special 1 x 2 with Three Teeth [Tri-Tooth]",
+   "color": "White",
+   "qty": 7,
+   "spare": false
+  },
+  {
+   "part": "15712",
+   "name": "Tile Special 1 x 1 with Clip with Rounded Edges",
+   "color": "Dark Bluish Gray",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "17114",
+   "name": "Technic Brick Special 2 x 2 with 10.2mm Balls with Holes and Axle Hole",
+   "color": "Dark Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "22885",
+   "name": "Brick Special 1 x 2 x 1 2/3 with 4 Studs on 1 Side",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "2431",
+   "name": "Tile 1 x 4 with Groove",
+   "color": "Dark Red",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "2431",
+   "name": "Tile 1 x 4 with Groove",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "26604",
+   "name": "Brick Special 1 x 1 with Studs on 2 Adjacent Sides",
+   "color": "Tan",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3001",
+   "name": "Brick 2 x 4",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3003",
+   "name": "Brick 2 x 2",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3004",
+   "name": "Brick 1 x 2",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3010",
+   "name": "Brick 1 x 4",
+   "color": "Dark Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3021",
+   "name": "Plate 2 x 3",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3022",
+   "name": "Plate 2 x 2",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Dark Red",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Dark Green",
+   "qty": 8,
+   "spare": false
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Green",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "30357",
+   "name": "Plate Round Corner 3 x 3",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "30374",
+   "name": "Bar 4L (Lightsaber Blade / Wand)",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "30383",
+   "name": "Hinge Plate 1 x 2 Locking with 1 Finger On Top",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3040b",
+   "name": "Brick Sloped 45\u00b0 2 x 1 with Bottom Pin",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3062b",
+   "name": "Brick Round 1 x 1 Open Stud",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "32062",
+   "name": "Technic Axle 2 Notched",
+   "color": "Red",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3660",
+   "name": "Brick Sloped Inverted 45\u00b0 2 x 2 [Ovoid Bottom Pin, Bar-sized Stud Holes]",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3660",
+   "name": "Brick Sloped Inverted 45\u00b0 2 x 2 [Ovoid Bottom Pin, Bar-sized Stud Holes]",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3710",
+   "name": "Plate 1 x 4",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3747b",
+   "name": "Brick Sloped Inverted 33\u00b0 3 x 2, Connections between Studs, Ovoid Bottom Pin",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3795",
+   "name": "Plate 2 x 6",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "4032a",
+   "name": "Plate Round 2 x 2 with Axle Hole Type 1 (+ Opening)",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "40379",
+   "name": "Animal Body Part / Plant, Tail / Claw / Horn / Branch / Tentacle, End Section",
+   "color": "White",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "4081b",
+   "name": "Plate Special 1 x 1 with Clip Light, Bar Hole [Thick Ring]",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "41769",
+   "name": "Wedge Plate 4 x 2 Right",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "41770",
+   "name": "Wedge Plate 4 x 2 Left",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "4274",
+   "name": "Technic Pin 1/2 without Friction Ridges",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "4274",
+   "name": "Technic Pin 1/2 without Friction Ridges",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "43712",
+   "name": "Brick Wedged, Curved 6 x 4 Triple",
+   "color": "Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "43722",
+   "name": "Wedge Plate 3 x 2 Right",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "43723",
+   "name": "Wedge Plate 3 x 2 Left",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "44302a",
+   "name": "Hinge Plate 1 x 2 Locking with 2 Fingers On End, with Groove, 9 Teeth",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "47755",
+   "name": "Wheel Arch, Curved Wedge 4 x 3 with 2 x 2 Opening and 4 Studs",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "52107",
+   "name": "Brick Special 1 x 2 with Studs on 2 Sides",
+   "color": "Dark Tan",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "53451",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Small",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "53451",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Small",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "53585",
+   "name": "Technic Ball Joint with Through Axle Hole",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "54200",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 (Cheese Slope)",
+   "color": "Green",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "54200",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 (Cheese Slope)",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "58176",
+   "name": "Light Cover 1 x 1 Round with Internal Bar / Bionicle Barraki Eye",
+   "color": "Trans-Orange",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "58176",
+   "name": "Light Cover 1 x 1 Round with Internal Bar / Bionicle Barraki Eye",
+   "color": "Trans-Orange",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "60470b",
+   "name": "Plate Special 1 x 2 with Clips Horizontal [Open O Clips]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "60478",
+   "name": "Plate Special 1 x 2 with Handle on End [Closed Ends]",
+   "color": "Dark Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "60897",
+   "name": "Plate Special 1 x 1 with Clip Vertical [Thick Open O Clip]",
+   "color": "Tan",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Trans-Orange",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Trans-Orange",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "63868",
+   "name": "Plate Special 1 x 2 with Clip Horizontal on End",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "74261",
+   "name": "Large Figure Skeletal, Joint Extender [High Friction]",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "85943",
+   "name": "Technic Brick 1 x 2 with Hole and Dual Beam Extensions",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "White",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "Black",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "White",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "87994",
+   "name": "Bar 3L",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "87994",
+   "name": "Bar 3L",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "92013",
+   "name": "Technic Brick Special 2 x 2 with Ball Socket Wide and Axle Hole",
+   "color": "Dark Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "99021",
+   "name": "Pneumatic Hose Connector with Axle Connector",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11090",
+   "name": "Bar Holder with Clip",
+   "color": "White",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "11153",
+   "name": "Brick Curved 4 x 1 No Studs [Stud Holder with Symmetric Ridges]",
+   "color": "Green",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "11458",
+   "name": "Plate Special 1 x 2 with Pin Hole on Top",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11476",
+   "name": "Plate Special 1 x 2 with Clip Horizontal on Side",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11477",
+   "name": "Brick Curved 2 x 1 No Studs [1/2 Bow]",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11477",
+   "name": "Brick Curved 2 x 1 No Studs [1/2 Bow]",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "14417",
+   "name": "Plate Special 1 x 2 with 5.9mm Centre Side Towball",
+   "color": "Dark Bluish Gray",
+   "qty": 5,
+   "spare": false
+  },
+  {
+   "part": "14418",
+   "name": "Plate Special 1 x 2 5.9mm Towball Socket",
+   "color": "Light Bluish Gray",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "14704",
+   "name": "Plate Special 1 x 2 5.9mm Centre Side Towball Socket",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "15068",
+   "name": "Brick Curved 2 x 2 x 2/3",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "15208",
+   "name": "Plate Special 1 x 2 with Three Teeth [Tri-Tooth]",
+   "color": "White",
+   "qty": 7,
+   "spare": false
+  },
+  {
+   "part": "15712",
+   "name": "Tile Special 1 x 1 with Clip with Rounded Edges",
+   "color": "Dark Bluish Gray",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "17114",
+   "name": "Technic Brick Special 2 x 2 with 10.2mm Balls with Holes and Axle Hole",
+   "color": "Dark Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "22885",
+   "name": "Brick Special 1 x 2 x 1 2/3 with 4 Studs on 1 Side",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "2431",
+   "name": "Tile 1 x 4 with Groove",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "2431",
+   "name": "Tile 1 x 4 with Groove",
+   "color": "Dark Red",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "26604",
+   "name": "Brick Special 1 x 1 with Studs on 2 Adjacent Sides",
+   "color": "Tan",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3001",
+   "name": "Brick 2 x 4",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3003",
+   "name": "Brick 2 x 2",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3004",
+   "name": "Brick 1 x 2",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3010",
+   "name": "Brick 1 x 4",
+   "color": "Dark Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3021",
+   "name": "Plate 2 x 3",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3022",
+   "name": "Plate 2 x 2",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Dark Green",
+   "qty": 8,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Dark Red",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Green",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "30357",
+   "name": "Plate Round Corner 3 x 3",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "30374",
+   "name": "Bar 4L (Lightsaber Blade / Wand)",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "30383",
+   "name": "Hinge Plate 1 x 2 Locking with 1 Finger On Top",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3040b",
+   "name": "Brick Sloped 45\u00b0 2 x 1 with Bottom Pin",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3062b",
+   "name": "Brick Round 1 x 1 Open Stud",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "32062",
+   "name": "Technic Axle 2 Notched",
+   "color": "Red",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3660",
+   "name": "Brick Sloped Inverted 45\u00b0 2 x 2 [Ovoid Bottom Pin, Bar-sized Stud Holes]",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3660",
+   "name": "Brick Sloped Inverted 45\u00b0 2 x 2 [Ovoid Bottom Pin, Bar-sized Stud Holes]",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3710",
+   "name": "Plate 1 x 4",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3747b",
+   "name": "Brick Sloped Inverted 33\u00b0 3 x 2, Connections between Studs, Ovoid Bottom Pin",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3795",
+   "name": "Plate 2 x 6",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "4032a",
+   "name": "Plate Round 2 x 2 with Axle Hole Type 1 (+ Opening)",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "40379",
+   "name": "Animal Body Part / Plant, Tail / Claw / Horn / Branch / Tentacle, End Section",
+   "color": "White",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "4081b",
+   "name": "Plate Special 1 x 1 with Clip Light, Bar Hole [Thick Ring]",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "41769",
+   "name": "Wedge Plate 4 x 2 Right",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "41770",
+   "name": "Wedge Plate 4 x 2 Left",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "4274",
+   "name": "Technic Pin 1/2 without Friction Ridges",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "4274",
+   "name": "Technic Pin 1/2 without Friction Ridges",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "43712",
+   "name": "Brick Wedged, Curved 6 x 4 Triple",
+   "color": "Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "43722",
+   "name": "Wedge Plate 3 x 2 Right",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "43723",
+   "name": "Wedge Plate 3 x 2 Left",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "44302b",
+   "name": "Hinge Plate 1 x 2 Locking with 2 Fingers On End, without Groove, 9 Teeth",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "47755",
+   "name": "Wheel Arch, Curved Wedge 4 x 3 with 2 x 2 Opening and 4 Studs",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "52107",
+   "name": "Brick Special 1 x 2 with Studs on 2 Sides",
+   "color": "Dark Tan",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "53451",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Small",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "53451",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Small",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "53585",
+   "name": "Technic Ball Joint with Through Axle Hole",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "54200",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 (Cheese Slope)",
+   "color": "Green",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "54200",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 (Cheese Slope)",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "58176",
+   "name": "Light Cover 1 x 1 Round with Internal Bar / Bionicle Barraki Eye",
+   "color": "Trans-Orange",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "58176",
+   "name": "Light Cover 1 x 1 Round with Internal Bar / Bionicle Barraki Eye",
+   "color": "Trans-Orange",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "60470b",
+   "name": "Plate Special 1 x 2 with Clips Horizontal [Open O Clips]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "60478",
+   "name": "Plate Special 1 x 2 with Handle on End [Closed Ends]",
+   "color": "Dark Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "60897",
+   "name": "Plate Special 1 x 1 with Clip Vertical [Thick Open O Clip]",
+   "color": "Tan",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Trans-Orange",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Trans-Orange",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "63868",
+   "name": "Plate Special 1 x 2 with Clip Horizontal on End",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "85943",
+   "name": "Technic Brick 1 x 2 with Hole and Dual Beam Extensions",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "Black",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "White",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "White",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "87994",
+   "name": "Bar 3L",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "87994",
+   "name": "Bar 3L",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "92013",
+   "name": "Technic Brick Special 2 x 2 with Ball Socket Wide and Axle Hole",
+   "color": "Dark Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "99021",
+   "name": "Pneumatic Hose Connector with Axle Connector",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11090",
+   "name": "Bar Holder with Clip",
+   "color": "White",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "11153",
+   "name": "Brick Curved 4 x 1 No Studs [Stud Holder with Symmetric Ridges]",
+   "color": "Green",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "11458",
+   "name": "Plate Special 1 x 2 with Pin Hole on Top",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11476",
+   "name": "Plate Special 1 x 2 with Clip Horizontal on Side",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11477",
+   "name": "Brick Curved 2 x 1 No Studs [1/2 Bow]",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11477",
+   "name": "Brick Curved 2 x 1 No Studs [1/2 Bow]",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "14417",
+   "name": "Plate Special 1 x 2 with 5.9mm Centre Side Towball",
+   "color": "Dark Bluish Gray",
+   "qty": 5,
+   "spare": false
+  },
+  {
+   "part": "14418",
+   "name": "Plate Special 1 x 2 5.9mm Towball Socket",
+   "color": "Light Bluish Gray",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "14704",
+   "name": "Plate Special 1 x 2 5.9mm Centre Side Towball Socket",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "15068",
+   "name": "Brick Curved 2 x 2 x 2/3",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "15208",
+   "name": "Plate Special 1 x 2 with Three Teeth [Tri-Tooth]",
+   "color": "White",
+   "qty": 7,
+   "spare": false
+  },
+  {
+   "part": "15712",
+   "name": "Tile Special 1 x 1 with Clip with Rounded Edges",
+   "color": "Dark Bluish Gray",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "17114",
+   "name": "Technic Brick Special 2 x 2 with 10.2mm Balls with Holes and Axle Hole",
+   "color": "Dark Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "22885",
+   "name": "Brick Special 1 x 2 x 1 2/3 with 4 Studs on 1 Side",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "2431",
+   "name": "Tile 1 x 4 with Groove",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "2431",
+   "name": "Tile 1 x 4 with Groove",
+   "color": "Dark Red",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "26604",
+   "name": "Brick Special 1 x 1 with Studs on 2 Adjacent Sides",
+   "color": "Tan",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3001",
+   "name": "Brick 2 x 4",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3003",
+   "name": "Brick 2 x 2",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3004",
+   "name": "Brick 1 x 2",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3010",
+   "name": "Brick 1 x 4",
+   "color": "Dark Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3021",
+   "name": "Plate 2 x 3",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3022",
+   "name": "Plate 2 x 2",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Dark Green",
+   "qty": 8,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Dark Red",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Green",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "30357",
+   "name": "Plate Round Corner 3 x 3",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "30374",
+   "name": "Bar 4L (Lightsaber Blade / Wand)",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "30383",
+   "name": "Hinge Plate 1 x 2 Locking with 1 Finger On Top",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3040b",
+   "name": "Brick Sloped 45\u00b0 2 x 1 with Bottom Pin",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3062b",
+   "name": "Brick Round 1 x 1 Open Stud",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "32062",
+   "name": "Technic Axle 2 Notched",
+   "color": "Red",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3660",
+   "name": "Brick Sloped Inverted 45\u00b0 2 x 2 [Ovoid Bottom Pin, Bar-sized Stud Holes]",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3660",
+   "name": "Brick Sloped Inverted 45\u00b0 2 x 2 [Ovoid Bottom Pin, Bar-sized Stud Holes]",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3710",
+   "name": "Plate 1 x 4",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3747b",
+   "name": "Brick Sloped Inverted 33\u00b0 3 x 2, Connections between Studs, Ovoid Bottom Pin",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3795",
+   "name": "Plate 2 x 6",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "4032a",
+   "name": "Plate Round 2 x 2 with Axle Hole Type 1 (+ Opening)",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "40379",
+   "name": "Animal Body Part / Plant, Tail / Claw / Horn / Branch / Tentacle, End Section",
+   "color": "White",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "4081b",
+   "name": "Plate Special 1 x 1 with Clip Light, Bar Hole [Thick Ring]",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "41769",
+   "name": "Wedge Plate 4 x 2 Right",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "41770",
+   "name": "Wedge Plate 4 x 2 Left",
+   "color": "Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "4274",
+   "name": "Technic Pin 1/2 without Friction Ridges",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "4274",
+   "name": "Technic Pin 1/2 without Friction Ridges",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "43712",
+   "name": "Brick Wedged, Curved 6 x 4 Triple",
+   "color": "Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "43722",
+   "name": "Wedge Plate 3 x 2 Right",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "43723",
+   "name": "Wedge Plate 3 x 2 Left",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "47755",
+   "name": "Wheel Arch, Curved Wedge 4 x 3 with 2 x 2 Opening and 4 Studs",
+   "color": "Dark Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "52107",
+   "name": "Brick Special 1 x 2 with Studs on 2 Sides",
+   "color": "Dark Tan",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "53451",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Small",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "53451",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Small",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "53585",
+   "name": "Technic Ball Joint with Through Axle Hole",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "54200",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 (Cheese Slope)",
+   "color": "Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "54200",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 (Cheese Slope)",
+   "color": "Green",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "54657",
+   "name": "Hinge Plate 1 x 2 Locking with 2 Fingers On End, without Groove, 7 Teeth",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "58176",
+   "name": "Light Cover 1 x 1 Round with Internal Bar / Bionicle Barraki Eye",
+   "color": "Trans-Orange",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "58176",
+   "name": "Light Cover 1 x 1 Round with Internal Bar / Bionicle Barraki Eye",
+   "color": "Trans-Orange",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "60470b",
+   "name": "Plate Special 1 x 2 with Clips Horizontal [Open O Clips]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "60478",
+   "name": "Plate Special 1 x 2 with Handle on End [Closed Ends]",
+   "color": "Dark Green",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "60897",
+   "name": "Plate Special 1 x 1 with Clip Vertical [Thick Open O Clip]",
+   "color": "Tan",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Trans-Orange",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Trans-Orange",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "63868",
+   "name": "Plate Special 1 x 2 with Clip Horizontal on End",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "85943",
+   "name": "Technic Brick 1 x 2 with Hole and Dual Beam Extensions",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "Black",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "White",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "87747",
+   "name": "Animal Body Part, Barb / Claw / Tooth / Talon / Horn, Medium",
+   "color": "White",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "87994",
+   "name": "Bar 3L",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "87994",
+   "name": "Bar 3L",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "92013",
+   "name": "Technic Brick Special 2 x 2 with Ball Socket Wide and Axle Hole",
+   "color": "Dark Green",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "99021",
+   "name": "Pneumatic Hose Connector with Axle Connector",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  }
+ ],
+ "77244-1": [
+  {
+   "part": "10115310",
+   "name": "Sticker Sheet for Set 77244-1",
+   "color": "[No Color/Any Color]",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "105162pr0003",
+   "name": "Wheel Rim 24 x 13.4 with Black Slick Tyre with White 'PIRELLI' Print",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "110100pr0003",
+   "name": "Wheel Rim 24 x 14.9 Wide with Black Slick Tyre with White 'PIRELLI' Print",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11153",
+   "name": "Brick Curved 4 x 1 No Studs [Stud Holder with Symmetric Ridges]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "11477",
+   "name": "Brick Curved 2 x 1 No Studs [1/2 Bow]",
+   "color": "Black",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "15210",
+   "name": "Road Sign Clip-on 2 x 2 Square [Thick Open O Clip]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "15535",
+   "name": "Tile Special Round 2 x 2 with Hole",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "15573",
+   "name": "Plate Special 1 x 2 with 1 Stud with Groove and Inside Stud Holder (Jumper)",
+   "color": "Green",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "15573",
+   "name": "Plate Special 1 x 2 with 1 Stud with Groove and Inside Stud Holder (Jumper)",
+   "color": "Black",
+   "qty": 9,
+   "spare": false
+  },
+  {
+   "part": "15712",
+   "name": "Tile Special 1 x 1 with Clip with Rounded Edges",
+   "color": "Black",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "1745",
+   "name": "Plate Special Round 1 x 2 Half Circle with Stud (Jumper)",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "1748",
+   "name": "Tile Round 1 x 2 Half Circle",
+   "color": "Dark Turquoise",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "1748",
+   "name": "Tile Round 1 x 2 Half Circle",
+   "color": "Dark Turquoise",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "1871",
+   "name": "Brick Round Curved 1 x 1 x 1 1/3 Quarter Dome",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "18986",
+   "name": "Minifig Neckwear Bracket with 2 Back Studs",
+   "color": "Trans-Clear",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "20482",
+   "name": "Tile Special Round 1 x 1 with Hollow Bar",
+   "color": "Dark Bluish Gray",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "20482",
+   "name": "Tile Special Round 1 x 1 with Hollow Bar",
+   "color": "Dark Bluish Gray",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "20482",
+   "name": "Tile Special Round 1 x 1 with Hollow Bar",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "20482",
+   "name": "Tile Special Round 1 x 1 with Hollow Bar",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "22484",
+   "name": "Bar 2L with Towball",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "23443",
+   "name": "Bar Holder with Hole and Bar Handle",
+   "color": "Black",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "24246pr0052",
+   "name": "Tile Round 1 x 1 Half Circle with Black Rounded Oval Print",
+   "color": "Red",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "24246pr0052",
+   "name": "Tile Round 1 x 1 Half Circle with Black Rounded Oval Print",
+   "color": "Red",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "24299",
+   "name": "Wedge Plate 2 x 2 Left",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "24307",
+   "name": "Wedge Plate 2 x 2 Right",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "25269",
+   "name": "Tile Round 1 x 1 Quarter",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "25269",
+   "name": "Tile Round 1 x 1 Quarter",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "26603",
+   "name": "Tile 2 x 3",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "27263",
+   "name": "Tile Special 2 x 2 Corner with Cut Corner - Facet",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "28802",
+   "name": "Bracket 1 x 2 - 1 x 4 [Rounded Corners at Bottom, Square Corners at Top]",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "28974",
+   "name": "Minifig Neckwear Bracket [One Stud] - Reinforced",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "29119",
+   "name": "Brick Wedged, Curved 2 x 1 with Stud Notch Right",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "29120",
+   "name": "Brick Wedged, Curved 2 x 1 with Stud Notch Left",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "30029",
+   "name": "Vehicle Base 4 x 10 x 2/3 with 4 x 2 Recessed Center with Smooth Underside",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3003",
+   "name": "Brick 2 x 2",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "30165",
+   "name": "Brick Curved 2 x 2, Two Top Studs",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3020",
+   "name": "Plate 2 x 4",
+   "color": "Dark Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3022",
+   "name": "Plate 2 x 2",
+   "color": "Dark Turquoise",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Red",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Black",
+   "qty": 7,
+   "spare": false
+  },
+  {
+   "part": "3023",
+   "name": "Plate 1 x 2",
+   "color": "Dark Turquoise",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Dark Turquoise",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Dark Turquoise",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3024",
+   "name": "Plate 1 x 1",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3070b",
+   "name": "Tile 1 x 1 with Groove",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "3070b",
+   "name": "Tile 1 x 1 with Groove",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3070bpr9897",
+   "name": "Tile 1 x 1 with 15 Silver Dots Print",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3070bpr9897",
+   "name": "Tile 1 x 1 with 15 Silver Dots Print",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "3171",
+   "name": "Animal / Creature Body Part, Claw with Clip",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3176",
+   "name": "Plate Special 3 x 2 with Rounded End, Hole",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "32064a",
+   "name": "Technic Brick 1 x 2 with Axle Hole Type 1 [+ Opening] and Bottom Pin",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "32123b",
+   "name": "Technic Bush 1/2 Smooth with Axle Hole Semi-Reduced",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "32123b",
+   "name": "Technic Bush 1/2 Smooth with Axle Hole Semi-Reduced",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "33909",
+   "name": "Plate Special 2 x 2 with Only 2 Studs",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "33909",
+   "name": "Plate Special 2 x 2 with Only 2 Studs",
+   "color": "White",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3484",
+   "name": "Bar 1L with Clip [Cut Edges and One Side Hole] [Full Clip]",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3504pr0003",
+   "name": "Brick Wedged, Sloped 2 x 5 Left with Silver Stars, 'SOLER', 'TeamViewer' Print",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3505pr0003",
+   "name": "Brick Wedged, Sloped 2 x 5 Right with Silver Stars, 'SOLER', 'TeamViewer' Print",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "35480",
+   "name": "Plate Special 1 x 2 Rounded with 2 Open Studs",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3563",
+   "name": "Brick Curved 1 x 2 x 2/3 Double Curved Top, No Studs",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "36840",
+   "name": "Bracket 1 x 1 - 1 x 1 Inverted",
+   "color": "Black",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "36840",
+   "name": "Bracket 1 x 1 - 1 x 1 Inverted",
+   "color": "Green",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "36841",
+   "name": "Bracket 1 x 1 - 1 x 1",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "36841",
+   "name": "Bracket 1 x 1 - 1 x 1",
+   "color": "White",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "3685",
+   "name": "Brick Sloped 75\u00b0 2 x 2 x 3 Double Convex",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3701",
+   "name": "Technic Brick 1 x 4 [3 Pin Holes]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3705",
+   "name": "Technic Axle 4",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3710",
+   "name": "Plate 1 x 4",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3710",
+   "name": "Plate 1 x 4",
+   "color": "Dark Turquoise",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3749",
+   "name": "Technic Axle Pin without Friction Ridges Lengthwise",
+   "color": "Tan",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "3885",
+   "name": "Weapon Sword Blade, Darksaber",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "3885",
+   "name": "Weapon Sword Blade, Darksaber",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "4006",
+   "name": "Tool Screwdriver and Spanner / Wrench",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "41677",
+   "name": "Technic Beam 1 x 2 Thin",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "41740",
+   "name": "Plate Special 1 x 4 with 2 Studs with Groove [New Underside]",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "4304",
+   "name": "Plate Special 2 x 2 x 2/3 with Two Studs On Side and Two Raised [Half Hollow Anti-stud] - Updated Version",
+   "color": "Black",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "4304",
+   "name": "Plate Special 2 x 2 x 2/3 with Two Studs On Side and Two Raised [Half Hollow Anti-stud] - Updated Version",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "44861",
+   "name": "Plate Special 1 x 2, Top Clip [Open O]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "4740pr0030",
+   "name": "Dish 2 x 2 Inverted [Radar] with Bright Green Inner Circle Print",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "48336",
+   "name": "Plate Special 1 x 2 [Side Handle Closed Ends]",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "48336",
+   "name": "Plate Special 1 x 2 [Side Handle Closed Ends]",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "4865b",
+   "name": "Panel 1 x 2 x 1 [Rounded Corners]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "49668",
+   "name": "Plate Special 1 x 1 with Tooth",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "5091",
+   "name": "Tile 1 x 2 with Stud Notch Left",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "5092",
+   "name": "Tile 1 x 2 with Stud Notch Right",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "5093",
+   "name": "Brick Wedged, Curved 2 x 2 with Stud Notch Right",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "5095",
+   "name": "Brick Wedged, Curved 2 x 2 with Stud Notch Left",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "51739",
+   "name": "Wedge Plate 2 x 4",
+   "color": "Dark Turquoise",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "5264",
+   "name": "Plate Special Round 1 x 1 with Hollow Stud and Underside Clip",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "5264",
+   "name": "Plate Special Round 1 x 1 with Hollow Stud and Underside Clip",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "53118pr0003",
+   "name": "Game Controller with F1 Steering Wheel Controls Print",
+   "color": "Pearl Titanium",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "5404",
+   "name": "Brick Sloped 18\u00b0 2 x 1 x 2/3",
+   "color": "Black",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "54200pr0022",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 with Dark Bluish Grey Mercedes Logo Print",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "54200pr0022",
+   "name": "Brick Sloped 30\u00b0 1 x 1 x 2/3 with Dark Bluish Grey Mercedes Logo Print",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "60897",
+   "name": "Plate Special 1 x 1 with Clip Vertical [Thick Open O Clip]",
+   "color": "Light Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "60897",
+   "name": "Plate Special 1 x 1 with Clip Vertical [Thick Open O Clip]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "61252",
+   "name": "Plate Special 1 x 1 with Clip Horizontal [Thick Open O Clip]",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Dark Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "6141",
+   "name": "Plate Round 1 x 1 with Solid Stud",
+   "color": "Dark Bluish Gray",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "63864",
+   "name": "Tile 1 x 3",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "65249",
+   "name": "Technic Axle Pin 3L without Friction Ridges and 2L Axle",
+   "color": "White",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "65426",
+   "name": "Wedge Plate 2 x 4 27\u00b0 Right",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "65429",
+   "name": "Wedge Plate 2 x 4 27\u00b0 Left",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "6801pr0003",
+   "name": "Brick Curved 1 x 6 with White 'EINHELL' On Black Background, Dark Turquoise/Red Stripes on Sides, Black Sponsors Print",
+   "color": "Light Bluish Gray",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "6806",
+   "name": "Brick Curved 2 x 6 Inverted",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "6813",
+   "name": "Suspension Mount with Fender, Formula 1",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "72869",
+   "name": "Bar Holder with Clip and 90\u00b0 Angle (Mechanical Leg)",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "73109",
+   "name": "Technic Brick Special 1 x 2 with Pin Hole and 1 x 2 Plate",
+   "color": "Red",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "73825",
+   "name": "Bracket 1 x 1 - 1 x 2 Inverted",
+   "color": "Red",
+   "qty": 4,
+   "spare": false
+  },
+  {
+   "part": "73825",
+   "name": "Bracket 1 x 1 - 1 x 2 Inverted",
+   "color": "Black",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "75c07",
+   "name": "Hose Rigid 3mm D. 7L / 5.6cm",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "77844",
+   "name": "Plate 3 x 3 Corner",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "77850",
+   "name": "Plate Special 1 x 3 Rounded with 3 Open Studs",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "78258",
+   "name": "Bar 2L with Stop in Center",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "78258",
+   "name": "Bar 2L with Stop in Center",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "78329",
+   "name": "Plate 1 x 5",
+   "color": "Dark Bluish Gray",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "78443",
+   "name": "Wedge Plate 6 x 2 Left",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "78444",
+   "name": "Wedge Plate 6 x 2 Right",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "79756pr0002",
+   "name": "Brick Curved 1 x 4 x 2/3 Double, No Studs with Silver Stars (Mercedes Logos) Left Print",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "79756pr0003",
+   "name": "Brick Curved 1 x 4 x 2/3 Double, No Studs with Silver Stars (Mercedes Logos) Right Print",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "80179",
+   "name": "Equipment Cutlery - Spoon, Flat Bottom",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "80179",
+   "name": "Equipment Cutlery - Spoon, Flat Bottom",
+   "color": "Black",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "85861",
+   "name": "Plate Round 1 x 1 with Open Stud",
+   "color": "Green",
+   "qty": 8,
+   "spare": false
+  },
+  {
+   "part": "85861",
+   "name": "Plate Round 1 x 1 with Open Stud",
+   "color": "Green",
+   "qty": 1,
+   "spare": true
+  },
+  {
+   "part": "85943",
+   "name": "Technic Brick 1 x 2 with Hole and Dual Beam Extensions",
+   "color": "Black",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "86996",
+   "name": "Plate 1 x 1 x 2/3 with Open Stud",
+   "color": "Black",
+   "qty": 3,
+   "spare": false
+  },
+  {
+   "part": "92081",
+   "name": "Hair Combed Back",
+   "color": "Tan",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "93273",
+   "name": "Brick Curved 4 x 1 Double, No Studs",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "99207",
+   "name": "Bracket 1 x 2 - 2 x 2 Inverted",
+   "color": "Black",
+   "qty": 2,
+   "spare": false
+  },
+  {
+   "part": "99207",
+   "name": "Bracket 1 x 2 - 2 x 2 Inverted",
+   "color": "Red",
+   "qty": 1,
+   "spare": false
+  },
+  {
+   "part": "99563",
+   "name": "Tile Special 1 x 2 with Sloped Walls AKA Money / Gold Bar [Ingot]",
+   "color": "Black",
+   "qty": 6,
+   "spare": false
+  },
+  {
+   "part": "99780",
+   "name": "Bracket 1 x 2 - 1 x 2 Inverted",
+   "color": "Black",
+   "qty": 9,
+   "spare": false
+  },
+  {
+   "part": "99781",
+   "name": "Bracket 1 x 2 - 1 x 2",
+   "color": "Dark Turquoise",
+   "qty": 4,
+   "spare": false
+  }
+ ]
+}
