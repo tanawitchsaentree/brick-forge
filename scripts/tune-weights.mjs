@@ -59,10 +59,12 @@ try {
     const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648), seed / 2147483648);
     const taken = new Set();
     const tune = [];
-    for (const tier of ["junior", "creator", "advanced"]) {
-      const pool = usable.filter((m) => m.tier === tier && m.parts >= 30 && m.parts <= 400).sort((a, b) => (a.id < b.id ? -1 : 1));
+    // Per level: how many, and the size range (o.MIX overrides; the default covers small to Expert).
+    const MIX = o.MIX ?? { junior: [3, 30, 400], creator: [4, 30, 400], advanced: [4, 30, 400] };
+    for (const [tier, [count, lo, hi]] of Object.entries(MIX)) {
+      const pool = usable.filter((m) => m.tier === tier && m.parts >= lo && m.parts <= hi).sort((a, b) => (a.id < b.id ? -1 : 1));
       let n = 0;
-      while (n < Math.ceil(o.N / 3) && pool.length) {
+      while (n < count && pool.length) {
         const m = pool.splice(Math.floor(rnd() * pool.length), 1)[0];
         if (taken.has(m.set)) continue;
         taken.add(m.set);
