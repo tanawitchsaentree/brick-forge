@@ -8,7 +8,10 @@
 // (scripts/bench-sets.json, all of it) is left out entirely. Technic is left
 // out, like the benchmark's learning.
 //
-//   node scripts/extract-decisions.mjs out.jsonl ['{"K":32,"R":8,"CAP":200,"WEIGHTS":"data/weights.json"}']
+//   node scripts/extract-decisions.mjs out.jsonl ['{"K":32,"R":8,"CAP":200,"WEIGHTS":"data/weights.json","SCOPE":"layer"}']
+//
+// SCOPE "layer": the decoder's real choice, every open anchor of the layer against
+// all the designer's parts still to come in it (sculpt.ts REPLAY.scope).
 //
 // With WEIGHTS, the negatives are the top K by those weights (the re-extraction
 // round): negatives from the old score are biased toward what it already likes.
@@ -80,7 +83,7 @@ try {
       sculpt(S.voxelize(bricks), {
         forms, MAX_FORMS: o.MAX_FORMS, WEIGHTS: weights,
         REPLAY: {
-          bricks, K: o.K, R: o.R, seed: o.SEED, sample: pick, keep,
+          bricks, K: o.K, R: o.R, seed: o.SEED, sample: pick, keep, scope: o.SCOPE,
           emit: (d) => {
             stats.sampled++;
             if (tableSigs.has(formSigOf(bricks[d.brick]))) stats.inTable++;
@@ -94,7 +97,7 @@ try {
             stats.decisions++;
             if (d.better === 0) stats.top1++;
             if (d.better < 5) stats.top5++;
-            out.write(JSON.stringify({ set: m.set, id: m.id, tier: m.tier, fold: k, known: d.known, gate: d.gate, better: d.better, candidates: d.candidates, feats: d.feats, cover: d.cover }) + "\n");
+            out.write(JSON.stringify({ set: m.set, id: m.id, tier: m.tier, fold: k, known: d.known, gate: d.gate, pos: d.pos ?? 1, better: d.better, candidates: d.candidates, feats: d.feats, cover: d.cover }) + "\n");
           },
         },
       });

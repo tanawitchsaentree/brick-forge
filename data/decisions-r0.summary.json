@@ -1,0 +1,27 @@
+{
+ "models": 343,
+ "parts": 138125,
+ "sampled": 38756,
+ "inTable": 26600,
+ "known": 22646,
+ "overlap": 5945,
+ "fitNonPos": 67,
+ "belowMinCover": 307,
+ "eitherGate": 307,
+ "decisions": 38689,
+ "top1": 16546,
+ "top5": 22507,
+ "sharedCells": 77928,
+ "sharedSize": null,
+ "pct": {
+  "inTable": 68.6,
+  "knownTop": 58.4,
+  "overlap": 15.3,
+  "fitNonPos": 0.2,
+  "belowMinCover": 0.8,
+  "eitherGate": 0.8,
+  "currentTop1": 42.8,
+  "currentTop5": 58.2
+ },
+ "seconds": 167
+}

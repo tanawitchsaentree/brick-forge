@@ -1,0 +1,125 @@
+{
+ "version": "phase1-2026-10-29",
+ "trainSetHash": "5fc9ba40b458",
+ "extracted": {
+  "K": 32,
+  "R": 8,
+  "CAP": 200,
+  "FOLDS": 5,
+  "SEED": 20261029,
+  "MAX_FORMS": 1500,
+  "MOTIFS": 4,
+  "MIN_USE": 2,
+  "WEIGHTS": "baseline score",
+  "benchSetsLeftOut": 26,
+  "models": 343,
+  "date": "2026-10-29T05:47:52.493Z"
+ },
+ "gamma": 0.9,
+ "weights": {
+  "cover": 0.989339,
+  "air": -2.98163,
+  "studOk": 1.46166,
+  "studBad": -38.839,
+  "pieces": -53.3438,
+  "engaged": 0.209565,
+  "float": -293.044,
+  "logUse": 5.24326,
+  "repeat": 34.3338,
+  "belowMinCover": -0.92204,
+  "fitNonPos": -4.57262,
+  "size": -0.0011056,
+  "cat_plate": 4.83293,
+  "cat_brick": 1.32789,
+  "cat_tile": -0.81201,
+  "cat_slope": -0.136914,
+  "cat_snot": 3.7077,
+  "cat_technic": 0,
+  "cat_other": 1.08304
+ },
+ "decisions": {
+  "train": 31750,
+  "val": 6939,
+  "sets": {
+   "train": 194,
+   "val": 48
+  }
+ },
+ "agreement": {
+  "train": {
+   "top1": 0.4666,
+   "top5": 0.6616
+  },
+  "val": {
+   "top1": 0.444,
+   "top5": 0.636
+  }
+ },
+ "constants": {
+  "train": {
+   "top1": 0.4233,
+   "top5": 0.5849
+  },
+  "val": {
+   "top1": 0.388,
+   "top5": 0.5481
+  }
+ },
+ "grid": [
+  {
+   "gamma": 0.5,
+   "train": {
+    "top1": 0.4228,
+    "top5": 0.5938
+   },
+   "val": {
+    "top1": 0.3862,
+    "top5": 0.5636
+   }
+  },
+  {
+   "gamma": 0.6,
+   "train": {
+    "top1": 0.4298,
+    "top5": 0.6036
+   },
+   "val": {
+    "top1": 0.3947,
+    "top5": 0.5754
+   }
+  },
+  {
+   "gamma": 0.7,
+   "train": {
+    "top1": 0.4369,
+    "top5": 0.6164
+   },
+   "val": {
+    "top1": 0.406,
+    "top5": 0.5857
+   }
+  },
+  {
+   "gamma": 0.8,
+   "train": {
+    "top1": 0.4506,
+    "top5": 0.6336
+   },
+   "val": {
+    "top1": 0.4284,
+    "top5": 0.6034
+   }
+  },
+  {
+   "gamma": 0.9,
+   "train": {
+    "top1": 0.4666,
+    "top5": 0.6616
+   },
+   "val": {
+    "top1": 0.444,
+    "top5": 0.636
+   }
+  }
+ ]
+}

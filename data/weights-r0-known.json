@@ -1,0 +1,162 @@
+{
+ "version": "phase1-2026-10-29-known",
+ "options": {
+  "knownOnly": true
+ },
+ "trainSetHash": "30848c519d01",
+ "extracted": {
+  "K": 32,
+  "R": 8,
+  "CAP": 200,
+  "FOLDS": 5,
+  "SEED": 20261029,
+  "MAX_FORMS": 1500,
+  "MOTIFS": 4,
+  "MIN_USE": 2,
+  "WEIGHTS": "baseline score",
+  "benchSetsLeftOut": 26,
+  "models": 343,
+  "date": "2026-10-29T05:47:52.493Z"
+ },
+ "gamma": 1,
+ "weights": {
+  "cover": 0.951531,
+  "air": -2.9055,
+  "studOk": 0.728976,
+  "studBad": -34.1661,
+  "pieces": -32.4251,
+  "engaged": 0.00525714,
+  "float": -260.191,
+  "logUse": 11.6535,
+  "repeat": 95.1389,
+  "belowMinCover": -3.35565,
+  "fitNonPos": -2.10281,
+  "size": -0.0002963,
+  "cat_plate": 4.56857,
+  "cat_brick": 1.94987,
+  "cat_tile": -3.22166,
+  "cat_slope": -0.945403,
+  "cat_snot": 3.92092,
+  "cat_technic": 0,
+  "cat_other": -3.26825
+ },
+ "decisions": {
+  "train": 18244,
+  "val": 4372,
+  "sets": {
+   "train": 189,
+   "val": 47
+  }
+ },
+ "agreement": {
+  "train": {
+   "top1": 0.4004,
+   "top5": 0.6905
+  },
+  "val": {
+   "top1": 0.4163,
+   "top5": 0.6791
+  }
+ },
+ "constants": {
+  "train": {
+   "top1": 0.2272,
+   "top5": 0.3948
+  },
+  "val": {
+   "top1": 0.2047,
+   "top5": 0.3607
+  }
+ },
+ "grid": [
+  {
+   "gamma": 0.5,
+   "train": {
+    "top1": 0.2541,
+    "top5": 0.5354
+   },
+   "val": {
+    "top1": 0.239,
+    "top5": 0.4938
+   }
+  },
+  {
+   "gamma": 0.6,
+   "train": {
+    "top1": 0.2795,
+    "top5": 0.5745
+   },
+   "val": {
+    "top1": 0.264,
+    "top5": 0.5327
+   }
+  },
+  {
+   "gamma": 0.7,
+   "train": {
+    "top1": 0.3114,
+    "top5": 0.6221
+   },
+   "val": {
+    "top1": 0.3097,
+    "top5": 0.5837
+   }
+  },
+  {
+   "gamma": 0.8,
+   "train": {
+    "top1": 0.3462,
+    "top5": 0.6746
+   },
+   "val": {
+    "top1": 0.3538,
+    "top5": 0.6489
+   }
+  },
+  {
+   "gamma": 0.9,
+   "train": {
+    "top1": 0.3913,
+    "top5": 0.7159
+   },
+   "val": {
+    "top1": 0.4039,
+    "top5": 0.6928
+   }
+  },
+  {
+   "gamma": 1,
+   "train": {
+    "top1": 0.4004,
+    "top5": 0.6905
+   },
+   "val": {
+    "top1": 0.4163,
+    "top5": 0.6791
+   }
+  },
+  {
+   "gamma": 1.1,
+   "train": {
+    "top1": 0.3768,
+    "top5": 0.6611
+   },
+   "val": {
+    "top1": 0.3943,
+    "top5": 0.6594
+   }
+  },
+  {
+   "gamma": 1.2,
+   "train": {
+    "top1": 0.3665,
+    "top5": 0.6503
+   },
+   "val": {
+    "top1": 0.3788,
+    "top5": 0.6523
+   }
+  }
+ ],
+ "gates": false
+}

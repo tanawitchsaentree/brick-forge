@@ -350,6 +350,8 @@ export interface Decision {
   shared?: number;
   /** Which old gates would drop it. */
   gate?: { fitNonPos: boolean; belowMinCover: boolean };
+  /** Layer scope: the first `pos` candidates are the designer's (any of them is right). */
+  pos?: number;
   /** Candidates the current score ranks above the designer's (ties count against it), out of how many. */
   better?: number;
   candidates?: number;
@@ -366,7 +368,16 @@ export interface SculptOptions {
    * step), and at each one sampled, the designer's form and the candidates at
    * its anchor (top K by the current score, plus R feasible ones at random).
    */
-  REPLAY?: { bricks: PlacedBrick[]; K: number; R: number; seed: number; sample: (i: number) => boolean; keep: (id: string) => boolean; emit: (d: Decision) => void };
+  REPLAY?: {
+    bricks: PlacedBrick[]; K: number; R: number; seed: number; sample: (i: number) => boolean; keep: (id: string) => boolean; emit: (d: Decision) => void;
+    /**
+     * "anchor" (default): candidates at the designer's anchor only. "layer": what
+     * the greedy decoder actually compares, the best candidates at every open
+     * anchor of the layer, against all the designer's parts still to come in it
+     * (several right answers: `pos` of them, first in the list).
+     */
+    scope?: "anchor" | "layer";
+  };
   /** Parts already in place (kept from a parent design): built around, and part of the result. */
   fixed?: PlacedBrick[];
   AIR?: number;
@@ -692,17 +703,80 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
       .map((b, i) => ({ b, i, f: formOf(b) }))
       .filter((o): o is { b: PlacedBrick; i: number; f: NonNullable<ReturnType<typeof formOf>> } => !!o.f)
       .sort((p, q) => p.f.origin[1] - q.f.origin[1] || (p.b.step ?? 0) - (q.b.step ?? 0) || p.i - q.i);
-    for (const { b, i, f: fd } of order) {
-      const [ox, oy, oz] = fd.origin;
-      let fi = index.get(fd.sig) ?? -1;
-      const known = fi >= 0;
-      if (!known) {
-        forms.push({ partId: b.partId, units: fd.units, probes: fd.probes, use: 0 });
-        prior.push(PRIOR * Math.log1p(0));
-        bottoms.push(fd.units.filter((u) => u.dy === 0));
-        fi = forms.length - 1;
+    // Each designer part's form: from the table, or added (so it can be placed).
+    const fiOf = order.map(({ b, f: fd }) => {
+      const at = index.get(fd.sig);
+      if (at !== undefined) return at;
+      forms.push({ partId: b.partId, units: fd.units, probes: fd.probes, use: 0 });
+      prior.push(PRIOR * Math.log1p(0));
+      bottoms.push(fd.units.filter((u) => u.dy === 0));
+      return forms.length - 1;
+    });
+    // Anchors per layer (the units the decoder fills from).
+    const anchorsAt = new Map<number, number[]>();
+    for (const k of want.keys()) {
+      const [x, y, z] = unkey(k);
+      anchorsAt.set(y, [...(anchorsAt.get(y) ?? []), x, z]);
+    }
+    /** Layer scope: the designer's remaining parts in this layer against the best placements at every anchor. */
+    const layerDecision = (n: number): Decision => {
+      const { b, i, f: fd } = order[n];
+      const oy = fd.origin[1];
+      const pos: { fi: number; t: Terms; x: number; z: number }[] = [];
+      for (let m = n; m < order.length && order[m].f.origin[1] === oy; m++) {
+        const c = fiOf[m];
+        if (c >= table || !R.keep(order[m].b.partId)) continue; // only forms the decoder could choose
+        const [x, , z] = order[m].f.origin;
+        const t = terms(c, x, oy, z, true, true);
+        if (t && t.cover > 0) pos.push({ fi: c, t: { ...t }, x, z });
       }
-      if (R.keep(b.partId) && R.sample(i)) {
+      const d: Decision = { brick: i, partId: b.partId, known: fiOf[n] < table, overlap: false };
+      if (!pos.length) return d;
+      const isPos = (c: number, x: number, z: number) => pos.some((p) => p.fi === c && p.x === x && p.z === z);
+      // Per anchor, its best few by the current score (as the decoder's bestFor would see them).
+      const pool: { fi: number; t: Terms; s: number | null }[] = [];
+      const ax = anchorsAt.get(oy) ?? [];
+      for (let a = 0; a < ax.length; a += 2) {
+        const here = taken.get(ax[a], oy, ax[a + 1]);
+        const open = (wantG.get(ax[a], oy, ax[a + 1]) & ~here) >>> 0;
+        if (popcount(open) < 4) continue;
+        const local: { fi: number; t: Terms; s: number | null }[] = [];
+        for (let c = 0; c < table; c++)
+          for (const u of bottoms[c]) {
+            if (!(u.mask & open) || u.mask & here) continue;
+            const x = ax[a] - u.dx, z = ax[a + 1] - u.dz;
+            if (isPos(c, x, z)) continue;
+            const t = terms(c, x, oy, z, true);
+            if (!t || t.cover <= 0) continue;
+            local.push({ fi: c, t: { ...t }, s: score(c, t) });
+          }
+        local.sort((p, q) => (q.s ?? -Infinity) - (p.s ?? -Infinity) || p.fi - q.fi);
+        pool.push(...local.slice(0, 3));
+        // One more at random from this anchor (gated ones included), for diversity.
+        if (local.length > 3) pool.push(local[3 + Math.floor(rr() * (local.length - 3))]);
+      }
+      const ranked = pool.filter((c) => c.s !== null).sort((p, q) => q.s! - p.s! || p.fi - q.fi);
+      const top = ranked.slice(0, R.K);
+      const rest = pool.filter((c) => !top.includes(c));
+      const extra: typeof pool = [];
+      for (let k = 0; k < R.R && rest.length; k++) extra.push(rest.splice(Math.floor(rr() * rest.length), 1)[0]);
+      const best = Math.max(...pos.map((p) => score(p.fi, p.t) ?? -Infinity));
+      d.pos = pos.length;
+      d.candidates = pool.length;
+      d.better = pool.filter((c) => c.s !== null && c.s >= best).length;
+      const all = [...pos, ...top, ...extra];
+      d.feats = all.map((c) => featsOf(c.fi, c.t));
+      d.cover = all.map((c) => c.t.cover);
+      return d;
+    };
+    for (let n = 0; n < order.length; n++) {
+      const { b, i, f: fd } = order[n];
+      const [ox, oy, oz] = fd.origin;
+      const fi = fiOf[n];
+      const known = fi < table;
+      if (R.scope === "layer") {
+        if (R.keep(b.partId) && R.sample(i)) R.emit(layerDecision(n));
+      } else if (R.keep(b.partId) && R.sample(i)) {
         const t0r = terms(fi, ox, oy, oz, true, true);
         const t = t0r && { ...t0r };
         const d: Decision = { brick: i, partId: b.partId, known, overlap: !t || t.shared > 0, shared: t?.shared };

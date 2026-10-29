@@ -1,0 +1,863 @@
+{
+ "run": "p1-r0-all",
+ "date": "2026-10-29T06:04:35.334Z",
+ "git": "c7cec63",
+ "dirty": true,
+ "arg": "@core8",
+ "ids": [
+  "75870-1",
+  "31009-1-310091",
+  "4917-1-49171",
+  "7219-1",
+  "7611-1",
+  "6743-1-67431",
+  "30190-1",
+  "31066-1-shuttle"
+ ],
+ "idsHash": "a119cd3f7a62",
+ "opts": {
+  "MAX_FORMS": 1500,
+  "MOTIFS": 4,
+  "WEIGHTS": {
+   "version": "phase1-2026-10-29",
+   "options": {},
+   "trainSetHash": "5fc9ba40b458",
+   "extracted": {
+    "K": 32,
+    "R": 8,
+    "CAP": 200,
+    "FOLDS": 5,
+    "SEED": 20261029,
+    "MAX_FORMS": 1500,
+    "MOTIFS": 4,
+    "MIN_USE": 2,
+    "WEIGHTS": "baseline score",
+    "benchSetsLeftOut": 26,
+    "models": 343,
+    "date": "2026-10-29T05:47:52.493Z"
+   },
+   "gamma": 1.1,
+   "weights": {
+    "cover": 0.947232,
+    "air": -2.90866,
+    "studOk": 0.661731,
+    "studBad": -34.3591,
+    "pieces": -30.917,
+    "engaged": -0.480834,
+    "float": -265.989,
+    "logUse": 2.1997,
+    "repeat": 80.9193,
+    "belowMinCover": -0.109237,
+    "fitNonPos": -3.03234,
+    "size": -0.000392558,
+    "cat_plate": 0.745817,
+    "cat_brick": 0.587518,
+    "cat_tile": -1.97746,
+    "cat_slope": -0.309208,
+    "cat_snot": 0.945183,
+    "cat_technic": 0,
+    "cat_other": 0.514777
+   },
+   "decisions": {
+    "train": 31750,
+    "val": 6939,
+    "sets": {
+     "train": 194,
+     "val": 48
+    }
+   },
+   "agreement": {
+    "train": {
+     "top1": 0.5207,
+     "top5": 0.7333
+    },
+    "val": {
+     "top1": 0.5074,
+     "top5": 0.7291
+    }
+   },
+   "constants": {
+    "train": {
+     "top1": 0.4233,
+     "top5": 0.5849
+    },
+    "val": {
+     "top1": 0.388,
+     "top5": 0.5481
+    }
+   },
+   "grid": [
+    {
+     "gamma": 0.5,
+     "train": {
+      "top1": 0.3901,
+      "top5": 0.6128
+     },
+     "val": {
+      "top1": 0.3682,
+      "top5": 0.5935
+     }
+    },
+    {
+     "gamma": 0.6,
+     "train": {
+      "top1": 0.4056,
+      "top5": 0.6246
+     },
+     "val": {
+      "top1": 0.3855,
+      "top5": 0.6061
+     }
+    },
+    {
+     "gamma": 0.7,
+     "train": {
+      "top1": 0.4233,
+      "top5": 0.6412
+     },
+     "val": {
+      "top1": 0.4064,
+      "top5": 0.6231
+     }
+    },
+    {
+     "gamma": 0.8,
+     "train": {
+      "top1": 0.4374,
+      "top5": 0.6629
+     },
+     "val": {
+      "top1": 0.4198,
+      "top5": 0.638
+     }
+    },
+    {
+     "gamma": 0.9,
+     "train": {
+      "top1": 0.4605,
+      "top5": 0.6844
+     },
+     "val": {
+      "top1": 0.4421,
+      "top5": 0.6621
+     }
+    },
+    {
+     "gamma": 1,
+     "train": {
+      "top1": 0.5026,
+      "top5": 0.7271
+     },
+     "val": {
+      "top1": 0.487,
+      "top5": 0.7099
+     }
+    },
+    {
+     "gamma": 1.1,
+     "train": {
+      "top1": 0.5207,
+      "top5": 0.7333
+     },
+     "val": {
+      "top1": 0.5074,
+      "top5": 0.7291
+     }
+    },
+    {
+     "gamma": 1.2,
+     "train": {
+      "top1": 0.512,
+      "top5": 0.7126
+     },
+     "val": {
+      "top1": 0.4937,
+      "top5": 0.7053
+     }
+    }
+   ],
+   "gates": false
+  }
+ },
+ "node": "v24.15.0",
+ "all": {
+  "n": 8,
+  "parity": 0.0754,
+  "iou": 0.563,
+  "smooth": 0.3661,
+  "heldVsHuman": 0.8385,
+  "repeats": 0.0946,
+  "piecesXHuman": 3.9112,
+  "copy": 0.1236,
+  "vsmooth": 0.4628,
+  "mixL1": 0.6188,
+  "oneDiff": 0.3472,
+  "overLimit": 4.5,
+  "unconnected": 32,
+  "worstJoint": 22.666,
+  "msMean": 1112.625
+ },
+ "byLevel": {
+  "creator": {
+   "n": 4,
+   "parity": 0.0582,
+   "iou": 0.57,
+   "smooth": 0.3065,
+   "heldVsHuman": 0.8505,
+   "repeats": 0.107,
+   "piecesXHuman": 4.2742,
+   "copy": 0.1217,
+   "vsmooth": 0.4155,
+   "mixL1": 0.7353,
+   "oneDiff": 0.3469,
+   "overLimit": 5.75,
+   "unconnected": 30.25,
+   "worstJoint": 22.666,
+   "msMean": 1011.75
+  },
+  "advanced": {
+   "n": 3,
+   "parity": 0.1233,
+   "iou": 0.534,
+   "smooth": 0.5677,
+   "heldVsHuman": 0.836,
+   "repeats": 0.084,
+   "piecesXHuman": 3.6476,
+   "copy": 0.125,
+   "vsmooth": 0.68,
+   "mixL1": 0.495,
+   "oneDiff": 0.3703,
+   "overLimit": 3.6667,
+   "unconnected": 43,
+   "worstJoint": 6.796,
+   "msMean": 1525.6667
+  },
+  "junior": {
+   "n": 1,
+   "parity": 0,
+   "iou": 0.622,
+   "smooth": 0,
+   "heldVsHuman": 0.798,
+   "repeats": 0.077,
+   "piecesXHuman": 3.25,
+   "copy": 0.127,
+   "vsmooth": 0,
+   "mixL1": 0.524,
+   "oneDiff": 0.2788,
+   "overLimit": 2,
+   "unconnected": 6,
+   "worstJoint": 2.147,
+   "msMean": 277
+  }
+ },
+ "models": [
+  {
+   "id": "75870-1",
+   "human": 154,
+   "ours": 511,
+   "iou": 0.636,
+   "finish": 0,
+   "held": 0.896,
+   "repeats": 0.098,
+   "made": 0,
+   "pruned": 0,
+   "forms": 20391,
+   "ms": 390,
+   "smooth": 0,
+   "heldVsHuman": 0.896,
+   "copy": 0.141,
+   "score": 0,
+   "tier": "creator",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.5675,
+      "brick": 0.0822,
+      "tile": 0.1781,
+      "slope": 0.0528,
+      "snot": 0.0391,
+      "technic": 0,
+      "other": 0.0802
+     },
+     "one": 0.5382
+    },
+    "human": {
+     "share": {
+      "plate": 0.3636,
+      "brick": 0.0455,
+      "tile": 0.1169,
+      "slope": 0.2208,
+      "snot": 0.0714,
+      "technic": 0.026,
+      "other": 0.1558
+     },
+     "one": 0.1948
+    },
+    "diff": {
+     "d": {
+      "plate": 0.2039,
+      "brick": 0.0367,
+      "tile": 0.0612,
+      "slope": -0.168,
+      "snot": -0.0323,
+      "technic": -0.026,
+      "other": -0.0756
+     },
+     "one": 0.3434,
+     "l1": 0.6037
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 31,
+     "overLimit": 3,
+     "worst": 8.055,
+     "floating": 23
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 0,
+     "worst": 0.45,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0,
+   "studsPerCm2": 0.013,
+   "humanStudsPerCm2": 0.036,
+   "wallMs": 26765,
+   "outHash": "c70d82becc4581e0"
+  },
+  {
+   "id": "31009-1-310091",
+   "human": 260,
+   "ours": 1528,
+   "iou": 0.632,
+   "finish": 0.467,
+   "held": 0.877,
+   "repeats": 0.152,
+   "made": 0,
+   "pruned": 0,
+   "forms": 20366,
+   "ms": 3330,
+   "smooth": 0.826,
+   "heldVsHuman": 0.877,
+   "copy": 0.142,
+   "score": 0.16,
+   "tier": "creator",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.4849,
+      "brick": 0.1296,
+      "tile": 0.252,
+      "slope": 0.0445,
+      "snot": 0.0334,
+      "technic": 0,
+      "other": 0.0556
+     },
+     "one": 0.5949
+    },
+    "human": {
+     "share": {
+      "plate": 0.2962,
+      "brick": 0.3192,
+      "tile": 0.0654,
+      "slope": 0.1769,
+      "snot": 0.0077,
+      "technic": 0.0077,
+      "other": 0.1269
+     },
+     "one": 0.1731
+    },
+    "diff": {
+     "d": {
+      "plate": 0.1887,
+      "brick": -0.1896,
+      "tile": 0.1866,
+      "slope": -0.1324,
+      "snot": 0.0257,
+      "technic": -0.0077,
+      "other": -0.0713
+     },
+     "one": 0.4218,
+     "l1": 0.802
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 79,
+     "overLimit": 14,
+     "worst": 22.666,
+     "floating": 62
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 4,
+     "worst": 4.934,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0.966,
+   "studsPerCm2": 0.078,
+   "humanStudsPerCm2": 0.152,
+   "wallMs": 30726,
+   "outHash": "383171ad3ca277e9"
+  },
+  {
+   "id": "4917-1-49171",
+   "human": 77,
+   "ours": 215,
+   "iou": 0.454,
+   "finish": 0,
+   "held": 0.795,
+   "repeats": 0.088,
+   "made": 0,
+   "pruned": 0,
+   "forms": 20405,
+   "ms": 369,
+   "smooth": 0.25,
+   "heldVsHuman": 0.795,
+   "copy": 0.098,
+   "score": 0.049,
+   "tier": "advanced",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.4884,
+      "brick": 0.0837,
+      "tile": 0.2791,
+      "slope": 0.0651,
+      "snot": 0.0419,
+      "technic": 0,
+      "other": 0.0419
+     },
+     "one": 0.5674
+    },
+    "human": {
+     "share": {
+      "plate": 0.5195,
+      "brick": 0.013,
+      "tile": 0.0519,
+      "slope": 0.1948,
+      "snot": 0.026,
+      "technic": 0.026,
+      "other": 0.1688
+     },
+     "one": 0.2338
+    },
+    "diff": {
+     "d": {
+      "plate": -0.0311,
+      "brick": 0.0707,
+      "tile": 0.2272,
+      "slope": -0.1297,
+      "snot": 0.0159,
+      "technic": -0.026,
+      "other": -0.1269
+     },
+     "one": 0.3336,
+     "l1": 0.6275
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 16,
+     "overLimit": 6,
+     "worst": 3.703,
+     "floating": 11
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 1,
+     "worst": 1.25,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0.381,
+   "studsPerCm2": 0.007,
+   "humanStudsPerCm2": 0.105,
+   "wallMs": 27210,
+   "outHash": "31edb43e4abebdf5"
+  },
+  {
+   "id": "7219-1",
+   "human": 34,
+   "ours": 155,
+   "iou": 0.53,
+   "finish": 0.154,
+   "held": 0.826,
+   "repeats": 0.11,
+   "made": 0,
+   "pruned": 0,
+   "forms": 20410,
+   "ms": 181,
+   "smooth": 0.4,
+   "heldVsHuman": 0.826,
+   "copy": 0.105,
+   "score": 0.073,
+   "tier": "creator",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.5806,
+      "brick": 0.0645,
+      "tile": 0.2065,
+      "slope": 0.071,
+      "snot": 0.0387,
+      "technic": 0,
+      "other": 0.0387
+     },
+     "one": 0.471
+    },
+    "human": {
+     "share": {
+      "plate": 0.2941,
+      "brick": 0.0588,
+      "tile": 0,
+      "slope": 0.5,
+      "snot": 0.0588,
+      "technic": 0,
+      "other": 0.0882
+     },
+     "one": 0.2353
+    },
+    "diff": {
+     "d": {
+      "plate": 0.2865,
+      "brick": 0.0057,
+      "tile": 0.2065,
+      "slope": -0.429,
+      "snot": -0.0201,
+      "technic": 0,
+      "other": -0.0495
+     },
+     "one": 0.2357,
+     "l1": 0.9973
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 7,
+     "overLimit": 4,
+     "worst": 3.06,
+     "floating": 4
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 0,
+     "worst": 0.18,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0.696,
+   "studsPerCm2": 0.025,
+   "humanStudsPerCm2": 0.083,
+   "wallMs": 27310,
+   "outHash": "e97e0784c5db8782"
+  },
+  {
+   "id": "7611-1",
+   "human": 35,
+   "ours": 117,
+   "iou": 0.482,
+   "finish": 0,
+   "held": 0.803,
+   "repeats": 0.068,
+   "made": 0,
+   "pruned": 0,
+   "forms": 20407,
+   "ms": 146,
+   "smooth": 0,
+   "heldVsHuman": 0.803,
+   "copy": 0.099,
+   "score": 0,
+   "tier": "creator",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.5299,
+      "brick": 0.0342,
+      "tile": 0.2479,
+      "slope": 0.0342,
+      "snot": 0.0256,
+      "technic": 0,
+      "other": 0.1282
+     },
+     "one": 0.6154
+    },
+    "human": {
+     "share": {
+      "plate": 0.3714,
+      "brick": 0,
+      "tile": 0.1714,
+      "slope": 0.1429,
+      "snot": 0.0286,
+      "technic": 0,
+      "other": 0.2857
+     },
+     "one": 0.2286
+    },
+    "diff": {
+     "d": {
+      "plate": 0.1585,
+      "brick": 0.0342,
+      "tile": 0.0765,
+      "slope": -0.1087,
+      "snot": -0.003,
+      "technic": 0,
+      "other": -0.1575
+     },
+     "one": 0.3868,
+     "l1": 0.5384
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 4,
+     "overLimit": 2,
+     "worst": 2.309,
+     "floating": 5
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 0,
+     "worst": 0.122,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0,
+   "studsPerCm2": 0.011,
+   "humanStudsPerCm2": 0,
+   "wallMs": 27905,
+   "outHash": "9df2befa6815e72a"
+  },
+  {
+   "id": "6743-1-67431",
+   "human": 165,
+   "ours": 609,
+   "iou": 0.607,
+   "finish": 0.144,
+   "held": 0.898,
+   "repeats": 0.1,
+   "made": 1,
+   "pruned": 0,
+   "forms": 20367,
+   "ms": 552,
+   "smooth": 0.633,
+   "heldVsHuman": 0.898,
+   "copy": 0.146,
+   "score": 0.161,
+   "tier": "advanced",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.5452,
+      "brick": 0.0558,
+      "tile": 0.2085,
+      "slope": 0.0575,
+      "snot": 0.0722,
+      "technic": 0,
+      "other": 0.0608
+     },
+     "one": 0.5846
+    },
+    "human": {
+     "share": {
+      "plate": 0.5273,
+      "brick": 0.103,
+      "tile": 0.1394,
+      "slope": 0.1273,
+      "snot": 0.0242,
+      "technic": 0,
+      "other": 0.0788
+     },
+     "one": 0.2545
+    },
+    "diff": {
+     "d": {
+      "plate": 0.0179,
+      "brick": -0.0472,
+      "tile": 0.0691,
+      "slope": -0.0698,
+      "snot": 0.048,
+      "technic": 0,
+      "other": -0.018
+     },
+     "one": 0.3301,
+     "l1": 0.27
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 44,
+     "overLimit": 5,
+     "worst": 6.796,
+     "floating": 26
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 0,
+     "worst": 0.352,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0.773,
+   "studsPerCm2": 0.023,
+   "humanStudsPerCm2": 0.179,
+   "wallMs": 28310,
+   "outHash": "69c2269bed8aee7c"
+  },
+  {
+   "id": "30190-1",
+   "human": 32,
+   "ours": 104,
+   "iou": 0.622,
+   "finish": 0,
+   "held": 0.798,
+   "repeats": 0.077,
+   "made": 0,
+   "pruned": 0,
+   "forms": 20400,
+   "ms": 277,
+   "smooth": 0,
+   "heldVsHuman": 0.798,
+   "copy": 0.127,
+   "score": 0,
+   "tier": "junior",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.5769,
+      "brick": 0.0673,
+      "tile": 0.1731,
+      "slope": 0.0385,
+      "snot": 0.0385,
+      "technic": 0,
+      "other": 0.1058
+     },
+     "one": 0.5288
+    },
+    "human": {
+     "share": {
+      "plate": 0.4688,
+      "brick": 0,
+      "tile": 0.125,
+      "slope": 0.125,
+      "snot": 0,
+      "technic": 0,
+      "other": 0.2813
+     },
+     "one": 0.25
+    },
+    "diff": {
+     "d": {
+      "plate": 0.1081,
+      "brick": 0.0673,
+      "tile": 0.0481,
+      "slope": -0.0865,
+      "snot": 0.0385,
+      "technic": 0,
+      "other": -0.1755
+     },
+     "one": 0.2788,
+     "l1": 0.524
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 6,
+     "overLimit": 2,
+     "worst": 2.147,
+     "floating": 3
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 0,
+     "worst": 0.217,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0,
+   "studsPerCm2": 0.008,
+   "humanStudsPerCm2": 0.011,
+   "wallMs": 27197,
+   "outHash": "fe631219641e02ca"
+  },
+  {
+   "id": "31066-1-shuttle",
+   "human": 272,
+   "ours": 1213,
+   "iou": 0.541,
+   "finish": 0.34,
+   "held": 0.815,
+   "repeats": 0.064,
+   "made": 1,
+   "pruned": 0,
+   "forms": 20384,
+   "ms": 3656,
+   "smooth": 0.82,
+   "heldVsHuman": 0.815,
+   "copy": 0.131,
+   "score": 0.16,
+   "tier": "advanced",
+   "mix": {
+    "ours": {
+     "share": {
+      "plate": 0.4666,
+      "brick": 0.1204,
+      "tile": 0.2358,
+      "slope": 0.0627,
+      "snot": 0.0445,
+      "technic": 0,
+      "other": 0.0701
+     },
+     "one": 0.5392
+    },
+    "human": {
+     "share": {
+      "plate": 0.3713,
+      "brick": 0.0588,
+      "tile": 0.1029,
+      "slope": 0.1324,
+      "snot": 0.0404,
+      "technic": 0.1434,
+      "other": 0.1507
+     },
+     "one": 0.0919
+    },
+    "diff": {
+     "d": {
+      "plate": 0.0953,
+      "brick": 0.0616,
+      "tile": 0.1329,
+      "slope": -0.0697,
+      "snot": 0.0041,
+      "technic": -0.1434,
+      "other": -0.0806
+     },
+     "one": 0.4473,
+     "l1": 0.5876
+    }
+   },
+   "structure": {
+    "ours": {
+     "unconnected": 69,
+     "overLimit": 0,
+     "worst": 0,
+     "floating": 1213
+    },
+    "human": {
+     "unconnected": 0,
+     "overLimit": 12,
+     "worst": 13.829,
+     "floating": 0
+    }
+   },
+   "vsmooth": 0.886,
+   "studsPerCm2": 0.031,
+   "humanStudsPerCm2": 0.141,
+   "wallMs": 31402,
+   "outHash": "8bc818d70ce7d619"
+  }
+ ]
+}
