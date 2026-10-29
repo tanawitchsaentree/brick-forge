@@ -58,6 +58,7 @@ try {
   const { prune } = await load("/src/engine/necessity.ts");
   const M = await load("/src/engine/benchMetrics.ts");
   const { parityOf } = await load("/src/engine/parity.ts");
+  const { interiorFill } = await load("/src/engine/shell.ts");
   const shapes = JSON.parse(fs.readFileSync(path.join(ROOT, "public/shapes.json"), "utf8"));
   S.installShapes(shapes);
   const corpus = JSON.parse(fs.readFileSync(path.join(ROOT, "public/corpus/index.json"), "utf8")).models;
@@ -84,7 +85,9 @@ try {
     const forms = [...learned, ...parts.flatMap((p) => gridForms(p, 0)), ...motifs];
     const real = models.get(id);
     const target = S.voxelize(real);
-    const r = opts.ARTICULATE ? sculptArticulated(target, { forms, ...opts }) : sculpt(target, { forms, ...opts });
+    // SHELL (program v2 S3): the inside filled first with the biggest plain parts, the sculptor on the skin.
+    const inside = opts.SHELL ? interiorFill(target) : null;
+    const r = opts.ARTICULATE ? sculptArticulated(target, { forms, ...opts }) : sculpt(target, { forms, ...opts, ...(inside ? { fixed: inside.fixed } : {}) });
     let pruned = 0;
     if (opts.PRUNE) {
       const n = prune(r.bricks, target);
