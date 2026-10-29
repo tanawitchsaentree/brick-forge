@@ -1,5 +1,6 @@
 import { Builder, RIDGE, type Pool } from "./pool";
 import { dinosaur, SPECIES, type Plan, type Species } from "./dino";
+import { f1Car, F1_ANCHOR, LIVERIES, type F1Plan } from "./f1";
 import { rng } from "../generate/math";
 
 // Assembly Grammar: an object is a sequence of modules, a module is a few
@@ -62,59 +63,6 @@ function scheme(kind: Kind, r: () => number, owned: number[]): Palette {
   };
   const accent = pickOf(r, accentFor[kind].filter((c) => c !== main));
   return { main, accent, dark: kind === "house" ? DBG : BLACK, light: kind === "dino" ? WHITE : LBG, glass: TRANS_CLEAR, lamp: TRANS_RED };
-}
-
-// ------------------------------------------------------------------ racer
-
-function racer(b: Builder, size: number, detail: number, pal: Palette, r: () => number): Design {
-  const W = 4, L = [12, 16, 20][size] + pickOf(r, [0, 2]);
-  const axR = Math.round(L * 0.191), axF = Math.round(L * 0.809) - 1; // golden sections
-  const c0 = Math.round(L * 0.42), c1 = c0 + 2; // cockpit
-  const n0 = Math.round(L * 0.66); // nose begins
-  b.module("Axles", () => {
-    b.put("lb-axle-4", axR, 0, 0, 1, WHITE);
-    b.put("lb-axle-4", axF, 0, 0, 1, WHITE);
-  });
-  b.module("Chassis", () => b.rect("plate", 0, 0, L, W, 3, pal.dark));
-  b.module("Driver", () => b.put("lb-driver", c0, 4, 1, 3, pal.accent));
-  b.module("Tub", () => {
-    b.rect("brick", 0, 0, 2, W, 4, pal.main); // engine block at the tail
-    b.run("brick", 2, 0, n0 - 2, true, 4, pal.main); // sidepods
-    b.run("brick", 2, W - 1, n0 - 2, true, 4, pal.main);
-    b.rect("brick", 2, 1, c0 - 2, 2, 4, pal.accent); // engine cover
-    b.rect("brick", c1, 1, L - 2 - c1, 2, 4, pal.main); // nose
-    b.put("3039", L - 2, 4, 1, 3, pal.main); // nose tip slope, facing forward
-  });
-  b.module("Front wing", () => {
-    b.rect("tile", n0, 0, L - n0, 1, 4, pal.accent);
-    b.rect("tile", n0, W - 1, L - n0, 1, 4, pal.accent);
-  });
-  if (detail >= 1)
-    b.module("Windscreen", () => b.put(["81911", "30841", "3823"], c1, 7, 0, 3, pal.glass));
-  b.module("Rear wing", () => {
-    b.put("3062b", 0, 7, 0, 0, pal.dark);
-    b.put("3062b", 0, 7, W - 1, 0, pal.dark);
-    b.rect("plate", 0, 0, 2, W, 10, pal.accent);
-    if (detail >= 1) b.rect("tile", 0, 0, 2, W, 11, pal.accent);
-  });
-  if (detail >= 1)
-    b.module("Sidepod grilles", () => {
-      for (let x = 2; x + 1 < c0; x += 2) {
-        b.put("2412b", x, 7, 0, 0, pal.dark);
-        b.put("2412b", x, 7, W - 1, 0, pal.dark);
-      }
-    });
-  if (detail >= 1)
-    b.module("Exhausts", () => {
-      b.put("4589", 2, 7, 1, 0, LBG);
-      b.put("4589", 2, 7, 2, 0, LBG);
-    });
-  if (detail >= 2)
-    b.module("Finish", () => {
-      b.rect("tile", 3, 1, c0 - 3, 2, 7, pal.accent);
-      b.rect("tile", c1 + 2, 1, L - 4 - c1, 2, 7, pal.main);
-    });
-  return { b, title: L >= 20 ? "Grand Prix Racer" : "Race Car", rule: `L=${L}, W=4 · axles at 0.191L, 0.809L · cockpit at 0.42L · nose from 0.66L` };
 }
 
 // -------------------------------------------------------------------- car
@@ -314,18 +262,23 @@ function rocket(b: Builder, size: number, detail: number, pal: Palette, r: () =>
 // --------------------------------------------------------------- dispatch
 
 
-export function design(kind: Kind, pool: Pool, size: number, detail: number, seed: number, owned: number[], species?: Species, plan?: Plan): Design {
+export function design(kind: Kind, pool: Pool, size: number, detail: number, seed: number, owned: number[], species?: Species, plan?: Plan | F1Plan): Design {
   const r = rng(seed * 2654435761 + kind.length);
+  if (kind === "racer") {
+    // F1 cars (from the 77244 study): a different team livery per seed.
+    const p = (plan as F1Plan | undefined) ?? { ...F1_ANCHOR(size), livery: ((seed % LIVERIES.length) + LIVERIES.length) % LIVERIES.length };
+    const d = f1Car(pool, size, detail, p);
+    return { b: d.b, title: d.title, rule: d.rule };
+  }
   if (kind === "dino") {
     // A different species per seed, unless one was asked for.
     const sp = species ?? SPECIES[((seed % SPECIES.length) + SPECIES.length) % SPECIES.length].id;
-    const d = dinosaur(sp, pool, size, detail, r, plan);
+    const d = dinosaur(sp, pool, size, detail, r, plan as Plan | undefined);
     return { b: d.root, sections: d.sections, title: d.title, rule: d.rule, species: sp };
   }
   const pal = scheme(kind, r, owned);
   const b = new Builder(pool);
   switch (kind) {
-    case "racer": return racer(b, size, detail, pal, r);
     case "car": return car(b, size, detail, pal, r);
     case "house": return house(b, size, detail, pal, r);
     case "robot": return robot(b, size, detail, pal, r);

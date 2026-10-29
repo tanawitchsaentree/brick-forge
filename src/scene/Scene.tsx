@@ -1,10 +1,12 @@
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { Brick } from "./Brick";
+import { MERGE_FROM, MergedBricks } from "./Merged";
 import { Controls } from "./Controls";
 import { Label } from "./Label";
 import { Table } from "./Table";
+import { SCENE, useTheme } from "../ui/theme";
 import { BASE_SIZE, PLATE_H, PLATE_MM, STUD_H, STUD_MM, STUD_R } from "../engine/units";
 import { PARTS, footprint, type PartDef, type Rot } from "../engine/parts";
 import { colorOf } from "../engine/colors";
@@ -81,6 +83,7 @@ function toHit(e: ThreeEvent<PointerEvent | MouseEvent>): Hit {
 export function Scene(props: Props) {
   const { bricks, nav, showDims } = props;
   const center = BASE_SIZE / 2;
+  const look = SCENE[useTheme()];
 
   return (
     <Canvas
@@ -93,8 +96,8 @@ export function Scene(props: Props) {
       }}
       camera={{ position: [center + 28, 34, center + 38], fov: 45 }}
     >
-      <color attach="background" args={["#e9edf2"]} />
-      <hemisphereLight args={["#ffffff", "#8a94a6", 1.1]} />
+      <color attach="background" args={[look.background]} />
+      <hemisphereLight args={[look.sky, look.ground, 1.1]} />
       <directionalLight
         position={[center + 20, 40, center + 10]}
         intensity={1.6}
@@ -312,6 +315,41 @@ const BrickList = memo(function BrickList({
     intro.current = false;
   }, []);
   const order = useMemo(() => new Map([...bricks].sort((a, b) => a.y - b.y).map((b, i) => [b.uid, i])), [bricks]);
+  const look = useCallback(
+    (b: PlacedBrick) =>
+      stress
+        ? { hex: stressColor(stress.ratio.get(b.uid), stress.floating.has(b.uid)), alpha: 1 }
+        : { hex: colorOf(b.color).hex, alpha: colorOf(b.color).alpha ?? 1 },
+    [stress],
+  );
+
+  // Big models: LDraw parts drawn merged (a few draw calls instead of hundreds);
+  // built-in parts and the part under the eraser stay individual.
+  const big = bricks.length >= MERGE_FROM;
+  const merged = useMemo(() => (big ? bricks.filter((b) => PARTS[b.partId]?.shape.type === "ldraw") : []), [big, bricks]);
+  if (big) {
+    const inMerge = new Set(merged.map((b) => b.uid));
+    const erased = bricks.find((b) => b.uid === eraseUid);
+    return (
+      <>
+        <MergedBricks bricks={merged} colorOf={look} />
+        {bricks
+          .filter((b) => !inMerge.has(b.uid) || b === erased)
+          .map((b) => (
+            <Brick
+              key={b.uid}
+              noDrop
+              uid={b.uid}
+              part={PARTS[b.partId]}
+              {...renderPlacement(b)}
+              color={look(b).hex}
+              alpha={look(b).alpha}
+              highlight={b === erased}
+            />
+          ))}
+      </>
+    );
+  }
 
   return (
     <>

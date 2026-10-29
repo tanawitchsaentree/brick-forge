@@ -25,6 +25,10 @@ export interface PlacedBrick {
    */
   place?: number[];
   fp?: { w: number; d: number; h: number; studs: boolean };
+  /** Official build step (from an imported model's STEP lines): instructions follow these. */
+  step?: number;
+  /** Why the engine chose this part here (engine/sculpt.ts): the terms of its score. */
+  why?: Why;
   /** Parts sharing a joint id are clicked together: a ball in its socket, a panel on side studs. */
   joints?: string[];
 }
@@ -140,4 +144,31 @@ export function bounds(bricks: PlacedBrick[]) {
     minZ = Math.min(minZ, b.z); maxZ = Math.max(maxZ, b.z + d);
   }
   return { minX, minY, minZ, maxX, maxY, maxZ };
+}
+
+/** The reasons behind one placement: every term of the sculptor's score, and what it beat. */
+export interface Why {
+  /** structure: fills the shape · kept: the original designer's part · made: made to measure · fixed: placed by hand. */
+  role: "structure" | "kept" | "made";
+  /** Target cells it fills, and cells it fills that should be empty. */
+  cover: number;
+  air: number;
+  /** Studs left showing: + where the design shows studs, − on a smooth surface. */
+  finish: number;
+  /** Studs engaged with parts already placed (both ways). */
+  engaged: number;
+  /** log(1 + how often designers place this part this way). */
+  prior: number;
+  /** Stacked on an identical copy of itself (penalised). */
+  repeat: boolean;
+  /** The score it won with (per cell covered), and by how much over the runner-up. */
+  rank: number;
+  margin: number;
+  runnerUp?: string;
+  /** Placed as part of a designer technique (two or more parts together). */
+  motif?: string;
+  /** Built in a turned segment's own frame (engine/articulate.ts): its angle off the world grid, degrees. */
+  frame?: number;
+  /** The search that refined the build: regions tried and changes kept. */
+  searched?: { tries: number; kept: number };
 }

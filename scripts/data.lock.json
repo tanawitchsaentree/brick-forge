@@ -1,0 +1,30 @@
+{
+ "base": {
+  "key": "data/base-77d4cb8e8923fc31.tar.gz",
+  "hash": "77d4cb8e8923fc31",
+  "sha256": "7a7c3e56a7bc14968cef5d7f448ab3eaf6b73d35a746366bf3c39daa457f373f",
+  "bytes": 3347822,
+  "files": 29
+ },
+ "corpus": {
+  "key": "data/corpus-378181374cb31e1f.tar.gz",
+  "hash": "378181374cb31e1f",
+  "sha256": "38cb7e71e70d479e6e0c1c61490c59a88ed1260df11ba09de2bf9c5d1c8ab97a",
+  "bytes": 12214714,
+  "files": 546
+ },
+ "pack": {
+  "key": "data/pack-989156689fc20461.tar.gz",
+  "hash": "989156689fc20461",
+  "sha256": "3ef8c26ffa173024055d21b947f414abd29b536b899797083500e594404e8fb5",
+  "bytes": 51895156,
+  "files": 3287
+ },
+ "thumbs": {
+  "key": "data/thumbs-13ecf6c59823d1f9.tar.gz",
+  "hash": "13ecf6c59823d1f9",
+  "sha256": "2c88117829b48fac72448a7fb2b55b902afc1f55199907db9cd947efaeb31879",
+  "bytes": 32454915,
+  "files": 12615
+ }
+}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
 import { BASE_SIZE, PLATE_H } from "../engine/units";
+import { SCENE, useTheme } from "../ui/theme";
 
 // The work table under the baseplate: a cutting-mat grid drawn analytically in
 // a shader, so lines stay crisp at any zoom.
@@ -89,6 +90,7 @@ export function Table() {
   const inside = useRef(false);
   const target = useMemo(() => new THREE.Vector3(), []);
   const plane = useMemo(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), -TABLE_Y), []);
+  const ink = SCENE[useTheme()].ink;
 
   const material = useMemo(
     () =>
@@ -109,6 +111,10 @@ export function Table() {
     [],
   );
   useEffect(() => () => material.dispose(), [material]);
+  useEffect(() => {
+    material.uniforms.uInk.value.set(ink);
+    invalidate();
+  }, [material, ink, invalidate]);
 
   useEffect(() => {
     const el = gl.domElement;

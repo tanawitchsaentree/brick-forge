@@ -58,6 +58,8 @@ export interface Instructions {
 }
 
 const DEFAULT_AZIMUTH = Math.atan2(1, 0.75); // front-right, matches the editor's view
+/** Most pieces a step adds (a few more only when they're the same part). */
+const STEP_MAX = 4;
 
 function componentsOf(partId: string, color: number) {
   const part = PARTS[partId];
@@ -70,7 +72,7 @@ function componentsOf(partId: string, color: number) {
 
 export function planInstructions(bricks: PlacedBrick[]): Instructions {
   const n = bricks.length;
-  const per = n < 40 ? 2 : n < 120 ? 3 : n < 300 ? 4 : 6;
+  const per = n < 40 ? 2 : n < 120 ? 3 : STEP_MAX;
 
   // Cells → part, then stud links (both directions) and ground contact.
   const geo = bricks.map((b) => ({ ...dims(b), studs: studsOf(b) }));
@@ -142,28 +144,64 @@ export function planInstructions(bricks: PlacedBrick[]): Instructions {
   const seenSub = new Set<string>();
   let last = modelCenter;
 
-  while (placed.size < n) {
-    // Current chapter (and leftovers of earlier ones) first; move on when it's done or blocked.
-    let frontier = all.filter((i) => !placed.has(i) && placeable(i) && rank.get(groupOf(i))! <= chapter);
-    while (!frontier.length && chapter < chapterNames.length - 1) {
-      chapter++;
-      frontier = all.filter((i) => !placed.has(i) && placeable(i) && rank.get(groupOf(i))! <= chapter);
+  // An imported model with its designer's steps (LDraw STEP lines) is built
+  // in exactly those steps, as in the booklet.
+  let official: number[][] | null = null;
+  if (n > 0 && bricks.every((b) => b.step !== undefined)) {
+    const by = new Map<number, number[]>();
+    for (const i of all) by.set(bricks[i].step!, [...(by.get(bricks[i].step!) ?? []), i]);
+    // A designer's step can add 20 parts at once; a booklet shows a handful.
+    // Split big steps: bottom first, then near the last part, identical parts together.
+    official = [...by].sort((a, b) => a[0] - b[0]).flatMap(([, g]) => splitStep(g));
+  }
+
+  function splitStep(g: number[]): number[][] {
+    if (g.length <= STEP_MAX) return [g];
+    const left = [...g].sort((a, b) => level(a) - level(b));
+    const out: number[][] = [];
+    while (left.length) {
+      const first = left.shift()!;
+      const chunk = [first];
+      // Same part, same colour first (four tiles go on together), then the nearest.
+      left.sort((a, b) => {
+        const same = (i: number) => (bricks[i].partId === bricks[first].partId && bricks[i].color === bricks[first].color ? 0 : 1);
+        const d = (i: number) => Math.hypot(mid[i][0] - mid[first][0], (mid[i][1] - mid[first][1]) * 0.4, mid[i][2] - mid[first][2]);
+        return same(a) - same(b) || level(a) - level(b) || d(a) - d(b);
+      });
+      while (chunk.length < STEP_MAX && left.length && level(left[0]) - level(first) <= 3) chunk.push(left.shift()!);
+      out.push(chunk);
     }
-    if (!frontier.length) frontier = all.filter((i) => !placed.has(i) && placeable(i));
-    // Disconnected leftovers (shouldn't happen for generated designs): place them anyway, lowest first.
-    if (!frontier.length) frontier = all.filter((i) => !placed.has(i));
-    const dist = (i: number, c: number[]) => Math.hypot(mid[i][0] - c[0], mid[i][2] - c[2]);
-    // Earlier chapters' leftovers first, then lowest, then nearest the last step.
-    frontier.sort((a, b) => rank.get(groupOf(a))! - rank.get(groupOf(b))! || level(a) - level(b) || dist(a, last) - dist(b, last));
-    const seed = frontier[0];
-    const group = [seed];
-    const sameLevel = frontier
-      .filter((i) => i !== seed && level(i) === level(seed) && gridOf(bricks[i]) === gridOf(bricks[seed]) && groupOf(i) === groupOf(seed))
-      .sort((a, b) => dist(a, center([seed])) - dist(b, center([seed])));
-    for (const i of sameLevel) {
-      if (group.length >= per) break;
-      if (dist(i, center(group)) > 7) break;
-      group.push(i);
+    return out;
+  }
+
+  while (placed.size < n) {
+    let seed: number, group: number[];
+    if (official) {
+      group = official[steps.length];
+      seed = group[0];
+    } else {
+      // Current chapter (and leftovers of earlier ones) first; move on when it's done or blocked.
+      let frontier = all.filter((i) => !placed.has(i) && placeable(i) && rank.get(groupOf(i))! <= chapter);
+      while (!frontier.length && chapter < chapterNames.length - 1) {
+        chapter++;
+        frontier = all.filter((i) => !placed.has(i) && placeable(i) && rank.get(groupOf(i))! <= chapter);
+      }
+      if (!frontier.length) frontier = all.filter((i) => !placed.has(i) && placeable(i));
+      // Disconnected leftovers (shouldn't happen for generated designs): place them anyway, lowest first.
+      if (!frontier.length) frontier = all.filter((i) => !placed.has(i));
+      const dist = (i: number, c: number[]) => Math.hypot(mid[i][0] - c[0], mid[i][2] - c[2]);
+      // Earlier chapters' leftovers first, then lowest, then nearest the last step.
+      frontier.sort((a, b) => rank.get(groupOf(a))! - rank.get(groupOf(b))! || level(a) - level(b) || dist(a, last) - dist(b, last));
+      seed = frontier[0];
+      group = [seed];
+      const sameLevel = frontier
+        .filter((i) => i !== seed && level(i) === level(seed) && gridOf(bricks[i]) === gridOf(bricks[seed]) && groupOf(i) === groupOf(seed))
+        .sort((a, b) => dist(a, center([seed])) - dist(b, center([seed])));
+      for (const i of sameLevel) {
+        if (group.length >= per) break;
+        if (dist(i, center(group)) > 7) break;
+        group.push(i);
+      }
     }
     group.forEach((i) => {
       placed.add(i);

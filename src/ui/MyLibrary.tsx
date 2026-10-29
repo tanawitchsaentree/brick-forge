@@ -4,6 +4,7 @@ import { colorOf } from "../engine/colors";
 import { parseInventory, parseKey, sampleBucket, totalPieces, type Inventory } from "../engine/inventory";
 import { usableStock } from "../engine/generate";
 import { PartThumb } from "./PartThumb";
+import { Button, Textarea } from "pane-react";
 
 interface Props {
   inventory: Inventory;
@@ -70,37 +71,39 @@ export function MyLibrary({ inventory, used, selected, onChange, onPick, onIdeas
       <div className="mylib-summary">
         <div>
           <b>{total.toLocaleString()}</b> pieces · {rows.length} kinds
-          {unusable > 0 && <div className="muted small">{unusable} can't be used by Ideas yet (slopes, Technic…)</div>}
+          {unusable > 0 && <div className="hint">{unusable} can't be used by Ideas yet (slopes, Technic…)</div>}
         </div>
-        <button className="primary ideas-btn" onClick={onIdeas}>
+        <Button variant="accent" onClick={onIdeas}>
           ✦ What can I build?
-        </button>
+        </Button>
       </div>
 
       <div className="mylib-actions">
-        <button onClick={() => setImporting((v) => !v)}>{importing ? "Cancel" : "Import list"}</button>
-        <button onClick={() => merge(sampleBucket())} title="Add a made-up bucket of classic bricks to try things out">
+        <Button variant="glass" size="sm" onClick={() => setImporting((v) => !v)}>
+          {importing ? "Cancel" : "Import list"}
+        </Button>
+        <Button variant="glass" size="sm" onClick={() => merge(sampleBucket())} title="Add a made-up bucket of classic bricks to try things out">
           Sample bucket
-        </button>
-        <button onClick={() => onChange({})} disabled={total === 0}>
+        </Button>
+        <Button variant="glass" size="sm" onClick={() => onChange({})} disabled={total === 0}>
           Clear
-        </button>
+        </Button>
       </div>
 
       {importing && (
         <div className="import">
-          <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={EXAMPLE} rows={5} />
-          <button className="primary" onClick={runImport} disabled={!text.trim()}>
-            Add to My Library
-          </button>
+          <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder={EXAMPLE} rows={5} aria-label="Parts list to import" />
+          <Button variant="accent" size="sm" onClick={runImport} disabled={!text.trim()}>
+            Add to My pieces
+          </Button>
         </div>
       )}
-      {note && <p className="muted small note">{note}</p>}
+      {note && <p className="hint note">{note}</p>}
 
       {rows.length === 0 ? (
         <div className="empty">
           <p>Your library is empty.</p>
-          <p className="muted small">
+          <p className="hint">
             Hover any part in the Catalog and press <b>+</b>, import a list, or start from a sample bucket.
           </p>
         </div>
@@ -116,7 +119,7 @@ export function MyLibrary({ inventory, used, selected, onChange, onPick, onIdeas
                   <PartThumb part={part} hex={c.hex} size={36} />
                   <span className="inv-name">
                     {part.name}
-                    <span className="muted small">
+                    <span className="hint">
                       <i className="dot" style={{ background: c.hex }} /> {c.name}
                       {inUse > 0 && <> · {inUse} in model{inUse > r.qty && <b className="bad"> (+{inUse - r.qty})</b>}</>}
                     </span>

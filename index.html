@@ -3,7 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lego Builder</title>
+    <title>Brick Forge</title>
+    <script>
+      // The theme before the first paint (src/ui/theme.ts keeps it in sync after).
+      (function () {
+        var p = localStorage.getItem("brick-forge:theme") || "system";
+        document.documentElement.dataset.theme = p === "system" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : p;
+      })();
+    </script>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="341x341" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   </head>
   <body>
     <div id="root"></div>

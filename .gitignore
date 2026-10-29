@@ -10,3 +10,22 @@ public/ldraw-gen
 
 # LEGO instruction booklets (copyrighted, study material only)
 booklets
+
+# Models that aren't ours to publish (booklets/local-models.json lists them) and
+# what's made from them. Never committed, never deployed (scripts/deploy-pages.mjs).
+public/corpus/moc-*
+public/corpus/private.json
+# Pictures of that material: the MOC, and crops of LEGO's instruction art.
+docs/images/w14-halo-closeup.png
+docs/images/manual-callout-matching.png
+
+.wrangler
+
+# Generated data, built by npm run setup:ldraw. It lives in R2, named by
+# scripts/data.lock.json: npm run data:pull fetches it, data:push uploads it.
+public/ldraw-pack
+public/corpus
+public/forms
+public/forms.json
+public/shapes.json
+.data.json

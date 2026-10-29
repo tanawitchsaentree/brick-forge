@@ -3,7 +3,7 @@
 export type Kind = "racer" | "car" | "house" | "dino" | "robot" | "rocket";
 
 export const KINDS: { id: Kind; label: string }[] = [
-  { id: "racer", label: "Race car" },
+  { id: "racer", label: "F1 car" },
   { id: "car", label: "City car" },
   { id: "house", label: "House" },
   { id: "dino", label: "Dinosaur" },

@@ -16,6 +16,8 @@ interface CatalogEntry {
   x?: string[];
   t?: string;
   ss?: number;
+  k?: [number, number, number, number][];
+  g?: [number, number, number];
 }
 
 /** "Brick 2 x 4" → "2×4"; anything else keeps its full name. */
@@ -28,12 +30,26 @@ function shortLabel(name: string, category: string) {
  * Switch to the LDraw catalog if one has been built (npm run catalog).
  * Returns false and keeps the built-in parts otherwise.
  */
-export async function loadCatalog(): Promise<boolean> {
+export interface CatalogData {
+  parts: CatalogEntry[];
+  moved: Record<string, string>;
+  colors: LegoColor[];
+}
+
+let data: Promise<CatalogData | null> | null = null;
+/** The catalog file, fetched once per page (workers get it from the page instead of fetching again). */
+export function catalogData(): Promise<CatalogData | null> {
+  data ??= fetch("/catalog.json")
+    .then((r) => (r.ok ? (r.json() as Promise<CatalogData>) : null))
+    .catch(() => null);
+  return data;
+}
+
+export async function loadCatalog(given?: CatalogData): Promise<boolean> {
   try {
-    const res = await fetch("/catalog.json");
-    if (!res.ok) return false;
-    const { parts: rows, moved, colors }: { parts: CatalogEntry[]; moved: Record<string, string>; colors: LegoColor[] } =
-      await res.json();
+    const got = given ?? (await catalogData());
+    if (!got) return false;
+    const { parts: rows, moved, colors } = got;
     installColors(colors);
     installCatalog(
       rows.map(
@@ -53,6 +69,8 @@ export async function loadCatalog(): Promise<boolean> {
           components: r.x,
           tags: r.t ? r.t.split(",") : undefined,
           side: r.ss,
+          connectors: r.k,
+          geo: r.g,
         }),
       ),
       moved,

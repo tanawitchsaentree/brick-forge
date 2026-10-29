@@ -2,6 +2,7 @@ import { PARTS, footprint } from "./parts";
 import { dims, gridOf, studsOf, type PlacedBrick } from "./grid";
 import { apply, worldBox, worldCenter } from "./pose";
 import { PLATE_H, PLATE_MM, STUD_MM } from "./units";
+import { connections } from "./connect";
 
 // Will it hold together? A clutch-moment check in the spirit of Luo et al.,
 // "Legolization" (SIGGRAPH Asia 2015). They solve one linear program over every
@@ -114,12 +115,31 @@ function analyzeParts(bricks: PlacedBrick[], anchors?: Set<string>): Stability {
     for (let x = 0; x < n.w; x++)
       for (let z = 0; z < n.d; z++) {
         const gx = n.b.x + x, gz = n.b.z + z;
-        if ((n.b.y === 0 && !n.b.seg) || anchors?.has(n.b.uid)) link(i, GROUND, [gx + 0.5, gz + 0.5]); // the baseplate's studs (or a fixed joint)
+        if ((n.b.y === 0 && !n.b.seg && !n.b.place) || anchors?.has(n.b.uid)) link(i, GROUND, [gx + 0.5, gz + 0.5]); // the baseplate's studs (or a fixed joint)
         if (!studs.has(`${x},${z}`)) continue;
         const above = cell.get(cellKey(n.b, gx, n.b.y + n.h, gz));
         if (above !== undefined && above !== i) link(above, i, studAt(n.b, gx, n.b.y + n.h, gz));
       }
   });
+  // Exact and posed parts (a real design's SNOT, half-stud offsets, wheels on
+  // pins) don't sit cell on cell, so the grid can't see what holds them; the
+  // engine's own test can (engine/connect.ts: a stud inside another part's
+  // body, a pin in a hole, a clip on a bar). Without it they all read as loose.
+  if (bricks.some((b) => b.place || b.pose))
+    for (const l of connections(bricks)) {
+      if (links.get(l.a)?.has(l.b)) continue;
+      const at: [number, number] = [nodes[l.a].cx, nodes[l.a].cz];
+      for (let k = 0; k < Math.max(1, l.studs); k++) link(l.a, l.b, at);
+    }
+  // An exact part stands on the baseplate when its bottom is at the model's
+  // lowest point, close to the baseplate: tyres and round feet touch it without
+  // studs (a car on its wheels is standing, not loose).
+  const exactLow = bricks.map((b) => (b.place ? worldBox(b).lo[1] : Infinity));
+  const floor = Math.min(...exactLow, ...bricks.map((b) => (b.place || b.pose ? Infinity : b.y * PLATE_H)));
+  if (floor < 0.5)
+    nodes.forEach((n, i) => {
+      if (exactLow[i] < floor + 0.1) link(i, GROUND, [n.cx, n.cz]);
+    });
   const byJoint = new Map<string, number[]>();
   nodes.forEach((n, i) => {
     for (const j of n.b.joints ?? []) byJoint.set(j, [...(byJoint.get(j) ?? []), i]);
@@ -405,7 +425,7 @@ export function sizeMM(bricks: PlacedBrick[]) {
   if (!bricks.length) return null;
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
   for (const b of bricks) {
-    if (b.pose) {
+    if (b.pose || b.place) {
       const { lo, hi } = worldBox(b);
       x0 = Math.min(x0, lo[0]); x1 = Math.max(x1, hi[0]);
       z0 = Math.min(z0, lo[2]); z1 = Math.max(z1, hi[2]);

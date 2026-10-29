@@ -11,6 +11,8 @@ import { KINDS, SPECIES, generateBuild } from "./engine/assembly";
 import { analyzeStability } from "./engine/stability";
 import { toLDraw } from "./engine/ldraw";
 import { planInstructions } from "./engine/instructions";
+import { importLDraw } from "./engine/ldrawImport";
+import { loadDesign } from "./scene/corpus";
 
 declare global {
   interface Window {
@@ -47,16 +49,16 @@ window.packParts = async (ids) => {
   return out;
 };
 
-window.lb = { learn, loadTemplate, PARTS, generateBuild, SPECIES, analyzeStability, renderModelImage, renderModelImageLDraw, toLDraw, planInstructions };
+window.lb = { importLDraw, learn, loadTemplate, PARTS, generateBuild, SPECIES, analyzeStability, renderModelImage, renderModelImageLDraw, toLDraw, planInstructions };
 
 window.thumbsReady = loadCatalog();
 /** The picker's previews: one design per kind, as on the "What do you want to build?" screen. */
+/** The real design each "What do you want to build?" card shows (from the corpus). */
+const PREVIEW: Record<string, string> = { racer: "8123-1-2", car: "75870-1", house: "31009-1-310091", dino: "7219-1", robot: "4917-1-49171", rocket: "31066-1-shuttle" };
+
 window.renderBuildPreviews = async () => {
   const out: Record<string, string> = {};
-  for (const k of KINDS) {
-    const b = generateBuild(k.id, { size: 1, level: 1, seed: 1, mode: "any", inv: {}, species: k.id === "dino" ? "rex" : undefined });
-    out[k.id] = await renderModelImageLDraw(b.bricks, 360);
-  }
+  for (const k of KINDS) out[k.id] = await renderModelImageLDraw(await loadDesign(PREVIEW[k.id]), 360);
   return out;
 };
 

@@ -1,10 +1,11 @@
-import { generateBuild, PLANS, SPECIES, type Plan, type Species } from "../assembly";
 import { rng } from "../generate/math";
+import { FAMILIES, VARIANTS, clone, familyOf, type AnyPlan, type Gene } from "./families";
 
 // The Cookbook: a self-improving library of body plans.
 //
-// A recipe is a genome — every number of a dinosaur's body plan (torso, neck,
-// head, tail, legs, arms, colours) — plus where it came from. The engine
+// A recipe is a genome — every number of a design's plan (a dinosaur's torso,
+// neck, head, tail, legs, colours; an F1 car's axles, cockpit, wings, livery;
+// see families.ts) — plus where it came from. The engine
 // keeps an archive of the best recipes per species and size (MAP-Elites:
 // many good answers, not one), and improves it for as long as it runs:
 //
@@ -32,11 +33,10 @@ import { rng } from "../generate/math";
 // merged, and handed to an LLM as a brief — whose proposals are measured by
 // the same fitness before they're allowed in.
 
-export const COOKBOOK_VERSION = 1;
+export const COOKBOOK_VERSION = 2; // 2: families (dinosaurs, F1 cars)
 export const SIZES = [0, 1, 2] as const;
 const ELITES = 5; // per cell
 const FLOOR = 0.15; // a newcomer must be within this of the cell's best
-const PIECE_TARGET = [130, 220, 330];
 
 export type Origin = "anchor" | "evolved" | "llm" | "booklet" | "imported";
 
@@ -55,9 +55,10 @@ export const DEFAULT_WEIGHTS: Weights = { safety: 0.18, fidelity: 0.3, pieces: 0
 
 export interface Recipe {
   id: string;
-  species: Species;
+  /** Variant: a dinosaur species, or "f1". */
+  species: string;
   size: number;
-  plan: Plan;
+  plan: AnyPlan;
   origin: Origin;
   parent?: string;
   /** Generation it was born in (its cell's counter). */
@@ -89,107 +90,44 @@ export interface Cookbook {
   updated: number;
 }
 
-export const cellKey = (species: Species, size: number) => `${species}|${size}`;
+export const cellKey = (variant: string, size: number) => `${variant}|${size}`;
 
 // ------------------------------------------------------------------ genome
 
 type Path = (string | number)[];
-interface Gene {
-  path: Path;
-  int: boolean;
-  /** Bounds: relative to the anchor value (×) or absolute. */
-  rel?: [number, number];
-  abs?: [number, number];
-}
-
-function genesOf(anchor: Plan): Gene[] {
-  const g: Gene[] = [
-    { path: ["torso", "L"], int: true, rel: [0.7, 1.4] },
-    { path: ["torso", "hw"], int: true, abs: [2, 5] },
-    { path: ["torso", "H"], int: true, rel: [0.75, 1.35] },
-    { path: ["head", "L"], int: true, rel: [0.7, 1.4] },
-    { path: ["head", "H"], int: true, rel: [0.75, 1.4] },
-    { path: ["head", "snout"], int: true, abs: [1, 5] },
-    { path: ["head", "bend"], int: false, abs: [-60, 10] },
-    { path: ["tail", "n"], int: true, abs: [2, 4] },
-    { path: ["tail", "L"], int: true, rel: [0.7, 1.4] },
-    { path: ["tail", "H"], int: true, rel: [0.7, 1.35] },
-    { path: ["tail", "taper"], int: false, abs: [0.45, 0.85] },
-    { path: ["hind", "thigh", 0], int: true, abs: [2, 5] },
-    { path: ["hind", "thigh", 1], int: true, rel: [0.75, 1.3] },
-    { path: ["hind", "shin", 1], int: true, rel: [0.75, 1.3] },
-    { path: ["hind", "foot"], int: true, abs: [2, 5] },
-  ];
-  if (anchor.biped) g.push({ path: ["torso", "pitch"], int: false, abs: [-5, 25] });
-  if (anchor.head.jawOpen > 0) g.push({ path: ["head", "jawOpen"], int: false, abs: [10, 40] });
-  anchor.tail.bend.forEach((_, i) => g.push({ path: ["tail", "bend", i], int: false, abs: [-20, 15] }));
-  if (anchor.neck)
-    g.push(
-      { path: ["neck", "n"], int: true, abs: [1, anchor.neck.n > 1 ? 4 : 2] },
-      { path: ["neck", "L"], int: true, rel: [0.7, 1.4] },
-      { path: ["neck", "H"], int: true, rel: [0.75, 1.3] },
-      { path: ["neck", "bend"], int: false, abs: [-20, 50] },
-    );
-  if (anchor.fore)
-    g.push(
-      { path: ["fore", "thigh", 1], int: true, rel: [0.75, 1.3] },
-      { path: ["fore", "shin", 1], int: true, rel: [0.75, 1.3] },
-    );
-  if (anchor.arms) g.push({ path: ["arms", "len"], int: true, rel: [0.7, 1.4] }, { path: ["arms", "reach"], int: false, abs: [0, 60] });
-  return g;
-}
-
 const get = (o: unknown, p: Path): number => p.reduce<unknown>((a, k) => (a as Record<string | number, unknown>)[k], o) as number;
 function set(o: unknown, p: Path, v: number) {
   const parent = p.slice(0, -1).reduce<unknown>((a, k) => (a as Record<string | number, unknown>)[k], o) as Record<string | number, unknown>;
   parent[p[p.length - 1]] = v;
 }
-const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
 
-function bounds(gene: Gene, anchor: Plan): [number, number] {
+function bounds(gene: Gene, anchor: AnyPlan): [number, number] {
   if (gene.abs) return gene.abs;
   const a = get(anchor, gene.path);
   return [Math.max(gene.int ? 1 : 0, a * gene.rel![0]), a * gene.rel![1]];
 }
 
-/** Keep every gene inside its bounds (and the tail-bend list as long as the tail). */
-export function repair(plan: Plan, species: Species): Plan {
-  const anchor = PLANS[species];
-  const p = clone(plan);
-  // Structure stays the species' own: two or four legs, neck or not, its features.
-  p.biped = anchor.biped;
-  p.features = [...anchor.features];
-  if (!anchor.neck) delete p.neck;
-  else p.neck ??= clone(anchor.neck);
-  if (!anchor.fore) delete p.fore;
-  else p.fore ??= clone(anchor.fore);
-  if (!anchor.arms) delete p.arms;
-  else p.arms ??= clone(anchor.arms);
-  p.tail.bend = Array.from({ length: anchor.tail.bend.length }, (_, i) => p.tail.bend?.[i] ?? anchor.tail.bend[i]);
-  p.head.teeth = anchor.head.teeth;
-  if (!anchor.head.jawOpen) p.head.jawOpen = 0;
-  if (!anchor.biped) p.torso.pitch = anchor.torso.pitch;
-  for (const g of genesOf(anchor)) {
+/** Keep every gene inside its bounds, and the structure the family's own. */
+export function repair(plan: AnyPlan, variant: string, size: number): AnyPlan {
+  const fam = familyOf(variant);
+  const anchor = fam.anchor(variant, size);
+  const p = fam.fix(clone(plan), variant, size);
+  for (const g of fam.genes(anchor)) {
     const [lo, hi] = bounds(g, anchor);
     let v = Number(get(p, g.path));
     if (!Number.isFinite(v)) v = get(anchor, g.path);
     v = Math.min(hi, Math.max(lo, v));
     set(p, g.path, g.int ? Math.round(v) : Math.round(v * 100) / 100);
   }
-  // Colours: only the species' own (a mutation may reorder them).
-  for (const k of ["main", "belly", "accent"] as const) {
-    const allowed = anchor.colors[k];
-    const mine = (p.colors?.[k] ?? []).filter((c) => allowed.includes(c));
-    p.colors[k] = [...new Set([...mine, ...allowed])];
-  }
-  return p;
+  return fam.fix(p, variant, size);
 }
 
 /** A child: a few genes nudged by a Gaussian of strength `sigma` (fraction of the range). */
-export function mutate(plan: Plan, species: Species, sigma: number, r: () => number): Plan {
-  const anchor = PLANS[species];
+export function mutate(plan: AnyPlan, variant: string, size: number, sigma: number, r: () => number): AnyPlan {
+  const fam = familyOf(variant);
+  const anchor = fam.anchor(variant, size);
   const p = clone(plan);
-  const genes = genesOf(anchor);
+  const genes = fam.genes(anchor);
   const n = 1 + Math.floor(r() * 3);
   const gauss = () => Math.sqrt(-2 * Math.log(r() + 1e-12)) * Math.cos(2 * Math.PI * r());
   for (let k = 0; k < n; k++) {
@@ -199,36 +137,19 @@ export function mutate(plan: Plan, species: Species, sigma: number, r: () => num
     if (g.int && Math.round(v) === get(p, g.path)) v += r() < 0.5 ? -1 : 1; // an integer gene must actually move
     set(p, g.path, v);
   }
-  if (r() < 0.15) {
-    // Bring another colour of the species to the front.
-    const k = (["main", "belly", "accent"] as const)[Math.floor(r() * 3)];
-    const xs = p.colors[k];
-    if (xs.length > 1) xs.unshift(...xs.splice(1 + Math.floor(r() * (xs.length - 1)), 1));
-  }
-  return repair(p, species);
+  if (fam.recolor && r() < 0.15) fam.recolor(p, r);
+  return repair(p, variant, size);
 }
 
-/** Uniform crossover of two plans of the same species. */
-export function cross(a: Plan, b: Plan, species: Species, r: () => number): Plan {
+/** Uniform crossover of two plans of the same variant. */
+export function cross(a: AnyPlan, b: AnyPlan, variant: string, size: number, r: () => number): AnyPlan {
+  const fam = familyOf(variant);
   const p = clone(a);
-  for (const g of genesOf(PLANS[species])) if (r() < 0.5) set(p, g.path, get(b, g.path));
-  return repair(p, species);
+  for (const g of fam.genes(fam.anchor(variant, size))) if (r() < 0.5) set(p, g.path, get(b, g.path));
+  return repair(p, variant, size);
 }
 
 // ----------------------------------------------------------------- fitness
-
-/** Proportions that make the species recognisable, in torso lengths. */
-function proportions(p: Plan) {
-  const T = p.torso.L;
-  return [
-    p.head.L / T,
-    (p.tail.n * p.tail.L) / T,
-    (p.hind.thigh[1] + p.hind.shin[1]) / 2.5 / T,
-    p.neck ? (p.neck.n * p.neck.L) / T : 0,
-    p.torso.H / 3 / T,
-    p.head.H / p.head.L,
-  ];
-}
 
 export interface Evaluation {
   fitness: number;
@@ -241,14 +162,15 @@ export interface Evaluation {
 const score = (f: Features, w: Weights) => FEATURE_KEYS.reduce((s, k) => s + w[k] * f[k], 0) / FEATURE_KEYS.reduce((s, k) => s + w[k], 0);
 
 /** Build a plan for real at one size (two colour seeds) and measure it. */
-export function evaluate(plan: Plan, species: Species, size: number, w: Weights): Evaluation {
+export function evaluate(plan: AnyPlan, variant: string, size: number, w: Weights): Evaluation {
+  const fam = familyOf(variant);
   let worst: Evaluation | null = null;
   for (const seed of [1, 2]) {
-    const b = generateBuild("dino", { size, level: 2, seed, mode: "any", inv: {}, species, plan });
+    const b = fam.build(plan, variant, size, seed);
     const fail = b.failed > 0 ? "a part could not be placed" : !Number.isFinite(b.stress) ? "parts float" : b.stress > 1 ? "a joint is overloaded" : "";
-    const a = proportions(PLANS[species]), q = proportions(plan);
+    const a = fam.proportions(fam.anchor(variant, size)), q = fam.proportions(plan);
     const dev = a.reduce((s, v, i) => s + (v ? ((q[i] - v) / v) ** 2 : 0), 0);
-    const T = PIECE_TARGET[size];
+    const T = fam.pieceTarget[size];
     const f: Features = {
       safety: Math.max(0, 1 - b.stress),
       fidelity: Math.exp(-dev / 0.08),
@@ -268,14 +190,14 @@ export function evaluate(plan: Plan, species: Species, size: number, w: Weights)
 
 let idCounter = 0;
 const newId = (species: string) => `${species}-${Date.now().toString(36)}-${(idCounter++).toString(36)}`;
-const genomeKey = (p: Plan) => JSON.stringify(p);
+const genomeKey = (p: AnyPlan) => JSON.stringify(p);
 
 /** A fresh cookbook: every species' anchor plan, measured at every size. */
 export function seedCookbook(w: Weights = DEFAULT_WEIGHTS): Cookbook {
   const cb: Cookbook = { version: COOKBOOK_VERSION, weights: { ...w }, cells: {}, evals: 0, accepted: 0, trend: [], updated: Date.now() };
-  for (const sp of SPECIES)
+  for (const sp of VARIANTS)
     for (const size of SIZES) {
-      const plan = repair(PLANS[sp.id], sp.id);
+      const plan = repair(familyOf(sp.id).anchor(sp.id, size), sp.id, size);
       const e = evaluate(plan, sp.id, size, cb.weights);
       cb.evals++;
       cb.cells[cellKey(sp.id, size)] = {
@@ -293,7 +215,7 @@ export function seedCookbook(w: Weights = DEFAULT_WEIGHTS): Cookbook {
 export function offer(cb: Cookbook, rec: Omit<Recipe, "fitness" | "features" | "pieces" | "id" | "gen" | "likes"> & Partial<Recipe>): { accepted: boolean; evaluation: Evaluation } {
   const key = cellKey(rec.species, rec.size);
   const cell = (cb.cells[key] ??= { elites: [], gen: 0, sigma: 0.25, tries: 0, wins: 0 });
-  const plan = repair(rec.plan, rec.species);
+  const plan = repair(rec.plan, rec.species, rec.size);
   const e = evaluate(plan, rec.species, rec.size, cb.weights);
   cb.evals++;
   cell.tries++;
@@ -320,21 +242,20 @@ export function step(cb: Cookbook, r: () => number): { key: string; accepted: bo
   const keys = Object.keys(cb.cells);
   const key = keys[Math.floor(r() * keys.length)];
   const cell = cb.cells[key];
-  const [species, s] = key.split("|");
+  const [sp, s] = key.split("|");
   const size = Number(s);
-  const sp = species as Species;
   if (!cell.elites.length) {
-    const res = offer(cb, { species: sp, size, plan: mutate(PLANS[sp], sp, 0.3, r), origin: "evolved" });
+    const res = offer(cb, { species: sp, size, plan: mutate(familyOf(sp).anchor(sp, size), sp, size, 0.3, r), origin: "evolved" });
     return { key, accepted: res.accepted };
   }
   // Tournament of two, with your likes as a tie-breaker.
   const pick = () => cell.elites[Math.floor(r() * cell.elites.length)];
   const [a, b] = [pick(), pick()];
   const parent = a.fitness + 0.02 * Math.log1p(a.likes) >= b.fitness + 0.02 * Math.log1p(b.likes) ? a : b;
-  let plan = mutate(parent.plan, sp, cell.sigma, r);
+  let plan = mutate(parent.plan, sp, size, cell.sigma, r);
   if (r() < 0.2) {
     const other = cb.cells[cellKey(sp, SIZES[Math.floor(r() * 3)])]?.elites[0];
-    if (other) plan = cross(plan, other.plan, sp, r);
+    if (other) plan = cross(plan, other.plan, sp, size, r);
   }
   const before = cell.wins;
   cell.gen++;
@@ -378,7 +299,7 @@ export function learnChoice(cb: Cookbook, shown: Features[], chosen: Features, s
 }
 
 /** The recipe to build for a card: an elite of the cell, the fitter (and liked) the likelier. */
-export function choose(cb: Cookbook | null, species: Species, size: number, seed: number): Recipe | null {
+export function choose(cb: Cookbook | null, species: string, size: number, seed: number): Recipe | null {
   const cell = cb?.cells[cellKey(species, size)];
   if (!cell?.elites.length) return null;
   const r = rng(seed * 7919 + size);
@@ -397,7 +318,7 @@ export function merge(cb: Cookbook, other: Cookbook): number {
   let n = 0;
   for (const cell of Object.values(other.cells ?? {}))
     for (const e of cell.elites ?? [])
-      if (SPECIES.some((s) => s.id === e.species) && offer(cb, { ...e, origin: e.origin === "anchor" ? "imported" : e.origin, id: undefined }).accepted) n++;
+      if (VARIANTS.some((s) => s.id === e.species) && offer(cb, { ...e, origin: e.origin === "anchor" ? "imported" : e.origin, id: undefined }).accepted) n++;
   return n;
 }
 
@@ -409,36 +330,47 @@ export function merge(cb: Cookbook, other: Cookbook): number {
  * anatomy or at LEGO building will propose different things; the fitness
  * decides what stays.
  */
-export function brief(cb: Cookbook, focus?: Species): string {
-  const species = focus ? [focus] : SPECIES.map((s) => s.id);
-  const best = species.map((sp) => ({ species: sp, best: SIZES.map((sz) => cb.cells[cellKey(sp, sz)]?.elites[0]).filter(Boolean).map((e) => ({ size: e!.size, fitness: +e!.fitness.toFixed(3), plan: e!.plan })) }));
+export function brief(cb: Cookbook, focus?: string): string {
+  const families = FAMILIES.filter((f) => !focus || f.variants.some((v) => v.id === focus));
+  const best = families.flatMap((f) =>
+    f.variants
+      .filter((v) => !focus || v.id === focus)
+      .map((v) => ({ family: f.id, variant: v.id, best: SIZES.map((sz) => cb.cells[cellKey(v.id, sz)]?.elites[0]).filter(Boolean).map((e) => ({ size: e!.size, fitness: +e!.fitness.toFixed(3), plan: e!.plan })) })),
+  );
   return [
-    "You are improving the body plans of brick-built dinosaurs (LEGO Creator style).",
-    "Each plan is built for real by a deterministic engine: rigid sections (torso, neck, head with jaw, tail sections, thighs, shins, arms) joined by Joint-8 ball joints, bodies lofted from bricks/plates with curved slopes on top, legs solved by two-bone IK to feet on a baseplate.",
-    "Units: studs for lengths along a section (L), half-width in studs (hw), heights in plates (H; 3 plates = 1 brick); angles in degrees; leg entries are [thickness in studs, joint-to-joint length in plates].",
-    `A design is rejected if a part can't be placed, anything floats, or a ball joint is overloaded. Otherwise fitness = weighted mean of: ${FEATURE_KEYS.map((k) => `${k} ${cb.weights[k].toFixed(2)}`).join(", ")}.`,
-    "fidelity compares head:torso, tail:torso, legs:torso, neck:torso, torso depth and head shape to the species' anchor; pieces targets 130 / 220 / 330 for sizes 0 / 1 / 2.",
-    "Keep each species' structure (two or four legs, neck or not, features); change the numbers. Think about real anatomy, balance over the hips, and how LEGO designers shape bodies.",
+    "You are improving the plans of brick-built LEGO models. Each plan is built for real by a deterministic engine and measured.",
+    "Families: dinosaurs (LEGO Creator style — rigid sections joined by Joint-8 ball joints, bodies lofted from bricks/plates under curved slopes, legs by two-bone IK; lengths in studs, heights in plates, 3 plates = 1 brick, angles in degrees, legs [thickness, joint-to-joint length in plates]) and F1 cars (from LEGO Speed Champions 77244 — 4-wide tub, 8-wide body over sidepods, wheels on Technic axles 9 studs apart; L = length in studs, axles in studs from nose / tail, cockpit as a fraction of L from the tail, wing heights in plates, livery an index).",
+    `A design is rejected if a part can't be placed, anything floats, or a joint is overloaded. Otherwise fitness = weighted mean of: ${FEATURE_KEYS.map((k) => `${k} ${cb.weights[k].toFixed(2)}`).join(", ")}.`,
+    `fidelity compares the plan's proportions to its anchor (the species' body plan; the 77244 car); pieces aims at ${families.map((f) => `${f.label} ${f.pieceTarget.join(" / ")}`).join(", ")} for sizes 0 / 1 / 2.`,
+    "Keep each variant's structure; change the numbers. Think about real anatomy or real cars, balance, and how LEGO designers shape models.",
     "Current best plans:",
     JSON.stringify(best),
-    'Answer with JSON only: an array of {"species": "...", "size": 0|1|2, "plan": {…same shape…}, "note": "why"}. Up to 12 proposals.',
+    'Answer with JSON only: an array of {"variant": "...", "size": 0|1|2, "plan": {…same shape…}, "note": "why"}. Up to 12 proposals.',
   ].join("\n\n");
+}
+
+/** Deep-merge a partial plan over its anchor (an LLM may send only what it changes). */
+function over(base: unknown, part: unknown): unknown {
+  if (Array.isArray(part) || typeof part !== "object" || part === null) return part === undefined ? base : part;
+  const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };
+  for (const [k, v] of Object.entries(part)) out[k] = over((base as Record<string, unknown>)?.[k], v);
+  return out;
 }
 
 /** Read an LLM's (or a booklet study's) proposals and offer each; returns what happened to each. */
 export function ingest(cb: Cookbook, text: string, origin: Origin = "llm"): { species: string; size: number; accepted: boolean; fitness: number; why?: string }[] {
   const at = text.indexOf("["), end = text.lastIndexOf("]");
   if (at < 0 || end < at) throw new Error("No JSON array found in the reply.");
-  const list = JSON.parse(text.slice(at, end + 1)) as { species: Species; size?: number; plan: Plan; note?: string }[];
+  const list = JSON.parse(text.slice(at, end + 1)) as { variant?: string; species?: string; size?: number; plan: Partial<AnyPlan>; note?: string }[];
   const out = [];
   for (const p of list) {
-    if (!SPECIES.some((s) => s.id === p.species) || !p.plan) continue;
-    const anchor = PLANS[p.species];
-    // Fill anything the proposal left out from the anchor, then measure.
-    const plan = repair({ ...clone(anchor), ...p.plan, torso: { ...anchor.torso, ...p.plan.torso }, head: { ...anchor.head, ...p.plan.head }, tail: { ...anchor.tail, ...p.plan.tail }, hind: { ...anchor.hind, ...p.plan.hind } } as Plan, p.species);
+    const v = p.variant ?? p.species;
+    if (!v || !VARIANTS.some((s) => s.id === v) || !p.plan) continue;
+    const fam = familyOf(v);
     for (const size of p.size === undefined ? SIZES : [p.size]) {
-      const res = offer(cb, { species: p.species, size, plan, origin, note: p.note });
-      out.push({ species: p.species, size, accepted: res.accepted, fitness: res.evaluation.fitness, why: res.evaluation.why });
+      const plan = repair(over(clone(fam.anchor(v, size)), p.plan) as AnyPlan, v, size);
+      const res = offer(cb, { species: v, size, plan, origin, note: p.note });
+      out.push({ species: v, size, accepted: res.accepted, fitness: res.evaluation.fitness, why: res.evaluation.why });
     }
   }
   return out;

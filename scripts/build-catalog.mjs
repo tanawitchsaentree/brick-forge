@@ -17,7 +17,9 @@ const LDU_PLATE = 8;
 const MAX_STUDS = 32;
 // Top-facing stud primitives. stud3/stud4 etc. are underside tubes, not studs.
 const STUD_RE = /^stud(2a?|6a?|10|15|el|17a|18a|p\d+|-logo\d*)?\.dat$/;
-const SKIP_TYPES = /Alias|Shortcut|Primitive|Subpart|Physical_Colour|Configuration/i;
+// Aliases (the same part under another number) and shortcuts (factory assemblies: a
+// hinge, a wheel with its tyre) are real parts models use, so they stay.
+const SKIP_TYPES = /Primitive|Subpart|Physical_Colour|Configuration/i;
 const SKIP_NAMES = /Sticker|Obsolete|Moved to/i;
 const PRINTED = /Pattern|Decorated|Print/i; // kept, but flagged so the library can hide them
 const SKIP_CATEGORIES = new Set(["Sticker", "Moved", "Obsolete", "Duplo", "Znap", "Clikits", "Belville", "Scala"]);
@@ -124,6 +126,17 @@ compose("lb-axle-4", "Axle 1×4 with Wheels", "Character", [
   "1 15 52 5 0 0 0 1 0 1 0 -1 0 0 30027bc01.dat",
   "1 15 -52 5 0 0 0 -1 0 1 0 1 0 0 30027bc01.dat",
 ], ["1 16 0 0 0 1 0 0 0 1 0 0 0 1 3710.dat"], "base", "all");
+// F1 axle (Speed Champions 77244 style): two Technic bricks 1×2 side by side
+// on the axle line, a 10L axle through their holes (y = 10, along z), and a
+// Ø3-stud wheel (rim 11×18 + tyre) on each end at z = ±90: the wheels stand
+// outside the body, 9 studs apart, touching the ground 2 plates below the bricks.
+compose("lb-axle-f1", "F1 Axle with Wheels", "Character", [
+  "1 16 0 0 -10 1 0 0 0 1 0 0 0 1 3700.dat",
+  "1 16 0 0 10 1 0 0 0 1 0 0 0 1 3700.dat",
+  "1 0 0 10 0 0 0 -1 0 1 0 1 0 0 3737.dat",
+  "1 0 0 10 90 1 0 0 0 1 0 0 0 1 18976c01.dat",
+  "1 0 0 10 -90 -1 0 0 0 1 0 0 0 -1 18976c01.dat",
+], ["1 16 0 0 -10 1 0 0 0 1 0 0 0 1 3700.dat", "1 16 0 0 10 1 0 0 0 1 0 0 0 1 3700.dat"], "base", "all");
 // Window 1×2×2 with trans-clear glass, as LDraw's own 60592c01 (glass shares the frame's origin).
 compose("lb-window", "Window 1×2×2 with Glass", "Character", [
   "1 16 0 0 0 1 0 0 0 1 0 0 0 1 60592.dat",
@@ -303,7 +316,7 @@ for (const f of partFiles) {
   const mv = desc.match(/^~Moved to (\S+)/);
   if (mv) moved[key.replace(/\.dat$/, "")] = mv[1].toLowerCase().replace(/\.dat$/, "");
   else if (/\(Obsolete\)/.test(desc)) moved[key.replace(/\.dat$/, "")] = key.replace(/\.dat$/, "");
-  if (!desc || /^[~=_|]/.test(desc) || SKIP_TYPES.test(h.type) || SKIP_NAMES.test(desc)) {
+  if (!desc || /^[~_|]/.test(desc) || SKIP_TYPES.test(h.type) || SKIP_NAMES.test(desc)) {
     skipped++;
     continue;
   }
@@ -356,6 +369,19 @@ for (const f of partFiles) {
     o: [round(-minX / LDU_STUD), round(maxY / LDU_STUD), round(maxZ / LDU_STUD)],
   };
   if (approx) entry.a = 1;
+  // Every stud, any direction, in part-local space (studs; y up): what the
+  // part offers to connect to. [x, y, z, dir] with dir 0..5 = +y −y +x −x +z −z.
+  const AXES = [[0, 1, 0], [0, -1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
+  const studAll = [];
+  for (const s of info.studs) {
+    const up = [s.up[0], -s.up[1], -s.up[2]];
+    const dir = AXES.findIndex((a) => a[0] * up[0] + a[1] * up[1] + a[2] * up[2] > 0.99);
+    if (dir < 0) continue; // angled studs: rare, skipped
+    studAll.push([round((s.p[0] - minX) / LDU_STUD), round((maxY - s.p[1]) / LDU_STUD), round((maxZ - s.p[2]) / LDU_STUD), dir]);
+  }
+  if (studAll.length) entry.k = studAll;
+  // Exact geometry size (studs), where the footprint was rounded.
+  if (approx) entry.g = [round(ex / LDU_STUD), round(ey / LDU_STUD), round(ez / LDU_STUD)];
   if (PRINTED.test(desc)) entry.pr = 1;
   const sem = tagsFor(desc, category, info, minY);
   if (sem.tags.length) entry.t = sem.tags.join(",");

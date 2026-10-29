@@ -1,0 +1,28 @@
+# Cloudflare Pages caching. Code files carry a content hash in their name, so
+# they never change; data files are cached and refreshed in the background
+# (stale-while-revalidate), so a redeploy reaches visitors within the hour
+# without anyone waiting on it.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/ldraw-pack/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+/forms/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+/corpus/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+/thumbs/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=2592000
+
+/catalog.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=604800
+
+/shapes.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=604800
+
+/ldraw-filemap.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=604800

@@ -1,13 +1,13 @@
 import * as THREE from "three";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
-// A geometry pack: LDraw parts parsed once (scripts/build-pack.mjs) into one
-// file, so the parts every generator uses appear without fetching and parsing
-// dozens of .dat files each. Positions are 16-bit, normals 8-bit, vertices
+// A geometry pack: LDraw parts parsed once (scripts/build-pack.mjs): the most
+// used in one core shard, the rest a small file each, so a model's parts
+// arrive in a few requests instead of fetching and parsing dozens of .dat
+// files each. Positions are 16-bit, normals 8-bit, vertices
 // shared; each mesh keeps its LDraw colour code so main-colour faces can still
 // be repainted. Parts not in the pack load through LDrawLoader as before.
 
-const PACK_URL = "/ldraw-pack/pack.json";
 
 interface Chunk {
   c: string; // LDraw colour code (16 = the part's own colour)
@@ -103,15 +103,36 @@ export function packTemplate(root: THREE.Object3D): PackEntry {
   };
 }
 
-let pack: Promise<Map<string, PackEntry>> | null = null;
+/** The pack's index (scripts/build-pack.mjs): 0 = in the core shard, 1 = a file of its own. */
+interface PackIndex {
+  core: string;
+  part: Record<string, 0 | 1>;
+}
+let index: Promise<PackIndex | null> | null = null;
+let core: Promise<Record<string, PackEntry>> | null = null;
+const singles = new Map<string, Promise<PackEntry | null>>();
 
-/** The pack, fetched once (an empty map if none has been built). */
-export function loadPack(): Promise<Map<string, PackEntry>> {
-  pack ??= fetch(PACK_URL)
-    .then((r) => (r.ok && r.headers.get("content-type")?.includes("json") ? r.json() : {}))
-    .then((o: Record<string, PackEntry>) => new Map(Object.entries(o)))
-    .catch(() => new Map());
-  return pack;
+const fetchJson = <T,>(url: string): Promise<T | null> =>
+  fetch(url)
+    .then((r) => (r.ok && r.headers.get("content-type")?.includes("json") ? (r.json() as Promise<T>) : null))
+    .catch(() => null);
+
+/** A part's pack entry: from the core shard (fetched once) or its own file (null if not packed). */
+export async function packEntry(id: string): Promise<PackEntry | null> {
+  index ??= fetchJson<PackIndex>("/ldraw-pack/index.json");
+  const ix = await index;
+  const where = ix?.part[id];
+  if (where === undefined) return null;
+  if (where === 0) {
+    core ??= fetchJson<Record<string, PackEntry>>(`/ldraw-pack/${ix!.core}`).then((o) => o ?? {});
+    return (await core)[id] ?? null;
+  }
+  let s = singles.get(id);
+  if (!s) {
+    s = fetchJson<PackEntry>(`/ldraw-pack/p/${encodeURIComponent(id)}.json`);
+    singles.set(id, s);
+  }
+  return s;
 }
 
 const materials = new Map<string, THREE.Material>();

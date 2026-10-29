@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credits · Brick Forge</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <style>
+      body { margin: 0; font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; color: #1c2430; background: #f5f6f8; }
+      main { max-width: 760px; margin: 0 auto; padding: 40px 20px 64px; }
+      h1 { font-size: 26px; margin: 0 0 4px; }
+      h2 { font-size: 17px; margin: 32px 0 8px; }
+      p { margin: 0 0 12px; }
+      a { color: #1f6feb; }
+      .muted { color: #6b7685; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border-radius: 12px; overflow: hidden; }
+      th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid #eef1f5; vertical-align: top; }
+      th { font-weight: 600; color: #6b7685; background: #fafbfc; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Credits</h1>
+      <p class="muted"><a href="/">← Back to Brick Forge</a></p>
+
+      <p>
+        Brick Forge is a fan project. LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize or
+        endorse this site.
+      </p>
+
+      <h2>LDraw parts library</h2>
+      <p>
+        Every part's geometry comes from the <a href="https://library.ldraw.org">LDraw Parts Library</a>, by the
+        LDraw.org contributors, licensed under
+        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The geometry is converted for the browser
+        (merged meshes, measured shapes and connection points); the parts themselves are unchanged.
+      </p>
+
+      <h2>Official LEGO designs</h2>
+      <p>
+        The designs the engine learns from and varies are LEGO sets modelled in LDraw by the people below, from the
+        <a href="https://library.ldraw.org/omr">LDraw Official Model Repository</a>, licensed under
+        <a href="https://creativecommons.org/licenses/by/2.0/">CC BY 2.0</a>. Each is split into its separate objects
+        (one car of a set with three) and, in the app, recoloured, stretched and rebuilt. The original set designs are
+        the LEGO Group's.
+      </p>
+      <p id="count" class="muted">Loading the list…</p>
+      <table>
+        <thead>
+          <tr><th>Set</th><th>Design</th><th>Modelled by</th></tr>
+        </thead>
+        <tbody id="models"></tbody>
+      </table>
+    </main>
+    <script>
+      // One row per set, every author named once per set (the list is public/corpus/index.json).
+      fetch("/corpus/index.json")
+        .then((r) => r.json())
+        .then(({ models }) => {
+          const sets = new Map();
+          for (const m of models) {
+            const s = sets.get(m.set) ?? { set: m.set, name: m.name, year: m.year, authors: new Set() };
+            if (m.author) s.authors.add(m.author);
+            sets.set(m.set, s);
+          }
+          const rows = [...sets.values()].sort((a, b) => a.set.localeCompare(b.set, undefined, { numeric: true }));
+          const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+          document.getElementById("models").innerHTML = rows
+            .map((s) => `<tr><td>${esc(s.set.replace(/-1$/, ""))}</td><td>${esc(s.name)}${s.year ? ` (${s.year})` : ""}</td><td>${esc([...s.authors].join(", "))}</td></tr>`)
+            .join("");
+          document.getElementById("count").textContent = `${models.length} designs from ${rows.length} sets.`;
+        })
+        .catch(() => (document.getElementById("count").textContent = "The list couldn't be loaded."));
+    </script>
+  </body>
+</html>

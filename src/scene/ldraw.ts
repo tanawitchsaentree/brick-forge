@@ -3,8 +3,10 @@ import * as THREE from "three";
 import { LDrawLoader } from "three/examples/jsm/loaders/LDrawLoader.js";
 import { LDrawConditionalLineMaterial } from "three/examples/jsm/materials/LDrawConditionalLineMaterial.js";
 import type { PartDef } from "../engine/parts";
-import { partOrigin } from "../engine/parts";
-import { fromPack, loadPack } from "./pack";
+import { PARTS, partOrigin, registerPart } from "../engine/parts";
+import type { MadePart } from "../engine/ldrawImport";
+import { PLATE_H } from "../engine/units";
+import { fromPack, packEntry } from "./pack";
 
 // Real part geometry from the LDraw library in public/ldraw. Each part file is
 // loaded once into a template; instances are cheap clones that share geometry.
@@ -63,10 +65,7 @@ export function loadTemplate(part: PartDef): Promise<THREE.Group> {
   let t = templates.get(part.id);
   if (!t) {
     // From the geometry pack when it has the part (no parsing), else LDrawLoader.
-    t = loadPack().then((pack) => {
-      const e = pack.get(part.id);
-      return e ? fromPack(e) : parseTemplate(part);
-    });
+    t = packEntry(part.id).then((e) => (e ? fromPack(e) : parseTemplate(part)));
     templates.set(part.id, t);
   }
   return t;
@@ -80,21 +79,7 @@ export function parseTemplate(part: PartDef): Promise<THREE.Group> {
         new Promise<THREE.Group>((resolve, reject) => {
           loader.load(
             `${LIBRARY}parts/${part.id}.dat`,
-            (model) => {
-              const [ox, oy, oz] = partOrigin(part);
-              model.scale.set(LDU, -LDU, -LDU);
-              model.position.set(ox, oy, oz);
-              const doomed: THREE.Object3D[] = [];
-              model.traverse((o) => {
-                // Conditional lines need LDraw's special shader; plain edges are enough here.
-                if ((o as { isConditionalLine?: boolean }).isConditionalLine) doomed.push(o);
-                else if ((o as THREE.LineSegments).isLineSegments) o.raycast = noRaycast;
-              });
-              for (const o of doomed) o.removeFromParent();
-              const root = new THREE.Group();
-              root.add(model);
-              resolve(root);
-            },
+            (model) => resolve(frame(model, part)),
             undefined,
             reject,
           );
@@ -104,7 +89,98 @@ export function parseTemplate(part: PartDef): Promise<THREE.Group> {
   }
 }
 
-const isMain = (m: THREE.Material) => m.userData?.code === MAIN_COLOUR;
+/** A loaded LDraw model as a template in the part's local grid frame. */
+function frame(model: THREE.Group, part: PartDef): THREE.Group {
+  const [ox, oy, oz] = partOrigin(part);
+  model.scale.set(LDU, -LDU, -LDU);
+  model.position.set(ox, oy, oz);
+  const doomed: THREE.Object3D[] = [];
+  model.traverse((o) => {
+    // Conditional lines need LDraw's special shader; plain edges are enough here.
+    if ((o as { isConditionalLine?: boolean }).isConditionalLine) doomed.push(o);
+    else if ((o as THREE.LineSegments).isLineSegments) o.raycast = noRaycast;
+  });
+  for (const o of doomed) o.removeFromParent();
+  const root = new THREE.Group();
+  root.add(model);
+  return root;
+}
+
+/**
+ * Make parts the catalog doesn't have from LDraw text (engine/ldrawImport's
+ * partsToMake): parse, measure, and register each as a part with its template,
+ * so an imported model renders whole. Parts whose files can't be found are
+ * skipped (the importer reports them as missing).
+ */
+export async function makeParts(list: MadePart[]): Promise<void> {
+  const loader = await getLoader();
+  await Promise.all(
+    list
+      .filter((m) => !PARTS[m.id])
+      .map(
+        (m) =>
+          new Promise<void>((resolve) => {
+            loader.parse(
+              /^0\s+FILE/i.test(m.ldraw) ? m.ldraw + "\n" : `0 ${m.name}\n0 Name: made-${m.id}.dat\n${m.ldraw}\n`,
+              (model: THREE.Group) => {
+                if (m.def) {
+                  registerPart(m.def);
+                  templates.set(m.def.id, Promise.resolve(frame(model, m.def)));
+                  return resolve();
+                }
+                const box = new THREE.Box3().setFromObject(model); // LDraw units, y down
+                if (box.isEmpty()) return resolve();
+                const size = box.getSize(new THREE.Vector3()).divideScalar(20);
+                const w = Math.max(1, Math.ceil(size.x - 1e-3));
+                const d = Math.max(1, Math.ceil(size.z - 1e-3));
+                const h = Math.max(1, Math.ceil(size.y / PLATE_H - 1e-3));
+                const part: PartDef = {
+                  id: m.id,
+                  name: m.name,
+                  label: m.name,
+                  category: "Made",
+                  w,
+                  d,
+                  h,
+                  shape: { type: "ldraw" },
+                  studs: [],
+                  // Centre the geometry in its footprint; bottom on y = 0.
+                  origin: [(w - size.x) / 2 - box.min.x / 20, box.max.y / 20, (d - size.z) / 2 + box.max.z / 20],
+                  approx: true,
+                  ...(m.inline ? { made: m.ldraw } : {}),
+                };
+                registerPart(part);
+                templates.set(part.id, Promise.resolve(frame(model, part)));
+                resolve();
+              },
+              () => resolve(),
+            );
+          }),
+      ),
+  );
+}
+
+export const isMain = (m: THREE.Material) => m.userData?.code === MAIN_COLOUR;
+
+const edgeMats = new Map<string, THREE.LineBasicMaterial>();
+/**
+ * Edge lines for a part colour. Dark edges vanish on dark parts (a black car
+ * becomes one silhouette), so those get light-grey edges, as LDraw's own
+ * colour table gives black: the shape stays readable.
+ */
+export function edgeMaterial(hex: string): THREE.LineBasicMaterial {
+  const c = new THREE.Color(hex);
+  const dark = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b < 0.12;
+  const key = dark ? "dark" : "light";
+  let m = edgeMats.get(key);
+  if (!m) {
+    m = dark
+      ? new THREE.LineBasicMaterial({ color: "#7d8a99", transparent: true, opacity: 0.55 })
+      : new THREE.LineBasicMaterial({ color: "#000", transparent: true, opacity: 0.3 });
+    edgeMats.set(key, m);
+  }
+  return m;
+}
 
 /**
  * Clone a template, painting its main-colour faces with `material` and main

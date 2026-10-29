@@ -1,0 +1,9 @@
+# Cloudflare Pages: the built app (dist) plus a Function serving the LDraw
+# library from R2 (functions/ldraw, scripts/pack-ldraw-shards.mjs).
+name = "brick-forge"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+[[r2_buckets]]
+binding = "LDRAW"
+bucket_name = "brick-forge-ldraw"

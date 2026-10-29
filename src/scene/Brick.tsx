@@ -4,11 +4,10 @@ import { useFrame } from "@react-three/fiber";
 import { PLATE_H, STUD_H, STUD_R } from "../engine/units";
 import { footprint, type PartDef, type Rot } from "../engine/parts";
 import { bodyGeometry, edgeGeometry } from "./geometry";
-import { instantiate, useLDrawTemplate } from "./ldraw";
+import { edgeMaterial, instantiate, useLDrawTemplate } from "./ldraw";
 
 const studGeo = new THREE.CylinderGeometry(STUD_R, STUD_R, STUD_H, 20);
 const noRaycast = () => null;
-const ldrawEdges = new THREE.LineBasicMaterial({ color: "#000", transparent: true, opacity: 0.3 });
 const builtinEdges = new THREE.LineBasicMaterial({ color: "#000", transparent: true, opacity: 0.25 });
 const ERASE_GLOW = new THREE.Color("#ff3344");
 const DROP = 0.7; // studs: placed parts fall in from this high
@@ -30,13 +29,23 @@ interface Props {
   glow?: string;
   enterDelay?: number; // seconds before the drop-in animation starts
   noDrop?: boolean; // appear in place (already-built steps in the instructions)
+  /**
+   * Instructions: hover this high (studs) during `enterDelay`, then lower into place
+   * over `dropTime` seconds, easing in and out, so you see the part, then where it goes.
+   * Without it a placed part just drops in quickly from 0.7 studs.
+   */
+  dropHeight?: number;
+  dropTime?: number;
   alpha?: number; // transparent LEGO colours (trans-clear windows, lights)
   /** Segment pose (engine/pose.ts): carries the part's grid into the world. */
   pose?: number[];
 }
 
 /** A part rendered in its local frame, then rotated about its footprint centre. */
-export function Brick({ part, rot, x, y, z, color, uid, ghost, outline, opacity = 0.45, highlight, glow, enterDelay = 0, noDrop, alpha = 1, pose }: Props) {
+export function Brick({ part, rot, x, y, z, color, uid, ghost, outline, opacity = 0.45, highlight, glow, enterDelay = 0, noDrop, alpha = 1, pose, dropHeight, dropTime }: Props) {
+  const lift = dropHeight ?? DROP;
+  const fall = dropTime ?? DROP_TIME;
+  const hovers = dropHeight !== undefined; // shown in the air while it waits its turn
   const { w, d } = footprint(part, rot);
   const height = part.h * PLATE_H;
 
@@ -61,15 +70,17 @@ export function Brick({ part, rot, x, y, z, color, uid, ghost, outline, opacity 
   const born = useRef<number | null>(null);
   useLayoutEffect(() => {
     if (ghost || noDrop || !drop.current) return;
-    drop.current.position.y = DROP;
-    drop.current.visible = enterDelay === 0; // staggered parts stay hidden until their turn
+    drop.current.position.y = lift;
+    drop.current.visible = hovers || enterDelay === 0; // staggered parts stay hidden until their turn, unless they hover
   }, []);
   const lit = useRef<number | null>(null);
   useFrame(({ clock, invalidate }, dt) => {
     // A coloured glow (instructions) flashes as the part lands, then fades to a
     // faint trace so the part shows its true colour — black must read as black.
     lit.current ??= clock.elapsedTime;
-    const fresh = clock.elapsedTime - lit.current < 0.9 + enterDelay;
+    // (Lit as it lands: after the wait and the fall.)
+    const age = clock.elapsedTime - lit.current;
+    const fresh = hovers ? age > enterDelay + fall * 0.8 && age < enterDelay + fall + 0.8 : age < 0.9 + enterDelay;
     const target = highlight ? (glow ? (fresh ? 0.4 : 0.03) : 0.6) : 0;
     if (glow && highlight && fresh) invalidate();
     if (Math.abs(material.emissiveIntensity - target) > 0.005) {
@@ -80,9 +91,11 @@ export function Brick({ part, rot, x, y, z, color, uid, ghost, outline, opacity 
     if (ghost || !g || g.position.y === 0) return;
     invalidate();
     born.current ??= clock.elapsedTime + enterDelay;
-    const t = Math.min(Math.max((clock.elapsedTime - born.current) / DROP_TIME, 0), 1);
-    g.visible = clock.elapsedTime >= born.current;
-    g.position.y = t >= 1 ? 0 : DROP * (1 - t) ** 3;
+    const t = Math.min(Math.max((clock.elapsedTime - born.current) / fall, 0), 1);
+    g.visible = hovers || clock.elapsedTime >= born.current;
+    // A long, shown drop eases in and out (lifted, then set down); the quick one eases out.
+    const k = hovers ? (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2) : 1 - (1 - t) ** 3;
+    g.position.y = t >= 1 ? 0 : lift * (1 - k);
   });
 
   const raycast = ghost ? noRaycast : undefined;
@@ -91,8 +104,8 @@ export function Brick({ part, rot, x, y, z, color, uid, ghost, outline, opacity 
   const isLDraw = part.shape.type === "ldraw";
   const template = useLDrawTemplate(part);
   const real = useMemo(
-    () => (template ? instantiate(template, material, ldrawEdges, ghost) : null),
-    [template, material, ghost],
+    () => (template ? instantiate(template, material, edgeMaterial(color), ghost) : null),
+    [template, material, ghost, color],
   );
 
   // A rigid pose as position + rotation (plain props, so three keeps its matrices current).

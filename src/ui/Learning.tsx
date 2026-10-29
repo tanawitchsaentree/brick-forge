@@ -1,5 +1,7 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { SPECIES } from "../engine/assembly";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { Button, Input, Select, Textarea } from "pane-react";
+import { Choice } from "./Choice";
+import { VARIANTS } from "../engine/learn/families";
 import { FEATURE_KEYS, brief, cellKey, type Cookbook, type Origin } from "../engine/learn/cookbook";
 import { askLocalLLM, cookbook, importCookbook, learningState, resetCookbook, setRunning, subscribe, teach } from "../engine/learn/client";
 
@@ -30,9 +32,10 @@ export function Learning() {
   const [model, setModel] = useState(() => localStorage.getItem(LLM_KEY) ?? "llama3.1");
   const [busy, setBusy] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const importFile = useRef<HTMLInputElement>(null);
   useEffect(() => localStorage.setItem(LLM_KEY, model), [model]);
 
-  if (!cb) return <p className="small muted">Starting the learning engine…</p>;
+  if (!cb) return <p className="hint">Starting the learning engine…</p>;
 
   const report = (r: Awaited<ReturnType<typeof teach>>) => {
     if (r.error) return setResult(`Couldn't read it: ${r.error}`);
@@ -47,21 +50,30 @@ export function Learning() {
       <div className="learn-status">
         <span className={st.running ? "dot live" : "dot"} />
         <b>{st.running ? "Learning" : "Paused"}</b>
-        <span className="muted small">
+        <span className="hint">
           {cb.evals.toLocaleString()} designs tried · {cb.accepted.toLocaleString()} kept{st.running && st.rate ? ` · ${st.rate}/min` : ""}
         </span>
       </div>
-      <div className="seg small">
-        <button className={st.running ? "on" : ""} onClick={() => setRunning(true)}>Run</button>
-        <button onClick={() => setRunning(true, true)} title="Use more of this computer's time">Turbo</button>
-        <button className={!st.running ? "on" : ""} onClick={() => setRunning(false)}>Pause</button>
+      <div className="learn-actions">
+        <Choice
+          label="Learning"
+          value={st.running ? "run" : "pause"}
+          onChange={(v) => setRunning(v === "run")}
+          options={[
+            { value: "run", label: "Run" },
+            { value: "pause", label: "Pause" },
+          ]}
+        />
+        <Button variant="glass" size="sm" onClick={() => setRunning(true, true)} title="Use more of this computer's time">
+          Turbo
+        </Button>
       </div>
 
       {trend.length > 1 && (
         <svg className="spark" viewBox="0 0 100 24" preserveAspectRatio="none" aria-label="Average best score over time">
           <polyline
             fill="none"
-            stroke="#1f6feb"
+            stroke="var(--ds-action-accent)"
             strokeWidth="1.5"
             points={trend.map((t, i) => `${(i / (trend.length - 1)) * 100},${22 - ((t.best - lo) / Math.max(1e-6, hi - lo)) * 20}`).join(" ")}
           />
@@ -70,7 +82,7 @@ export function Learning() {
 
       <h2>Best recipes</h2>
       <ul className="learn-species">
-        {SPECIES.map((sp) => {
+        {VARIANTS.map((sp) => {
           const cells = [0, 1, 2].map((s) => cb.cells[cellKey(sp.id, s)]);
           const best = cells.map((c) => c?.elites[0]);
           const gens = cells.reduce((a, c) => a + (c?.gen ?? 0), 0);
@@ -82,7 +94,7 @@ export function Learning() {
                   <i key={i} title={e ? `${"SML"[i]}: ${(e.fitness * 100).toFixed(1)} · ${e.origin}${e.note ? ` — ${e.note}` : ""}` : "none yet"} style={{ width: `${Math.max(0, (e?.fitness ?? 0) * 100)}%` }} className={e?.origin ?? ""} />
                 ))}
               </span>
-              <span className="muted small">gen {gens}</span>
+              <span className="hint">gen {gens}</span>
             </li>
           );
         })}
@@ -99,33 +111,48 @@ export function Learning() {
       </ul>
 
       <h2>Teach it</h2>
-      <p className="small muted">
+      <p className="hint">
         Give the brief to any LLM and paste its JSON reply, or ask a model running on this computer (Ollama). Notes from a building booklet go in the same way.
         Every proposal is built and measured; only better ones are kept.
       </p>
       <div className="learn-actions">
-        <button onClick={() => navigator.clipboard.writeText(brief(cb)).then(() => setResult("Brief copied — paste it into your LLM."))}>Copy brief</button>
-        <button onClick={() => download("cookbook.json", JSON.stringify(cb))}>Export</button>
-        <label className="file small">
+        <Button variant="glass" size="sm" onClick={() => navigator.clipboard.writeText(brief(cb)).then(() => setResult("Brief copied — paste it into your LLM."))}>
+          Copy brief
+        </Button>
+        <Button variant="glass" size="sm" onClick={() => download("cookbook.json", JSON.stringify(cb))}>
+          Export
+        </Button>
+        <Button variant="glass" size="sm" onClick={() => importFile.current?.click()}>
           Import
-          <input
-            type="file"
-            accept="application/json"
-            onChange={async (e) => {
-              const f = e.target.files?.[0];
-              if (f) importCookbook(JSON.parse(await f.text()) as Cookbook);
-            }}
-          />
-        </label>
+        </Button>
+        <input
+          ref={importFile}
+          hidden
+          type="file"
+          accept="application/json"
+          onChange={async (e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (f) importCookbook(JSON.parse(await f.text()) as Cookbook);
+          }}
+        />
       </div>
-      <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder='[{"species":"rex","size":1,"plan":{…},"note":"…"}]' rows={4} />
+      <Textarea value={text} onChange={(e) => setText(e.target.value)} placeholder='[{"species":"rex","size":1,"plan":{…},"note":"…"}]' rows={4} aria-label="Proposals (JSON)" />
       <div className="learn-actions">
-        <select value={origin} onChange={(e) => setOrigin(e.target.value as Origin)}>
-          <option value="llm">From an LLM</option>
-          <option value="booklet">From a booklet</option>
-        </select>
-        <button
-          className="primary"
+        <Select
+          size="sm"
+          label="Source"
+          hideLabel
+          value={origin}
+          onValueChange={(v) => setOrigin(v as Origin)}
+          options={[
+            { value: "llm", label: "From an LLM" },
+            { value: "booklet", label: "From a booklet" },
+          ]}
+        />
+        <Button
+          variant="accent"
+          size="sm"
           disabled={!text.trim() || !!busy}
           onClick={async () => {
             setBusy("Measuring…");
@@ -134,11 +161,13 @@ export function Learning() {
           }}
         >
           {busy ?? "Teach"}
-        </button>
+        </Button>
       </div>
       <div className="learn-actions">
-        <input value={model} onChange={(e) => setModel(e.target.value)} aria-label="Local model" title="Ollama model name" />
-        <button
+        <Input size="sm" value={model} onChange={(e) => setModel(e.target.value)} aria-label="Local model" title="Ollama model name" />
+        <Button
+          variant="glass"
+          size="sm"
           disabled={!!busy}
           onClick={async () => {
             setBusy("Asking the local model…");
@@ -151,10 +180,10 @@ export function Learning() {
           }}
         >
           Ask local LLM
-        </button>
+        </Button>
       </div>
-      {result && <p className="small learn-result">{result}</p>}
-      <button className="link small" onClick={() => confirm("Forget everything learned and start again from the anchor plans?") && resetCookbook()}>
+      {result && <p className="learn-result">{result}</p>}
+      <button className="link" onClick={() => confirm("Forget everything learned and start again from the anchor plans?") && resetCookbook()}>
         Start over
       </button>
     </div>

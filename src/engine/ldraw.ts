@@ -53,16 +53,20 @@ export function toLDraw(bricks: PlacedBrick[], name = "model"): string {
   const lines = [
     `0 ${name}`,
     `0 Name: ${name}.ldr`,
-    "0 Author: Lego Builder",
+    "0 Author: Brick Forge",
     "",
   ];
   // Bottom layer first, so the file doubles as rough build order.
   const sorted = [...bricks].sort((a, b) => a.y - b.y);
-  for (const b of sorted) {
-    if (b.pose || b.place) {
-      lines.push(...posedLines(b));
-      continue;
-    }
+  for (const b of sorted) lines.push(...partLines(b));
+  return withMadeParts(lines, bricks, name);
+}
+
+/** One placed part as LDraw type-1 lines (several for a composite such as a person). */
+export function partLines(b: PlacedBrick): string[] {
+  if (b.pose || b.place) return posedLines(b);
+  const lines: string[] = [];
+  {
     const part = PARTS[b.partId];
     const { w, d } = footprint(part, b.rot);
     // Part origin relative to the footprint centre, turned like the part (-rot × 90° about y).
@@ -81,6 +85,21 @@ export function toLDraw(bricks: PlacedBrick[], name = "model"): string {
     } else {
       lines.push(`1 ${b.color} ${x} ${y} ${z} ${ROT_MATRIX[b.rot]} ${part.id}.dat`);
     }
+  }
+  return lines;
+}
+
+/**
+ * Parts made from a model's own geometry travel with the file: the lines
+ * become the MPD's first file (unless they already start one) and each made
+ * part follows as its own FILE.
+ */
+export function withMadeParts(lines: string[], bricks: PlacedBrick[], name: string): string {
+  const made = [...new Set(bricks.map((b) => PARTS[b.partId]).filter((p) => p.made))];
+  if (made.length) {
+    if (!/^0\s+FILE/i.test(lines[0] ?? "")) lines.unshift(`0 FILE ${name}.ldr`);
+    for (const p of made)
+      lines.push("0 NOFILE", ...(/^0\s+FILE/i.test(p.made!) ? [p.made!] : [`0 FILE ${p.id}.dat`, `0 ${p.name}`, `0 Name: ${p.id}.dat`, p.made!]));
   }
   return lines.join("\n") + "\n";
 }

@@ -1,0 +1,24 @@
+Copyright (c) 2026 Tanawitch Saentree. All rights reserved.
+
+The source code, design and documentation of Brick Forge are published here to
+be read. No licence is granted to copy, modify, distribute or use them, in whole
+or in part, without written permission from the copyright holder.
+
+Third-party material keeps its own licence and is not covered by the notice
+above:
+
+- LDraw Parts Library (library.ldraw.org), by the LDraw.org contributors:
+  CC BY 4.0, https://creativecommons.org/licenses/by/4.0/
+  Geometry derived from it: public/ldraw-pack, public/shapes.json,
+  public/catalog.json.
+- LDraw Official Model Repository (library.ldraw.org/omr), models by the
+  authors named in each file and on /credits.html: CC BY 2.0,
+  https://creativecommons.org/licenses/by/2.0/
+  Designs and data derived from them: public/corpus, public/forms*.json,
+  public/thumbs/builds.
+- Pane design system (vendor/pane-react-0.3.0.tgz): MIT, see the LICENSE
+  inside the package.
+- npm dependencies: their own licences, in node_modules.
+
+LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize or
+endorse this project.

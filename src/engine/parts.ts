@@ -34,6 +34,12 @@ export interface PartDef {
   tags?: string[];
   /** Studs on its sides (SNOT), measured from geometry. */
   side?: number;
+  /** Every stud, any direction (part-local studs, y up): [x, y, z, dir], dir 0..5 = +y −y +x −x +z −z. */
+  connectors?: [number, number, number, number][];
+  /** Exact geometry size (studs) where w/d/h were rounded. */
+  geo?: [number, number, number];
+  /** Made at runtime from geometry no library file holds: its LDraw lines, embedded on export. */
+  made?: string;
 }
 
 /** Stud cells covering the first `rows` rows of a w x d part. */
@@ -178,6 +184,11 @@ export function installCatalog(parts: PartDef[], moved: Record<string, string>) 
   for (const k of Object.keys(PARTS)) delete PARTS[k];
   for (const p of parts) PARTS[p.id] = p;
   Object.assign(MOVED, moved);
+}
+
+/** Add a part made at runtime (e.g. for an imported model); not listed in the catalog. */
+export function registerPart(p: PartDef) {
+  PARTS[p.id] = p;
 }
 
 /** Current id for a part number, following LDraw renames; undefined if unknown. */

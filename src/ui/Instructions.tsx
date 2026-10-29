@@ -11,9 +11,12 @@ import { BASE_SIZE, PLATE_H } from "../engine/units";
 import { invKey, type Inventory } from "../engine/inventory";
 import { planInstructions, type Instructions as Plan, type Step } from "../engine/instructions";
 import { renderPlacement, type PlacedBrick } from "../engine/grid";
-import { apply, partMatrix } from "../engine/pose";
+import { apply, partMatrix, worldBox } from "../engine/pose";
 import { renderModelImageLDraw } from "../scene/thumbnails";
 import { PartThumb } from "./PartThumb";
+import { whyText } from "../engine/why";
+import { SCENE, useTheme } from "./theme";
+import { Badge, Button, Card, Chip, IconButton, Slider } from "pane-react";
 
 interface Props {
   bricks: PlacedBrick[];
@@ -42,6 +45,13 @@ function topOf(b: PlacedBrick): [number, number, number] {
   return apply(partMatrix(b), [part.w / 2, part.h * PLATE_H, part.d / 2]);
 }
 
+/** Where an exactly placed part goes: its stud position and height, as the grid rulers read. */
+function placeText(b: PlacedBrick) {
+  const { lo, hi } = worldBox(b);
+  const up = lo[1] / PLATE_H;
+  return `x${Math.round((lo[0] + hi[0]) / 2)} · z${Math.round((lo[2] + hi[2]) / 2)} · ${up < 0.5 ? "on the baseplate" : `${(up * 3.2).toFixed(1)} mm up`}`;
+}
+
 const mmss = (s: number) => (s < 60 ? `${Math.round(s)} s` : `${Math.round(s / 60)} min`);
 
 /** A stable key for a model, so its build progress can be saved and resumed. */
@@ -66,6 +76,7 @@ function loadProgress(key: string): Progress | null {
 }
 
 export function Instructions({ bricks, title, inventory, onClose }: Props) {
+  const look = SCENE[useTheme()];
   const plan = useMemo(() => planInstructions(bricks), [bricks]);
   const N = plan.steps.length;
   // Build progress is saved per model: where you were, and which steps are done.
@@ -74,7 +85,7 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
   const [step, setStep] = useState(() => Math.min(saved?.step ?? 0, Math.max(0, plan.steps.length - 1)));
   const [doneSteps, setDoneSteps] = useState<Set<number>>(() => new Set(saved?.done ?? []));
   const [resumed, setResumed] = useState(() => !!saved && (saved.step > 0 || saved.done.length > 0));
-  const [showList, setShowList] = useState(true);
+  const [showList, setShowList] = useState(false); // chapters on demand: the step comes first
   useEffect(() => {
     localStorage.setItem(key, JSON.stringify({ step, done: [...doneSteps] } satisfies Progress));
   }, [key, step, doneSteps]);
@@ -127,9 +138,11 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
   useEffect(() => {
     if (!auto) return;
     if (step >= N - 1) return setAuto(false);
-    const t = window.setTimeout(() => setStep((s) => s + 1), 2200);
+    // Time to find and place this step's pieces, not a fixed beat.
+    const pieces = plan.steps[step]?.parts.length ?? 1;
+    const t = window.setTimeout(() => setStep((s) => s + 1), 1500 + 1000 * pieces);
     return () => clearTimeout(t);
-  }, [auto, step, N]);
+  }, [auto, step, N, plan]);
 
   const current = plan.steps[step];
   const done = new Set(plan.steps.slice(0, step).flatMap((s) => s.parts.map((p) => p.index)));
@@ -146,8 +159,8 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
         dpr={[1, 1.75]}
         camera={{ position: [BASE_SIZE / 2 + 20, 24, BASE_SIZE / 2 + 26], fov: 40 }}
       >
-        <color attach="background" args={["#eef1f5"]} />
-        <hemisphereLight args={["#ffffff", "#8a94a6", 1.15]} />
+        <color attach="background" args={[look.background]} />
+        <hemisphereLight args={[look.sky, look.ground, 1.15]} />
         <directionalLight position={[BASE_SIZE / 2 + 18, 40, BASE_SIZE / 2 + 12]} intensity={1.6} castShadow shadow-mapSize={[1536, 1536]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} />
         <Baseplate />
         {[...done].map((i) => {
@@ -165,45 +178,57 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
             />
           );
         })}
+        {/* Each new part: first its shadow where it goes, and the part held above it;
+            then, one after another, it's lowered in and clicks (a flash). */}
         {current.parts.map((p, n) => {
           const b = bricks[p.index];
+          const delay = ARRIVE + n * STAGGER;
           return (
-            <Brick
-              key={`${b.uid}@${step}`}
-              part={PARTS[b.partId]}
-              {...renderPlacement(b)}
-              color={colorOf(b.color).hex}
-              alpha={colorOf(b.color).alpha}
-              highlight
-              glow={NEW_GLOW}
-              enterDelay={n * 0.12}
-            />
+            <group key={`${b.uid}@${step}`}>
+              <Landing until={delay + LOWER}>
+                <Brick part={PARTS[b.partId]} {...renderPlacement(b)} color={NEW_GLOW} ghost opacity={0.16} outline={NEW_GLOW} />
+              </Landing>
+              <Brick
+                part={PARTS[b.partId]}
+                {...renderPlacement(b)}
+                color={colorOf(b.color).hex}
+                alpha={colorOf(b.color).alpha}
+                highlight
+                glow={NEW_GLOW}
+                enterDelay={delay}
+                dropHeight={HOLD_HEIGHT}
+                dropTime={LOWER}
+              />
+            </group>
           );
         })}
         <Markers bricks={bricks} step={current} />
-        <StepCamera plan={plan} step={current} />
+        {/* The step card covers the left, the chapter list (when open) the right: aim at what's left between them. */}
+        <StepCamera plan={plan} step={current} left={16 + 300 + 16} right={showList ? 16 + 260 + 16 : 0} />
         <Controls target={[plan.modelCenter[0], plan.modelCenter[1] * PLATE_H, plan.modelCenter[2]]} maxPolarAngle={Math.PI / 2.05} rightPan />
       </Canvas>
 
-      <header className="steps-top">
+      <Card as="header" className="steps-top">
         <div>
           <h2>{title}</h2>
-          <p className="muted small">
+          <p className="hint">
             {bricks.length} pieces · {N} steps · ~{mmss(plan.steps.reduce((a, s) => a + s.seconds, 0))} total
           </p>
         </div>
         <div className="progress" aria-label={`${doneSteps.size} of ${N} steps done`} title={`${doneSteps.size} of ${N} steps done`}>
           <i style={{ width: `${(doneSteps.size / N) * 100}%` }} />
         </div>
-        <span className="small muted">{Math.round((doneSteps.size / N) * 100)}% built</span>
+        <span className="hint">{Math.round((doneSteps.size / N) * 100)}% built</span>
         <div className="steps-actions">
-          <button className={xray ? "on" : ""} onClick={() => setXray((v) => !v)} title="Fade earlier steps (X)">
+          <Chip selected={xray} onSelectedChange={setXray} title="Fade earlier steps (X)">
             X-ray <kbd className="key">X</kbd>
-          </button>
-          <button className={auto ? "on" : ""} onClick={() => setAuto((v) => !v)}>
+          </Chip>
+          <Button variant="glass" size="sm" onClick={() => setAuto((v) => !v)}>
             {auto ? "❚❚ Pause" : "▶ Play"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="glass"
+            size="sm"
             disabled={!!printing}
             onClick={async () => {
               setPrinting("Preparing…");
@@ -212,20 +237,33 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
             }}
           >
             {printing ?? "Print booklet"}
-          </button>
-          <button className={showList ? "on" : ""} onClick={() => setShowList((v) => !v)} title="Chapters and steps">
+          </Button>
+          <Button
+            variant="glass"
+            size="sm"
+            title="The same steps as an LPub3D book (.mpd): open it in LPub3D for print-ready pages, callouts and a parts list"
+            onClick={async () => {
+              const { toLPub } = await import("../engine/lpub");
+              const url = URL.createObjectURL(new Blob([toLPub(plan, title)], { type: "text/plain" }));
+              Object.assign(document.createElement("a"), { href: url, download: `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-") || "model"}.mpd` }).click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            LPub3D file
+          </Button>
+          <Chip selected={showList} onSelectedChange={setShowList} title="Chapters and steps">
             ☰ Steps
-          </button>
-          <button onClick={onClose} aria-label="Close instructions">
+          </Chip>
+          <IconButton variant="ghost" size="sm" onClick={onClose} aria-label="Close instructions">
             ✕
-          </button>
+          </IconButton>
         </div>
-      </header>
+      </Card>
 
       {showList && (
-        <nav className="steps-list" aria-label="Chapters and steps">
+        <Card as="aside" className="steps-list" aria-label="Chapters and steps">
           <div className="steps-list-head">
-            <b className="small">Chapters</b>
+            <b>Chapters</b>
             <button className="link" onClick={() => setDoneSteps(new Set())} disabled={!doneSteps.size}>
               Reset progress
             </button>
@@ -237,7 +275,7 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
                 <button className="chap-title" onClick={() => go(c.first)}>
                   <span className={doneHere === c.steps ? "chk full" : "chk"}>{doneHere === c.steps ? "✓" : ci + 1}</span>
                   {c.name}
-                  <span className="muted small">
+                  <span className="hint">
                     {doneHere}/{c.steps}
                   </span>
                 </button>
@@ -255,23 +293,23 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
               </div>
             );
           })}
-        </nav>
+        </Card>
       )}
 
-      <aside className={showList ? "steps-card" : "steps-card solo"}>
-        {resumed && <p className="resumed small">↺ Welcome back — resumed at step {step + 1}.</p>}
-        <p className="chapter-name small">
+      <Card as="aside" className={showList ? "steps-card" : "steps-card solo"}>
+        {resumed && <p className="resumed">↺ Welcome back — resumed at step {step + 1}.</p>}
+        <p className="chapter-name">
           Chapter {chapterNo + 1} · <b>{current.chapter}</b>
         </p>
         <div className="step-no">
           <span>Step</span>
           <b>{step + 1}</b>
-          <span className="muted">/ {N}</span>
-          {doneSteps.has(step) && <span className="done-badge">✓ done</span>}
+          <span className="hint">/ {N}</span>
+          {doneSteps.has(step) && <Badge tone="positive">✓ done</Badge>}
         </div>
         {current.subassemblies.map((s) => (
           <div key={s.partId} className="subasm">
-            <p className="small">
+            <p>
               <b>First build {s.count}×</b> {PARTS[s.partId]?.name}
             </p>
             <div className="subasm-row">
@@ -296,46 +334,68 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
                 <b className="qty">{r.qty}×</b>
                 <span className="cname">
                   {part.name}
-                  <span className="muted small">
+                  <span className="hint">
                     {colorOf(r.color).name} · #{part.id}
-                    {owns && (have > 0 ? <span className="ok"> · in library</span> : <span className="bad"> · not in library</span>)}
+                    {owns && (have > 0 ? <span className="have"> · in library</span> : <span className="lack"> · not in library</span>)}
                   </span>
                 </span>
               </li>
             );
           })}
         </ul>
-        <p className="where muted small">
+        <p className="where hint">
           {current.parts.map((p, n) => {
             const b = bricks[p.index];
             return (
-              <span key={p.index}>
-                <b>{n + 1}</b> {b.pose ? `on the ${current.chapter.toLowerCase()}` : <>x{b.x} · z{b.z} · {b.y === 0 ? "on the baseplate" : `${(b.y * 3.2).toFixed(1)} mm up`}</>}
+              // Why the engine chose the part is there on hover, not in the builder's way.
+              <span key={p.index} title={b.why ? `${PARTS[b.partId]?.name}: ${whyText(b.why)}` : undefined}>
+                <b>{n + 1}</b> {b.pose ? `on the ${current.chapter.toLowerCase()}` : b.place ? placeText(b) : <>x{b.x} · z{b.z} · {b.y === 0 ? "on the baseplate" : `${(b.y * 3.2).toFixed(1)} mm up`}</>}
               </span>
             );
           })}
         </p>
-        {current.tip && <p className="tip small">↻ {current.tip}</p>}
-        {current.warn && <p className="warn small">⚠ {current.warn}</p>}
-        <p className="muted small">
+        {current.tip && <p className="tip">↻ {current.tip}</p>}
+        {current.warn && <p className="warn">⚠ {current.warn}</p>}
+        <p className="hint">
           ~{mmss(current.seconds)} this step · {placedSoFar}/{bricks.length} pieces · ~{mmss(left)} to go
         </p>
-      </aside>
+      </Card>
 
-      <footer className="steps-nav">
-        <button onClick={() => go(step - 1)} disabled={step === 0}>
+      <Card as="div" className="steps-nav">
+        <Button variant="glass" size="sm" onClick={() => go(step - 1)} disabled={step === 0}>
           ← Back <kbd className="key">←</kbd>
-        </button>
-        <input type="range" min={0} max={N - 1} value={step} onChange={(e) => go(Number(e.target.value))} aria-label="Step" />
-        <button onClick={() => go(step + 1)} disabled={step === N - 1}>
+        </Button>
+        <Slider label="Step" min={0} max={N - 1} value={step} onValueChange={go} format={(v) => `${v + 1} / ${N}`} className="steps-scrub" />
+        <Button variant="glass" size="sm" onClick={() => go(step + 1)} disabled={step === N - 1}>
           Skip <kbd className="key">→</kbd>
-        </button>
-        <button className="primary" onClick={finishStep} disabled={doneSteps.size === N}>
+        </Button>
+        <Button variant="accent" size="sm" onClick={finishStep} disabled={doneSteps.size === N}>
           {doneSteps.size === N ? "Built 🎉" : step === N - 1 && doneSteps.has(step) ? "Built 🎉" : "✓ Done"} <kbd className="key">⏎</kbd>
-        </button>
-      </footer>
+        </Button>
+      </Card>
     </div>
   );
+}
+
+// Step choreography: the new parts appear held above the model (HOLD_HEIGHT studs)
+// with their outline where they go, then go in one by one.
+const HOLD_HEIGHT = 4;
+const ARRIVE = 0.55; // s: look at the step first
+const STAGGER = 0.35; // s between parts
+const LOWER = 0.75; // s to set a part down
+
+/** Shows its children until `until` seconds after mounting (a landing spot, gone once the part is in). */
+function Landing({ until, children }: { until: number; children: React.ReactNode }) {
+  const [on, setOn] = useState(true);
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setOn(false);
+      invalidate();
+    }, until * 1000);
+    return () => clearTimeout(t);
+  }, [until, invalidate]);
+  return on ? <>{children}</> : null;
 }
 
 /** Numbered tags and a drop line above each new part, so it's obvious where it goes. */
@@ -372,12 +432,25 @@ function Markers({ bricks, step }: { bricks: PlacedBrick[]; step: Step }) {
 }
 
 /** Glides the camera to look at each step's new parts from the side they face. */
-function StepCamera({ plan, step }: { plan: Plan; step: Step }) {
+function StepCamera({ plan, step, left, right }: { plan: Plan; step: Step; left: number; right: number }) {
   const get = useThree((s) => s.get);
+  const size = useThree((s) => s.size);
+  // Shift the picture's centre into the uncovered part of the window (a view
+  // offset moves the frustum, not the camera, so orbiting still turns about the model).
+  useEffect(() => {
+    const cam = get().camera as THREE.PerspectiveCamera;
+    cam.setViewOffset(size.width, size.height, -(left - right) / 2, 0, size.width, size.height);
+    cam.updateProjectionMatrix();
+    get().invalidate();
+    return () => {
+      cam.clearViewOffset();
+      cam.updateProjectionMatrix();
+    };
+  }, [get, size.width, size.height, left, right]);
   const goal = useRef<{ pos: THREE.Vector3; target: THREE.Vector3 } | null>(null);
   useEffect(() => {
     const target = new THREE.Vector3(step.center[0], step.center[1] * PLATE_H, step.center[2]);
-    const dist = Math.max(14, plan.radius * 2.7);
+    const dist = Math.max(20, plan.radius * 3.4); // far enough to see the step in the model, not just the part
     const elev = (32 * Math.PI) / 180;
     const pos = new THREE.Vector3(
       target.x + Math.cos(step.azimuth) * Math.cos(elev) * dist,

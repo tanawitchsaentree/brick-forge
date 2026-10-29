@@ -25,6 +25,12 @@ npm run setup:ldraw   # catalog + thumbnails (takes a while) + geometry pack
 
 Without the library the app still runs with a small built-in set of parts.
 
+The generated data (catalog, corpus, geometry pack, thumbnails, learned forms; about 300 MB) isn't in git either. With Cloudflare access, `npm run data:pull` fetches the exact version `scripts/data.lock.json` names from R2 instead of rebuilding it. After rebuilding data, `npm run data:push` uploads what changed and updates the lock.
+
+## CI / deploy
+
+`.github/workflows/ci.yml` type-checks and builds every push and pull request. A push to `main` then pulls the data and deploys to [brick-forge.pages.dev](https://brick-forge.pages.dev) (`npm run deploy`, which also leaves local-only models out). It needs two repository secrets, `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+
 ## Run
 
 ```sh
@@ -48,4 +54,14 @@ npm run build && npm run preview    # production build (much faster to load)
 - `src/engine/generate` — voxel generator (photos, 3D models, characters)
 - `src/scene`, `src/ui` — rendering and screens
 
-LEGO® is a trademark of the LEGO Group, which does not sponsor or endorse this project. Part geometry comes from the LDraw library (CC BY 4.0).
+## Credits
+
+Brick Forge is a fan project. LEGO® is a trademark of the LEGO Group, which does not sponsor, authorize or endorse this project.
+
+- **Parts:** geometry from the [LDraw Parts Library](https://library.ldraw.org) by the LDraw.org contributors, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). `public/ldraw-pack` and `public/shapes.json` are converted from it.
+- **Designs:** the corpus in `public/corpus` is LEGO sets modelled by LDraw.org members for the [LDraw Official Model Repository](https://library.ldraw.org/omr), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/). Each file keeps its `0 Author:` line, and `public/corpus/index.json` names the author of every design. `public/forms*.json` is learned from them. The site lists everyone on `/credits.html`.
+- **Not in the repo:** LEGO instruction booklets and any model that isn't openly licensed (a MOC bought for study) stay in `booklets/`, which is gitignored, and are never deployed (see `scripts/build-corpus.mjs`).
+
+## Licence
+
+All rights reserved (see `LICENSE`). Third-party material keeps its own licence, listed there and under Credits.

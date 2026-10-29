@@ -6,7 +6,7 @@ import type { PlacedBrick } from "../engine/grid";
 import { colorOf } from "../engine/colors";
 import { partMatrix } from "../engine/pose";
 import { bodyGeometry, edgeGeometry } from "./geometry";
-import { instantiate, loadTemplate } from "./ldraw";
+import { edgeMaterial, instantiate, loadTemplate } from "./ldraw";
 
 // Catalogue-style 3D thumbnails, rendered off-screen by one shared renderer
 // and cached as data URLs (per part and colour).
@@ -199,7 +199,7 @@ export function renderModelImage(bricks: PlacedBrick[], size = 360): string {
 export async function renderModelImageLDraw(
   bricks: PlacedBrick[],
   size = 360,
-  opts: { fresh?: Set<string>; azimuth?: number } = {},
+  opts: { fresh?: Set<string>; azimuth?: number; elevation?: number } = {},
 ): Promise<string> {
   const parts = [...new Set(bricks.map((b) => b.partId))].filter((id) => PARTS[id]);
   const templates = new Map(
@@ -227,7 +227,7 @@ export async function renderModelImageLDraw(
     // Everything through the part's world matrix (grid placement, segment pose, or exact).
     const holder = new THREE.Group();
     holder.applyMatrix4(new THREE.Matrix4().fromArray(partMatrix(b)));
-    holder.add(tpl ? instantiate(tpl, mat, lineMat) : new THREE.Mesh(bodyGeometry(part), mat));
+    holder.add(tpl ? instantiate(tpl, mat, faded ? lineMat : edgeMaterial(hex)) : new THREE.Mesh(bodyGeometry(part), mat));
     model.add(holder);
   }
   const wrapper = new THREE.Group().add(model);
@@ -235,7 +235,13 @@ export async function renderModelImageLDraw(
   wrapper.position.sub(sphere.center);
   const r = sphere.radius * 1.02 || 1;
   Object.assign(camera, { left: -r, right: r, top: r, bottom: -r });
-  const view = opts.azimuth === undefined ? FRONT_RIGHT : new THREE.Vector3(Math.cos(opts.azimuth), 0.62, Math.sin(opts.azimuth)).normalize();
+  const el = opts.elevation;
+  const view =
+    opts.azimuth === undefined
+      ? FRONT_RIGHT
+      : el === undefined
+        ? new THREE.Vector3(Math.cos(opts.azimuth), 0.62, Math.sin(opts.azimuth)).normalize()
+        : new THREE.Vector3(Math.cos(opts.azimuth) * Math.cos(el), Math.sin(el), Math.sin(opts.azimuth) * Math.cos(el));
   camera.position.copy(view).multiplyScalar(r * 4);
   camera.lookAt(0, 0, 0);
   // Depth range around the model: big models (a 37-stud dinosaur) would cross a fixed far plane.

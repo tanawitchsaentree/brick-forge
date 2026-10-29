@@ -1,7 +1,8 @@
 {
-  "name": "lego-builder",
+  "name": "brick-forge",
   "private": true,
   "version": "0.1.0",
+  "license": "UNLICENSED",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,11 +10,18 @@
     "preview": "vite preview",
     "catalog": "node scripts/build-catalog.mjs public/ldraw public",
     "thumbs": "node scripts/build-thumbs.mjs",
-    "setup:ldraw": "npm run catalog && npm run thumbs && npm run pack",
-    "pack": "node scripts/build-pack.mjs"
+    "setup:ldraw": "npm run catalog && npm run thumbs && npm run pack && npm run corpus && npm run shapes && npm run forms",
+    "pack": "node scripts/build-pack.mjs",
+    "shapes": "node scripts/build-shapes.mjs",
+    "corpus": "node scripts/build-corpus.mjs",
+    "forms": "node scripts/build-forms.mjs",
+    "data:pull": "node scripts/data-bundle.mjs pull",
+    "data:push": "node scripts/data-bundle.mjs push",
+    "deploy": "node scripts/deploy-pages.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "^9.8.2",
+    "pane-react": "file:vendor/pane-react-0.5.0.tgz",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "three": "^0.186.1"
@@ -25,6 +33,7 @@
     "@vitejs/plugin-react": "^6.1.2",
     "playwright": "^1.64.1",
     "typescript": "^7.0.2",
-    "vite": "^8.3.5"
+    "vite": "^8.3.5",
+    "wrangler": "^4.154.0"
   }
 }

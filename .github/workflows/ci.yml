@@ -1,0 +1,73 @@
+# Every push and pull request: type-check and build. Pushes to main then deploy
+# to Cloudflare Pages (brick-forge.pages.dev) with the data scripts/data.lock.json
+# names, fetched from R2.
+#
+# Repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   Pages: Edit and Workers R2 Storage: Read on the account
+#   CLOUDFLARE_ACCOUNT_ID  the account that owns the Pages project and the bucket
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Type-check, then bundle. The generated data isn't needed to bundle the code.
+      - run: npm run build
+
+  deploy:
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    # One deploy at a time; a newer push replaces a queued one.
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: https://brick-forge.pages.dev
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Restore the generated data
+        id: data
+        uses: actions/cache@v4
+        with:
+          path: |
+            public/catalog.json
+            public/ldraw-filemap.json
+            public/ldraw-gen
+            public/shapes.json
+            public/forms.json
+            public/forms
+            public/corpus
+            public/ldraw-pack
+            public/thumbs
+            .data.json
+          key: data-${{ hashFiles('scripts/data.lock.json') }}
+      - name: Fetch the generated data from R2
+        if: steps.data.outputs.cache-hit != 'true'
+        run: npm run data:pull
+      - name: Build and deploy
+        run: npm run deploy

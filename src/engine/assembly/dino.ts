@@ -1,3 +1,4 @@
+import type { Rot } from "../parts";
 import { Builder, plain, sizesOf, type Pool, type RectKind } from "./pool";
 import { IDENTITY, apply, chain, rotY, rotZ, translate, worldCenter, type Mat4 } from "../pose";
 import { dims, studsOf } from "../grid";
@@ -39,12 +40,68 @@ const CONE = "4589"; // Cone 1×1
 const RIDGE_2x2 = "3043"; // Slope 45 2×2 Double
 const RIDGE_1x2 = "3044b"; // Slope 45 2×1 Double
 const TOOTH_DOWN = "15070"; // Plate 1×1 with Tooth Perpendicular (hangs off the front)
-const TEETH_UP = "15209"; // Tile 1×2 with 2 Teeth Vertical
 const TOOTH_INLINE = "49668"; // Plate 1×1 with Tooth In-line (horn, spike, claw)
 const CLAWS = "27261"; // Plate 1×2 with 3 Rocky Claws
 const EYE = "lb-eye"; // brick with side stud + round tile eye
 
-const BLACK = 0, WHITE = 15, DBG = 72, DARK_PINK = 5;
+const BLACK = 0, WHITE = 15, DBG = 72, DARK_PINK = 5, DARK_RED = 320;
+
+// ------------------------------------------------------------- teeth (31058)
+// How LEGO's 31058 Mighty Dinosaurs T. rex does a mouth (reverse-engineered from
+// the set's photo and its Rebrickable inventory: 7× 15208 tri-tooth plates,
+// 52107 / 26604 bricks with side studs, a dark red 1×4 tile tongue): each jaw
+// edge is a rail of bricks with studs on their sides, and a 1×2 plate with
+// three teeth clicks onto each pair of side studs, standing on its edge, so
+// the teeth make one continuous row that points down from the upper jaw and
+// up from the lower one. (Single 1×1 teeth on every other stud read as a toy.)
+const TRI_TOOTH = "15208"; // Plate 1×2 with 3 Teeth In-line: teeth along +z, past its 1-stud depth
+const SIDE_STUDS = "52107"; // Brick 1×2 with Studs on (both long) Sides
+const COVER_TILE = "3069b"; // Tile 1×2 with Groove
+const SIDE_STUD = "87087"; // Brick 1×1 with Stud on 1 Side (+z at rot 0)
+const ROUND_1x1 = "6141"; // Plate 1×1 Round
+const TRANS_ORANGE = 57;
+const OPEN_ROUND = "85861"; // Plate 1×1 Round with Open Stud (a bar fits its stud)
+const CLAW = "87747"; // Bar 0.5L with Curved Blade 2L: rotZ(−90°) points it +x, curving down
+
+/**
+ * Construction choices the image comparison (scripts/dino-head-fit.mjs) tries
+ * against a reference photo; the defaults are the ones that scored best.
+ */
+export const DINO_TUNING = {
+  teeth: "rail" as "rail" | "single", // tri-tooth rails (31058) or 1×1 teeth on every other stud
+  coverTiles: true, // tiles over the tooth plates' studs
+  eye: "snot" as "snot" | "printed", // trans-orange round plate on a side stud, or the printed-eye brick
+  nostrils: true, // two studs facing forward on the snout
+  brow: true, // the skull behind the snout in the accent colour
+  profile: "slope" as "slope" | "step", // the head's top down to the snout: in steps, or one cliff
+  belly: "inverted" as "inverted" | "flat", // inverted slopes round the underside of bodies
+  claws: "curved" as "curved" | "plate", // a big curved claw per toe, or a 1×2 plate with 3 small claws
+  ends: "cheese" as "cheese" | "square", // cheese slopes round a head's crown and snout ends
+  cheeks: true, // side studs left showing on the cheeks
+  statue: true, // from size 4 up, one bonded statue on the grid instead of sections on joints
+  pairedJoints: true, // a double ball joint for a heavy head on a wide body
+};
+
+/** The tooth plate's turn: its studs face out of the jaw (±z), its teeth up or down. Column-major. */
+const toothTurn = (side: 1 | -1, up: boolean): Mat4 =>
+  up
+    ? side > 0 ? [-1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1] : [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1]
+    : side > 0 ? [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1] : [-1, 0, 0, 0, 0, 0, -1, 0, 0, -1, 0, 0, 0, 0, 0, 1];
+
+/**
+ * A rail section: a 1×2 side-stud brick at (x, y, z) on `b`'s grid and, on
+ * its outer side studs, a tri-tooth plate standing on its long edge.
+ */
+function toothRail(b: Builder, x: number, y: number, z: number, side: 1 | -1, up: boolean, color: number) {
+  if (!b.put(SIDE_STUDS, x, y, z, 0, color)) return false;
+  // Side studs are 0.7 up the brick (LDraw: 10 LDU under its top); the plate's
+  // top face (its origin) lies a plate's thickness out from the brick's side.
+  const cz = side > 0 ? z + 1 + PLATE_H : z - PLATE_H;
+  b.exact(TRI_TOOTH, [x + 1, y * PLATE_H + 0.7, cz], toothTurn(side, up), WHITE);
+  // A tile in the jaw's colour over the plate's studs: the side reads smooth, with the teeth below it.
+  if (DINO_TUNING.coverTiles) b.exact(COVER_TILE, [x + 1, y * PLATE_H + 0.7, cz + side * PLATE_H], toothTurn(side, up), color);
+  return true;
+}
 
 // ------------------------------------------------------------------ joints
 
@@ -133,6 +190,8 @@ interface Col {
   z1: number;
   y0: number;
   y1: number;
+  /** More height bands in the same column (a statue's jaw under its head), filled in the same bonded core. */
+  more?: { y0: number; y1: number }[];
 }
 
 /** A body's columns, from per-column half-width and bottom/top heights (centred on z = 0). */
@@ -164,9 +223,10 @@ interface Strategy {
 function fill(b: Builder, x0: number, cols: Col[], color: (x: number, y: number, z: number) => number, st: Strategy) {
   const inside = (x: number, y: number, z: number) => {
     const c = cols[x - x0];
-    return !!c && z >= c.z0 && z < c.z1 && y >= c.y0 && y < c.y1;
+    return !!c && z >= c.z0 && z < c.z1 && ((y >= c.y0 && y < c.y1) || !!c.more?.some((m) => y >= m.y0 && y < m.y1));
   };
-  const yMin = Math.min(...cols.map((c) => c.y0)), yMax = Math.max(...cols.map((c) => c.y1));
+  const yMin = Math.min(...cols.flatMap((c) => [c.y0, ...(c.more ?? []).map((m) => m.y0)]));
+  const yMax = Math.max(...cols.flatMap((c) => [c.y1, ...(c.more ?? []).map((m) => m.y1)]));
   const zMin = Math.min(...cols.map((c) => c.z0)), zMax = Math.max(...cols.map((c) => c.z1));
   const sized = (kind: RectKind, grainX: boolean) =>
     sizesOf(kind)
@@ -304,12 +364,14 @@ function core(b: Builder, x0: number, cols: Col[], color: (x: number, y: number,
  * features to stand on — a sail, back plates, armour — and narrow bodies get
  * 1-deep cheese slopes on their edges so the spine is two studs wide.
  */
-function roundTop(b: Builder, x0: number, cols: Col[], color: number, flat = false, spine?: number) {
+function roundTop(b: Builder, x0: number, cols: Col[], colorOf: number | ((x: number) => number), flat = false, spine?: number) {
   const same = (p: Col, q: Col) => p.z0 === q.z0 && p.z1 === q.z1 && p.y1 === q.y1;
   for (let i = 0; i < cols.length; ) {
     let n = 1;
-    while (i + n < cols.length && same(cols[i], cols[i + n])) n++;
+    const tone = (j: number) => (typeof colorOf === "number" ? colorOf : colorOf(x0 + j));
+    while (i + n < cols.length && same(cols[i], cols[i + n]) && tone(i + n) === tone(i)) n++;
     const c = cols[i], x = x0 + i, y = c.y1;
+    const color = typeof colorOf === "number" ? colorOf : colorOf(x);
     const w = c.z1 - c.z0;
     let lo = c.z0, hi = c.z1;
     const edge = spine !== undefined && w === 4 ? 1 : 2; // edge depth
@@ -330,6 +392,42 @@ function roundTop(b: Builder, x0: number, cols: Col[], color: number, flat = fal
     }
     i += n;
   }
+}
+
+/**
+ * Round the ends of a body along its length: a 1×1 cheese slope on each stud
+ * of the first and last columns' tops (between the side edges roundTop
+ * curves), facing out of the ends, so the body doesn't end in a square box
+ * (a head's crown and snout, seen from the side). Run before roundTop, which
+ * then fills only the rest.
+ */
+function roundEnds(b: Builder, x0: number, cols: Col[], color: (x: number) => number, ends: { back?: boolean; front?: boolean } = { back: true, front: true }) {
+  if (DINO_TUNING.ends !== "cheese") return;
+  const at = (i: number, rot: Rot) => {
+    const c = cols[i], w = c.z1 - c.z0;
+    const edge = w >= 3 ? 2 : 0; // roundTop's curved edges
+    for (let z = c.z0 + edge; z < c.z1 - edge; z++) b.put(CHEESE_1x1, x0 + i, c.y1, z, rot, color(x0 + i));
+  };
+  if (ends.front) at(cols.length - 1, 3); // slope toward +x
+  if (ends.back) at(0, 1); // toward −x
+}
+
+/**
+ * Round the underside of a body: inverted slopes along both side edges of the
+ * bottom course (the overhang outward), so a belly or a tail curves in toward
+ * its middle instead of ending in a flat, square bottom. Placed before the
+ * core fills in; cells already taken (a hip joint) are left as they are.
+ */
+const INV_45 = "3665a"; // Slope Brick 45 2×1 Inverted: overhang toward +z at rot 0
+function roundBottom(b: Builder, x0: number, cols: Col[], color: (x: number) => number) {
+  if (DINO_TUNING.belly !== "inverted") return;
+  cols.forEach((c, i) => {
+    const w = c.z1 - c.z0;
+    if (w < 4 || c.y1 - c.y0 < 5) return; // narrow or thin parts stay square
+    const x = x0 + i;
+    b.put(INV_45, x, c.y0, c.z0, 2, color(x));
+    b.put(INV_45, x, c.y0, c.z1 - 2, 0, color(x));
+  });
 }
 
 /**
@@ -397,8 +495,9 @@ export const PLANS: Record<Species, Plan> = {
     title: "T. rex",
     biped: true,
     torso: { L: 8, hw: 3, H: 9, pitch: 12 },
-    head: { L: 7, hw: 2, H: 6, snout: 3, bend: -18, jawOpen: 28, teeth: true },
-    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [-10, 4, 6] },
+    // A big head (31058 / 31151: about a third of the body) and the tail held up.
+    head: { L: 7, hw: 2.5, H: 8, snout: 3, bend: -14, jawOpen: 36, teeth: true },
+    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [2, 8, 8] },
     hind: { thigh: [4, 11], shin: [2, 11], foot: 4, claws: true },
     arms: { len: 5, reach: 40 },
     colors: { main: [288, 72, 70, 4], belly: [19, 28, 71], accent: [330, 28, 72] },
@@ -515,16 +614,19 @@ export interface DinoDesign {
 }
 
 /**
- * Build one dinosaur. `size` 0–2 scales lengths (×0.72, ×1, ×1.4), `detail`
+ * Build one dinosaur. `size` 0–7 scales lengths (×0.72 … ×5.4; from size 4 a statue), `detail`
  * 0–2 adds finishing (teeth, claws, features at 1; spikes, armour and back
  * stripes at 2; easy builds have one tail section fewer).
  */
 export function dinosaur(species: Species, pool: Pool, size: number, detail: number, r: () => number, learned?: Plan): DinoDesign {
   const plan = learned ?? PLANS[species];
-  const k = [0.72, 1, 1.4][size] * (0.94 + r() * 0.12);
+  // Sizes 3–4 are the Expert and Master scales (more sections' worth of bricks, same plan).
+  const k = [0.72, 1, 1.4, 1.9, 2.5, 3.3, 4.3, 5.4][Math.max(0, Math.min(7, size))] * (0.94 + r() * 0.12);
   // The species' signature colour more often than not, else one of the others.
   const pick = (xs: number[]) => (r() < 0.55 ? xs[0] : xs[1 + Math.floor(r() * (xs.length - 1))] ?? xs[0]);
   const pal: Palette = { main: pick(plan.colors.main), belly: pick(plan.colors.belly), accent: pick(plan.colors.accent) };
+  // Master scale: one statue on the grid (joints can't carry a model this big, see statue()).
+  if (size >= 4 && DINO_TUNING.statue) return statue(plan, pool, k, pal, detail);
   // Balance: build once, find the centre of mass of everything the legs carry,
   // and put the hips under it (a T. rex balances its head on its tail).
   const L = Math.max(plan.fore ? 8 : 4, Math.round(plan.torso.L * k));
@@ -544,6 +646,10 @@ export function dinosaur(species: Species, pool: Pool, size: number, detail: num
 
 function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, hipC: number): DinoDesign {
   const S = (v: number, min = 1) => Math.max(min, Math.round(v * k));
+  // Widths scale a little slower than lengths (k^0.9), so a big model is a
+  // bigger animal, not a longer one: before, widths were capped or fixed, and
+  // at ×2.5 the body came out a plank on stilts.
+  const W = (v: number, min = 1) => Math.max(min, Math.round(v * Math.pow(k, 0.9)));
   const rig = new Rig(pool);
   const has = (f: Feature) => plan.features.includes(f) && detail >= (f === "spikes" || f === "armor" || f === "stripe" ? 2 : 1);
   // Bodies that carry something on their back keep a studded spine.
@@ -553,7 +659,7 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
   // ---- torso: its pose comes from the hind legs (hip height from leg lengths).
   // Torso at least 4 wide (hip balls and the tail ball need their own columns),
   // and long enough on four legs for the front and back feet to stand apart.
-  const T = { L: S(plan.torso.L, plan.fore ? 8 : 4), hw: Math.max(2, Math.round(plan.torso.hw * Math.min(k, 1.4))), H: S(plan.torso.H, plan.arms ? 8 : 5) };
+  const T = { L: S(plan.torso.L, plan.fore ? 8 : 4), hw: W(plan.torso.hw, 2), H: S(plan.torso.H, plan.arms ? 8 : 5) };
   const shoulderC = T.L - 2; // fore legs / arms near the front (ball plate on columns L−3, L−2)
   const hipLocal = jointPlate("+z", T.hw - 1, 1, hipC).centre;
 
@@ -563,7 +669,8 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
   const ankleY = ANKLE_LAYER * PLATE_H + 0.2;
   // Legs at 94 % of full stretch: knee bent forward, but the joints carry the
   // body with a short lever (a deeper crouch overloads a 1×2 ball plate).
-  const STRETCH = 0.94;
+  // Straighter on a big model: the knee's lever (and torque) grows with the bend.
+  const STRETCH = k >= 1.7 ? 0.985 : 0.94;
   const hipY = ankleY + STRETCH * (hindL[0] + hindL[1]);
   let pitch = plan.torso.pitch * DEG;
   if (plan.fore) {
@@ -582,18 +689,38 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
     return { hw: i === 0 || i === T.L - 1 ? Math.max(1, T.hw - 1) : T.hw, y0: 0, y1: h };
   });
   let tailBall!: Ball, headBall!: Ball, hipR!: Ball, hipL!: Ball, foreR: Ball | undefined, foreL: Ball | undefined;
+  let headBall2: Ball | undefined, tailBall2: Ball | undefined;
+  // The tail's root too (its section is turned half round, so its sockets mirror across z).
+  const pairedTail = T.hw >= 3 && W(plan.tail.hw) >= 3 && DINO_TUNING.pairedJoints;
+  // A heavy head on a wide body gets a double joint (needs 6 studs across on both).
+  const pairedHead = !plan.neck && T.hw >= 3 && W(plan.head.hw, plan.head.hw) >= 3 && DINO_TUNING.pairedJoints;
   torso.module("Body", () => {
     hipR = rig.ball(torso, "+z", T.hw - 1, 1, hipC);
     hipL = rig.ball(torso, "-z", -T.hw, 1, hipC);
     // Tail joint set into the body: sections meet face to face, no gap.
     // At least two layers of the end column above it, to bridge over the joint.
     const tl = jointLayer(tCols[0].y1, 0);
-    tailBall = rig.ball(torso, "-x", 1, tl, 0);
-    torso.block(0, tl, -1, 1, 1, 2);
+    if (pairedTail) {
+      tailBall = rig.ball(torso, "-x", 1, tl, -2);
+      tailBall2 = rig.ball(torso, "-x", 1, tl, 2);
+      torso.block(0, tl, -3, 1, 1, 2);
+      torso.block(0, tl, 1, 1, 1, 2);
+    } else {
+      tailBall = rig.ball(torso, "-x", 1, tl, 0);
+      torso.block(0, tl, -1, 1, 1, 2);
+    }
     // Neck (or head) joint also set into the chest, under the plates above it.
     const hl = jointLayer(tCols[T.L - 1].y1, 1);
-    headBall = rig.ball(torso, "+x", T.L - 2, hl, 0);
-    torso.block(T.L - 1, hl, -1, 1, 1, 2);
+    if (pairedHead) {
+      // Two ball plates side by side on the rotation axis (z): they turn as one and share the head's torque.
+      headBall = rig.ball(torso, "+x", T.L - 2, hl, -2);
+      headBall2 = rig.ball(torso, "+x", T.L - 2, hl, 2);
+      torso.block(T.L - 1, hl, -3, 1, 1, 2);
+      torso.block(T.L - 1, hl, 1, 1, 1, 2);
+    } else {
+      headBall = rig.ball(torso, "+x", T.L - 2, hl, 0);
+      torso.block(T.L - 1, hl, -1, 1, 1, 2);
+    }
     if (plan.fore) {
       foreR = rig.ball(torso, "+z", T.hw - 1, 1, shoulderC);
       foreL = rig.ball(torso, "-z", -T.hw, 1, shoulderC);
@@ -607,6 +734,7 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
         foreL = rig.ball(torso, "-z", -T.hw, al, ac);
       }
     }
+    roundBottom(torso, 0, tCols, () => pal.belly);
     core(torso, 0, tCols, colorBy(Math.round(T.H * 0.34)));
     roundTop(torso, 0, tCols, pal.main, false, torsoSpine);
   });
@@ -618,14 +746,16 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
   for (let s = 0; s < tn; s++) {
     const f = Math.pow(plan.tail.taper, s);
     const L = S(plan.tail.L * (s === tn - 1 ? 1.1 : 1), 3);
-    const hw0 = Math.max(1, Math.round(plan.tail.hw * f)), hw1 = Math.max(1, Math.round(plan.tail.hw * f * plan.tail.taper));
+    const hw0 = W(plan.tail.hw * f), hw1 = W(plan.tail.hw * f * plan.tail.taper);
     const H0 = Math.max(3, Math.round(S(plan.tail.H) * f)), H1 = Math.max(2, Math.round(S(plan.tail.H) * f * plan.tail.taper));
     const last = s === tn - 1;
     // The first bend is from the horizontal (the torso's own tilt taken out), the rest relative.
     const bend = (plan.tail.bend[s] ?? 0) * DEG + (s === 0 ? pitch : 0);
     const rot = chain(prevRot, rotZ(bend));
     const sockLayer = jointLayer(H0, 0, true);
-    const seg = rig.attach(prevBall, rot, "Tail", "-x", 0, sockLayer, 0);
+    const twin = s === 0 ? tailBall2 : undefined;
+    const seg = rig.attach(prevBall, rot, "Tail", "-x", 0, sockLayer, twin ? 2 : 0);
+    if (twin) seg.module("Tail", () => rig.socket(seg, twin, "-x", 0, sockLayer, -2));
     const cols = columns(L, (_i, t) => ({
       hw: last && t > 0.7 ? Math.max(1, hw1 - 1) || 1 : Math.max(1, Math.round(lerp(hw0, hw1, t))),
       y0: Math.round(lerp(0, last ? 1 : 0, t)),
@@ -637,12 +767,15 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
         prevBall = rig.ball(seg, "+x", L - 2, tl, 0);
         seg.block(L - 1, tl, -1, 1, 1, 2);
       }
+      roundBottom(seg, 0, cols, () => pal.belly);
       core(seg, 0, cols, colorBy(Math.round(H0 * 0.34)));
       // Thagomizer: spikes out and back, on the top plate (before the tiles go on).
       if (last && has("spikes"))
         for (const [x, z] of [[L - 2, -1], [L - 2, 0], [L - 4, -1], [L - 4, 0]])
           if (x >= 0) seg.exact(TOOTH_INLINE, [x + 0.5, (cols[x].y1 + 2) * PLATE_H, z + 0.5], rotY(z < 0 ? (3 * Math.PI) / 4 : Math.PI / 4), WHITE, { cell: [x, cols[x].y1 + 1, z] });
-      roundTop(seg, 0, cols, pal.main, cols[0].z1 - cols[0].z0 < 3);
+      // With spikes on top, the middle stays studded for them (on a 4-wide tail the
+      // curved edges would otherwise meet in the middle and leave them nothing to stand on).
+      roundTop(seg, 0, cols, pal.main, cols[0].z1 - cols[0].z0 < 3, last && has("spikes") ? pal.main : undefined);
     });
     prevRot = rot;
     if (last && has("club")) {
@@ -661,7 +794,7 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
   if (plan.neck)
     for (let s = 0; s < plan.neck.n; s++) {
       const rot = chain(headRot, rotZ((s === 0 ? plan.neck.bend : plan.neck.bend * 0.25) * DEG));
-      const L = S(plan.neck.L, 2), hw = plan.neck.hw, H = S(plan.neck.H, 3);
+      const L = S(plan.neck.L, 2), hw = W(plan.neck.hw), H = S(plan.neck.H, 3);
       const seg = rig.attach(attachTo, rot, "Neck", "-x", 0, 1, 0);
       const cols = columns(L, () => ({ hw, y0: 0, y1: H }));
       seg.module("Neck", () => {
@@ -672,55 +805,106 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
       headRot = rot;
     }
   // Heads are at least 4 plates over the jaw line: a row of teeth, a plate, the 3-plate eye.
-  const hL = S(plan.head.L, 4);
+  // On a big model the head grows a little slower than the body (k^0.8): still a
+  // big head, but light enough for its joints (mass grows with the cube, torque with k⁴; 0.8 keeps a T. rex's double joint within its hold).
+  const SH = (v: number, min = 1) => Math.max(min, Math.round(v * (k >= 1.7 ? Math.pow(k, 0.8) : k)));
+  const hL = SH(plan.head.L, 4);
   const eyeAt = Math.max(1, Math.round(hL * 0.3));
   // The snout stays in front of the eye column (the eye needs the skull's height).
-  const Hd = { L: hL, hw: plan.head.hw, H: Math.max(4, S(plan.head.H, 3)), snout: Math.max(1, Math.min(Math.round(plan.head.snout * k), hL - eyeAt - 1)) };
+  const Hd = { L: hL, hw: W(plan.head.hw, plan.head.hw), H: Math.max(4, SH(plan.head.H, 3)), snout: Math.max(1, Math.min(Math.round(plan.head.snout * k), hL - eyeAt - 1)) };
   const jawGap = plan.head.jawOpen > 0 ? 3 : 0; // upper head starts this high, over the jaw
   const hRot = chain(headRot, rotZ(plan.head.bend * DEG));
-  const head = rig.attach(attachTo, hRot, "Head", "-x", 0, jawGap + 1, 0);
+  const head = rig.attach(attachTo, hRot, "Head", "-x", 0, jawGap + 1, headBall2 ? -2 : 0);
+  if (headBall2) head.module("Head", () => rig.socket(head, headBall2!, "-x", 0, jawGap + 1, 2));
+  // Side profile: the crown at full height, then down to the snout in steps of a
+  // plate or two (each step's edge rounded by the curved slopes on top), not one cliff.
+  const snoutH = Math.max(2, Hd.H - 3);
   const hCols = columns(Hd.L, (i) => {
-    const front = i >= Hd.L - Hd.snout;
-    return { hw: Hd.hw, y0: i === 0 || !jawGap ? 0 : jawGap, y1: front ? jawGap + Math.max(2, Hd.H - 3) : jawGap + Hd.H };
+    const back = Hd.L - Hd.snout; // first snout column
+    const t = i < back ? 0 : Hd.snout > 1 ? (i - back + 1) / Hd.snout : 1;
+    const h = DINO_TUNING.profile === "slope" ? Math.round(Hd.H - (Hd.H - snoutH) * t) : i >= back ? snoutH : Hd.H;
+    return { hw: Hd.hw, y0: i === 0 || !jawGap ? 0 : jawGap, y1: jawGap + h };
   });
   head.module("Head", () => {
     // Eyes at the top of the head (they fill a narrow head's width, so the
     // core under them and the plates over them hold the head together).
     const eyeX = eyeAt;
     const eyeY = jawGap + Hd.H - 3;
-    {
+    if (DINO_TUNING.eye === "snot") {
+      // 31058's eye: a trans-orange round plate on the side stud of a brick, under a dark brow.
+      for (const side of [1, -1] as const) {
+        const z = side > 0 ? Hd.hw - 1 : -Hd.hw;
+        if (!head.put(SIDE_STUD, eyeX, eyeY, z, side > 0 ? 0 : 2, pal.accent)) continue;
+        const at: V3 = [eyeX + 0.5, eyeY * PLATE_H + 0.7, side > 0 ? Hd.hw + PLATE_H : -Hd.hw - PLATE_H];
+        head.exact(ROUND_1x1, at, side > 0 ? [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1] : [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1], TRANS_ORANGE);
+      }
+    } else {
       head.put(EYE, eyeX, eyeY, Hd.hw - 1, 0, pal.main);
       head.put(EYE, eyeX, eyeY, -Hd.hw, 2, pal.main);
     }
-    if (jawGap && plan.head.teeth && detail >= 1)
+    // Cheeks: studs facing out along the side, behind and under the eye (31151's studded face).
+    if (DINO_TUNING.cheeks)
+      for (const side of [1, -1] as const)
+        for (let x = 1; x < eyeX; x += 2) {
+          const y = jawGap + 2;
+          if (y + 3 <= hCols[x].y1 && !(x === eyeX)) head.put(SIDE_STUD, x, y, side > 0 ? Hd.hw - 1 : -Hd.hw, side > 0 ? 0 : 2, pal.main);
+        }
+    // Nostrils: two studs facing forward on the snout's front face (side-stud bricks turned to +x).
+    // (6 studs across at least: on a 4-wide snout the two bricks cut its tip column off.)
+    if (DINO_TUNING.nostrils && Hd.hw >= 3 && jawGap) { // (a beaked head without a jaw keeps its plain front)
+      const tip = Hd.L - 1, ny = hCols[tip].y1 - 3;
+      if (ny >= jawGap) for (const z of [-1, 0]) head.put(SIDE_STUD, tip, ny, z, 3, pal.main);
+    }
+    // Rails need a head at least 4 studs wide (a 2-wide head is all rail and falls apart); narrower ones keep single teeth.
+    const rails = DINO_TUNING.teeth === "rail" && Hd.hw >= 2;
+    if (jawGap && plan.head.teeth && detail >= 1 && !rails)
       for (let x = 2; x < Hd.L; x++)
         for (const [z, dir] of [[Hd.hw - 1, "+z"], [-Hd.hw, "-z"]] as const) {
-          // Every other stud, both at the tip; none under an eye or just in front
-          // of it, where the snout's plates bond to the skull.
+          // Every other stud, both at the tip; none under an eye or just in front of it.
           if ((x % 2 && x < Hd.L - 1) || x === eyeX || x === eyeX + 1) continue;
           head.exact(TOOTH_DOWN, [x + 0.5, (jawGap + 1) * PLATE_H, z + 0.5], TURN[dir], WHITE, { cell: [x, jawGap, z] });
         }
+    if (jawGap && plan.head.teeth && detail >= 1 && rails)
+      // Upper teeth: rails along the bottom course of both sides, wherever the
+      // head is a whole brick deep there and no eye sits in the way.
+      for (let x = 1; x + 2 <= Hd.L; x += 2) {
+        const deep = (i: number) => hCols[i].y1 - jawGap >= 2;
+        const eye = (i: number) => i === eyeX && eyeY < jawGap + 3;
+        if (!deep(x) || !deep(x + 1) || eye(x) || eye(x + 1)) continue;
+        // A plate lower than the head's bottom course, so the teeth hang clear of the jaw line.
+        toothRail(head, x, jawGap - 1, Hd.hw - 1, 1, false, pal.main);
+        toothRail(head, x, jawGap - 1, -Hd.hw, -1, false, pal.main);
+      }
     if (jawGap) {
       const jaw = rig.ball(head, "+x", 0, 0, 0);
       const jRot = chain(hRot, rotZ(-plan.head.jawOpen * DEG));
       const JL = Hd.L - 2;
       const j = rig.attach(jaw, jRot, "Jaw", "-x", 0, 0, 0);
       j.module("Jaw", () => {
-        const jc = columns(JL, () => ({ hw: Hd.hw, y0: 0, y1: 2 }));
-        if (plan.head.teeth && detail >= 1 && Hd.hw >= 2)
-          for (let x = 1; x + 1 < JL; x += 2) {
-            j.put(TEETH_UP, x, 2, Hd.hw - 1, 0, WHITE);
-            j.put(TEETH_UP, x, 2, -Hd.hw, 0, WHITE);
+        // A brick deep with teeth (the rails need a whole course), two plates without.
+        const toothed = plan.head.teeth && detail >= 1 && rails;
+        // Deeper with the head (a fixed 3 plates turns into a stick on a big model).
+        const JH = Math.max(toothed ? 3 : 2, Math.round(Hd.H * 0.45));
+        const jc = columns(JL, () => ({ hw: Hd.hw, y0: 0, y1: JH }));
+        if (toothed)
+          for (let x = 1; x + 2 <= JL; x += 2) {
+            toothRail(j, x, 0, Hd.hw - 1, 1, true, pal.belly);
+            toothRail(j, x, 0, -Hd.hw, -1, true, pal.belly);
           }
         core(j, 0, jc, (_x, y) => (y >= 1 ? pal.belly : pal.main));
-        if (Hd.hw >= 2) j.rect("plate", 1, -1, Math.min(2, JL - 1), 2, 2, DARK_PINK); // tongue
-        j.rect("tile", 0, -Hd.hw, JL, Hd.hw * 2, 2, pal.belly);
+        roundEnds(j, 0, jc, () => pal.belly, { front: true }); // a rounded chin, not a cut-off slab
+        // The tongue: dark red tiles down the middle, the jaw's edges tiled in its own colour.
+        if (Hd.hw >= 2) j.rect("tile", 1, -1, JL - 1, 2, JH, toothed ? DARK_RED : DARK_PINK);
+        j.rect("tile", 0, -Hd.hw, JL, Hd.hw * 2, JH, pal.belly);
       });
       // Nothing of the head under the jaw line in front of the joint.
       head.block(1, 0, -Hd.hw, Hd.L - 1, jawGap, Hd.hw * 2);
     }
     core(head, 0, hCols, (x, y) => (y < jawGap + 1 && x > 0 ? pal.belly : pal.main));
-    roundTop(head, 0, hCols, pal.main, Hd.hw * 2 < 3, headSpine);
+    // The skull behind the snout in the darker accent (31058's dark green brow and crown).
+    const crown = (x: number) => (DINO_TUNING.brow && headSpine === undefined && x < Hd.L - Hd.snout ? pal.accent : pal.main);
+    if (headSpine === undefined) roundEnds(head, 0, hCols, crown);
+    roundTop(head, 0, hCols, crown, Hd.hw * 2 < 3, headSpine);
     const top = hCols[0].y1 + 2, snoutTop = hCols[Hd.L - 1].y1 + 2;
     const back = Hd.L - Hd.snout; // columns behind the snout
     if (has("crests"))
@@ -834,20 +1018,23 @@ function buildLeg(
   ankleLayer: number,
 ) {
   // Thickness grows with size more slowly than length (√k), like real limbs carrying more.
-  const thick = (v: number) => Math.max(2, Math.round(v * Math.sqrt(S(10, 1) / 10)));
+  const thick = (v: number) => Math.max(2, Math.round(v * Math.pow(S(10, 1) / 10, 0.85)));
   const ta = thick(spec.thigh[0]), sa = thick(spec.shin[0]);
   const tLen = S(spec.thigh[1], 4), sLen = S(spec.shin[1], 4);
   const l1 = tLen * PLATE_H, l2 = sLen * PLATE_H;
   const out: Dir = side > 0 ? "+z" : "-z", inn: Dir = side > 0 ? "-z" : "+z";
   const tc = Math.max(1, Math.round(ta / 2)), sc = Math.max(1, Math.round(sa / 2));
   // Thigh: inner column z = 0 (right) / −1 (left), 2 wide; shin inboard of it, 2 wide.
-  const tz = side > 0 ? 0 : -1, tW = 2;
+  // Widths across (z) grow with size too. Joints stay on the inner columns
+  // (thigh) and the column next to the knee (shin), so the joint layout holds.
+  const wide = (v: number) => Math.min(4, Math.max(2, Math.round(v * Math.pow(S(10, 1) / 10, 0.9))));
+  const tz = side > 0 ? 0 : -1, tW = wide(2);
   const tZ0 = side > 0 ? 0 : -tW;
-  const sW = 2, sz = side > 0 ? sW - 1 : -sW, sZ0 = side > 0 ? 0 : -sW;
+  const sW = wide(1.6), sz = side > 0 ? sW - 1 : -sW, sZ0 = side > 0 ? 0 : -sW;
 
   // Foot on the baseplate: its socket under the hip, slightly behind.
   const footZ = side > 0 ? hw + 1 : -hw - 2; // foot's inner column
-  const fW = 2;
+  const fW = wide(2.2);
   const xa = Math.round(hip.world[0] - 0.4);
   const A = Rig.socketCentre(inn, footZ, ankleLayer, xa);
   // IK in the x–y plane.
@@ -869,6 +1056,8 @@ function buildLeg(
     // Drumstick: the columns away from the joints start higher, so the thigh narrows to the knee.
     const cols: Col[] = Array.from({ length: ta }, (_, i) => ({ z0: tZ0, z1: tZ0 + tW, y0: i === tc - 1 || i === tc ? 0 : Math.round(tLen * 0.4), y1: tLen + 3 }));
     core(thigh, 0, cols, () => pal.main);
+    // The thigh's top shows beside the hip: tiled, not left studded.
+    thigh.rect("tile", 0, tZ0, ta, tW, tLen + 3, pal.main);
   });
   // Shin: socket at the top on its outer column, ankle ball at the bottom, outer column.
   const shin = rig.attach(kneeBall, rotZ(phi2), name, out, sz, sLen + 1, sc);
@@ -877,6 +1066,7 @@ function buildLeg(
     ankle = rig.ball(shin, out, sz, 1, sc);
     const cols: Col[] = Array.from({ length: sa }, () => ({ z0: sZ0, z1: sZ0 + sW, y0: 0, y1: sLen + 3 }));
     core(shin, 0, cols, () => pal.main);
+    shin.rect("tile", 0, sZ0, sa, sW, sLen + 3, pal.main); // the knee's top, tiled
   });
   // Foot: a plate, a heel post up to the ankle socket, claws at the toes.
   const f = rig.root;
@@ -887,9 +1077,353 @@ function buildLeg(
     f.rect("brick", xa - 1, fz0, 2, fW, 1, pal.main);
     f.rect("plate", xa - 1, fz0, 2, fW, 0, pal.main);
     f.rect("plate", xa - 1, fz0, fL + 1, fW, 0, pal.main);
-    if (spec.claws && detail >= 1) {
-      f.exact(CLAWS, [xa + fL - 0.5, 2 * PLATE_H, fz0 + 1], TURN["+x"], BLACK, { cell: [xa + fL - 1, 1, fz0], fp: { w: 1, d: 2, h: 1, studs: true } });
+    if (spec.claws && detail >= 1 && DINO_TUNING.claws === "curved") {
+      // 31058 / 31151 toes: a big curved claw per toe, its bar in the open stud
+      // of a round plate on the front face of a side-stud brick (up to three toes).
+      const xT = xa + fL - 1;
+      const toes = Math.min(3, fW);
+      for (let i = 0; i < toes; i++) {
+        const z = fz0 + Math.round((i * (fW - 1)) / Math.max(1, toes - 1));
+        if (!f.put(SIDE_STUD, xT, 1, z, 3, pal.main)) continue;
+        f.exact(OPEN_ROUND, [xT + 1 + PLATE_H, PLATE_H + 0.7, z + 0.5], rotZ(-Math.PI / 2), BLACK);
+        f.exact(CLAW, [xT + 1 + PLATE_H, PLATE_H + 0.7, z + 0.5], rotZ(-Math.PI / 2), BLACK);
+      }
+      if (fL > 2) f.rect("tile", xa + 1, fz0, fL - 2, fW, 1, pal.main);
+    } else if (spec.claws && detail >= 1) {
+      // A 1×2 claw plate per two columns of toes (one more on a wide foot).
+      for (let z = fz0; z + 2 <= fz0 + fW; z += 2)
+        f.exact(CLAWS, [xa + fL - 0.5, 2 * PLATE_H, z + 1], TURN["+x"], BLACK, { cell: [xa + fL - 1, 1, z], fp: { w: 1, d: 2, h: 1, studs: true } });
     } else f.rect("tile", xa + 1, fz0, fL - 1, fW, 1, DBG);
   });
 }
 
+
+// ------------------------------------------------------------------- statues
+//
+// Large dinosaurs (Master scale: from ×2.5 up, about 1,000 to 5,000 pieces)
+// as one statue on the baseplate's grid, the way big brick-built sculptures
+// are made. Posable sections can't scale: a friction ball joint holds the same
+// torque at any size while the load grows with the fourth power of the scale
+// (mass k³ × lever k), so at ×2.5 the head's joint was 6× over and at ×4.3 it
+// would be 60× over. Here nothing hinges:
+//
+//   • the tail, torso, neck and head are one run of stud columns along x
+//     (tail tip at x = 0, snout last), each with its own height band, filled
+//     by one bonded core so the running bond ties every section to the next;
+//   • curves are steps: a section bent by θ moves its band 2.5·tan θ plates per
+//     stud (a stud is 2.5 plates wide), the tail rising, the head tilting down;
+//   • the jaw opens the same way, its columns dropping in pairs (pairs so the
+//     1×2 tooth rails sit level);
+//   • legs are bonded columns under the hips, overlapping the body's bottom
+//     edge so its bricks stand on their studs, on clawed feet on the baseplate.
+// Everything stands on studs, so the stability check sees clutch, not joints.
+
+interface Band extends Col {
+  belly: number; // layers below this are the belly colour
+}
+
+function statue(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number): DinoDesign {
+  const S = (v: number, min = 1) => Math.max(min, Math.round(v * k));
+  const W = (v: number, min = 1) => Math.max(min, Math.round(v * Math.pow(k, 0.9)));
+  const has = (f: Feature) => plan.features.includes(f) && detail >= (f === "spikes" || f === "armor" || f === "stripe" ? 2 : 1);
+  const b = new Builder(pool, undefined, "t");
+  const PER_STUD = 1 / PLATE_H; // plates per stud of run
+  const slope = (deg: number) => Math.tan(deg * DEG) * PER_STUD;
+
+  // ---- legs first: they set the hip height.
+  const hind = plan.hind;
+  const tLen = S(hind.thigh[1], 4), sLen = S(hind.shin[1], 4);
+  const FOOT = 2; // foot plate + toe course height
+  const hipY = FOOT + Math.round(0.9 * (tLen + sLen));
+
+  // ---- the run of columns.
+  const T = { L: S(plan.torso.L, plan.fore ? 8 : 4), hw: W(plan.torso.hw, 2), H: S(plan.torso.H, 5) };
+  const tn = Math.max(2, plan.tail.n);
+  const tails = Array.from({ length: tn }, (_, s) => {
+    const f = Math.pow(plan.tail.taper, s);
+    return {
+      L: S(plan.tail.L * (s === tn - 1 ? 1.1 : 1), 3),
+      hw0: W(plan.tail.hw * f), hw1: W(plan.tail.hw * f * plan.tail.taper),
+      H0: Math.max(3, Math.round(S(plan.tail.H) * f)), H1: Math.max(2, Math.round(S(plan.tail.H) * f * plan.tail.taper)),
+      bend: plan.tail.bend[s] ?? 0,
+    };
+  });
+  const tailLen = tails.reduce((a, t) => a + t.L, 0);
+  const torsoY0 = hipY - Math.round(T.H * 0.3); // the hips in the lower third of the body
+  const bands: Band[] = [];
+  // Tail, built from the torso outward, then reversed (tip first on the run).
+  {
+    let yc = torsoY0 + T.H * 0.62, ang = 0;
+    const rev: Band[] = [];
+    tails.forEach((t, s) => {
+      ang += t.bend;
+      for (let i = 0; i < t.L; i++) {
+        const u = t.L > 1 ? i / (t.L - 1) : 0;
+        const last = s === tn - 1;
+        const hw = Math.max(1, Math.round(lerp(t.hw0, last && u > 0.7 ? Math.max(1, t.hw1 - 1) : t.hw1, u)));
+        const H = Math.max(2, Math.round(lerp(t.H0, last ? Math.max(2, t.H1 - 1) : t.H1, u)));
+        yc += slope(ang);
+        const y0 = Math.round(yc - H / 2);
+        rev.push({ z0: -hw, z1: hw, y0, y1: y0 + H, belly: y0 + Math.round(H * 0.34) });
+      }
+    });
+    bands.push(...rev.reverse());
+  }
+  const xTorso = tailLen;
+  for (let i = 0; i < T.L; i++) {
+    const t = T.L > 1 ? i / (T.L - 1) : 0;
+    const h = Math.round(T.H * (0.72 + 0.28 * Math.sin(Math.PI * Math.min(1, t * 1.15 + 0.1))));
+    const hw = i === 0 || i === T.L - 1 ? Math.max(1, T.hw - 1) : T.hw;
+    bands.push({ z0: -hw, z1: hw, y0: torsoY0, y1: torsoY0 + h, belly: torsoY0 + Math.round(T.H * 0.34) });
+  }
+  // Neck: rising (or falling) by its bend.
+  let front = bands[bands.length - 1];
+  let neckTop = front.y1;
+  if (plan.neck) {
+    const L = S(plan.neck.L, 2) * plan.neck.n, hw = W(plan.neck.hw), H = S(plan.neck.H, 3);
+    let yc = front.y1 - H / 2;
+    for (let i = 0; i < L; i++) {
+      // Steeper than the posed neck: up through the bricks' compression, not out as a cantilever.
+      // A long sauropod neck goes steeper than the posed one (up through the bricks'
+      // compression, not out as a cantilever); a short neck keeps its angle.
+      const steep = plan.neck.n >= 2 ? Math.min(70, plan.neck.bend * 2) : plan.neck.bend;
+      yc += slope(steep * (i < L / plan.neck.n ? 1 : 0.8));
+      const y0 = Math.round(yc - H / 2);
+      bands.push({ z0: -hw, z1: hw, y0, y1: y0 + H, belly: y0 + 2 });
+    }
+    front = bands[bands.length - 1];
+    neckTop = front.y1;
+  }
+  // Head: the jaw line a couple of plates under the top of what it joins, tilting by its bend.
+  const hL = S(plan.head.L, 4), hhw = W(plan.head.hw, plan.head.hw), hH = Math.max(4, S(plan.head.H, 3));
+  const snout = Math.max(1, Math.min(Math.round(plan.head.snout * k), hL - 2));
+  const toothed = plan.head.teeth && detail >= 1 && hhw >= 2 && DINO_TUNING.teeth === "rail";
+  const open = plan.head.jawOpen > 0;
+  // The jaw's slope: the head's tilt plus its opening, in plates per stud of run.
+  // Consecutive columns must share at least 2 plates to bond, so a steep jaw is
+  // made deeper; it drops in pairs of columns (level pairs for the tooth rails)
+  // when a pair's drop still leaves that overlap.
+  // (A statue's jaw is a solid wedge of columns: at the posed angle it reaches
+  // the ground, so it opens about half as far, plus half the head's tilt.)
+  const jawStep = Math.max(0, slope(plan.head.jawOpen * 0.55 - plan.head.bend * 0.5));
+  const JH = Math.max(toothed ? 3 : 2, Math.round(hH * 0.45), Math.ceil(jawStep) + 2);
+  const paired = 2 * jawStep <= JH - 2;
+  const jawLine0 = neckTop - Math.round(hH * 0.55);
+  const xHead = bands.length;
+  const headBands: Band[] = [];
+  const jawBands: Col[] = [];
+  const snoutH = Math.max(2, hH - 3);
+  for (let i = 0; i < hL; i++) {
+    const tilt = Math.round(slope(plan.head.bend) * i);
+    const jl = jawLine0 + tilt + (open ? JH : 0); // upper head sits over the jaw when it's open
+    const back = hL - snout;
+    const t = i < back ? 0 : (i - back + 1) / snout;
+    const h = Math.round(hH - (hH - snoutH) * t);
+    headBands.push({ z0: -hhw, z1: hhw, y0: jl, y1: jl + h, belly: jl + 1 });
+    if (open && i < hL - 1) {
+      // The jaw drops forward from the hinge at the back.
+      const drop = Math.round(jawStep * (paired ? Math.floor(i / 2) * 2 : i));
+      // A plate under the head's bottom, so the jaw hangs from its hinge column, not from the tooth rails.
+      const top = jawLine0 + JH - drop - (i > 0 ? 1 : 0);
+      jawBands.push({ z0: -hhw, z1: hhw, y0: top - JH, y1: top });
+    }
+  }
+  // The hinge: the head's back column reaches down over the jaw's, so they're one piece.
+  if (open) headBands[0] = { ...headBands[0], y0: jawBands[0].y0 };
+  bands.push(...headBands);
+
+  // Where the legs stand under the body (set here: the body is built flat above them).
+  const hipX = xTorso + Math.max(2, Math.round(T.L * 0.3));
+  const shX = xTorso + T.L - Math.max(2, Math.round(T.L * 0.2));
+  // A statue's legs carry everything: thighs as deep as a third of the torso,
+  // shins two-thirds of that, both wider than the posed legs' joints allowed.
+  const ta = Math.max(4, Math.round(Math.max(hind.thigh[0] * Math.pow(k, 0.85), T.L * 0.34)));
+  const color = (x: number, y: number) => {
+    const c = bands[x];
+    return c && y < c.belly ? pal.belly : pal.main;
+  };
+
+  b.module("Body", () => {
+    // ---- head details first (they take their cells before the core).
+    const hx = (i: number) => xHead + i;
+    const eyeAt = Math.max(1, Math.round(hL * 0.3));
+    const eyeY = headBands[eyeAt].y1 - 3;
+    for (const side of [1, -1] as const) {
+      const z = side > 0 ? hhw - 1 : -hhw;
+      if (!b.put(SIDE_STUD, hx(eyeAt), eyeY, z, side > 0 ? 0 : 2, pal.accent)) continue;
+      b.exact(ROUND_1x1, [hx(eyeAt) + 0.5, eyeY * PLATE_H + 0.7, side > 0 ? hhw + PLATE_H : -hhw - PLATE_H], side > 0 ? [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1] : [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1], TRANS_ORANGE);
+    }
+    if (open && hhw >= 2) {
+      const tip = hL - 1, ny = headBands[tip].y1 - 3;
+      if (ny >= headBands[tip].y0) for (const z of [-1, 0]) b.put(SIDE_STUD, hx(tip), ny, z, 3, pal.main);
+    }
+    if (open && toothed)
+      for (let i = 1; i + 2 <= hL; i += 2) {
+        const y = headBands[i].y0; // inside the head's bottom course (hanging below, one stud held the jaw's load)
+        if (headBands[i + 1].y0 !== y) continue; // rails need a level pair
+        toothRail(b, hx(i), y, hhw - 1, 1, false, pal.main);
+        toothRail(b, hx(i), y, -hhw, -1, false, pal.main);
+      }
+    if (open && toothed)
+      for (let i = 1; i + 2 <= jawBands.length; i += 2) {
+        if (jawBands[i].y0 !== jawBands[i + 1]?.y0) continue;
+        toothRail(b, hx(i), jawBands[i].y0, hhw - 1, 1, true, pal.belly);
+        toothRail(b, hx(i), jawBands[i].y0, -hhw, -1, true, pal.belly);
+      }
+    // Flat underneath where the legs carry the body (an inverted slope has no bottom to stand on).
+    const flat = new Set<number>();
+    for (const x of plan.fore ? [hipX, shX] : [hipX]) for (let i = -Math.ceil(ta / 2) - 1; i <= Math.ceil(ta / 2) + 1; i++) flat.add(x + i);
+    roundBottom(b, 0, bands.slice(0, xHead).map((c, x) => (flat.has(x) ? { ...c, z0: 0, z1: 0 } : c)), () => pal.belly);
+    roundEnds(b, xHead, headBands, (x) => (x - xHead < hL - snout ? pal.accent : pal.main), { front: true });
+    // One bonded core for the whole run, the jaw included (its bands under the head's).
+    const run = bands.map((c, x) => {
+      const j = x >= xHead ? jawBands[x - xHead] : undefined;
+      if (!j) return c;
+      // Under the head: a band of its own; touching or overlapping it: one band from the jaw's bottom up.
+      return j.y1 < c.y0 ? { ...c, more: [{ y0: j.y0, y1: j.y1 }] } : { ...c, y0: Math.min(c.y0, j.y0) };
+    });
+    const jawColor = (x: number, y: number) => {
+      const j = x >= xHead ? jawBands[x - xHead] : undefined;
+      return j && y < j.y1 && y >= j.y0 && y < bands[x].y0 ? pal.belly : color(x, y);
+    };
+    // Ties across the seams where one section's band meets the next (tail → torso,
+    // torso → neck → head): 2×4 plates laid 4 along the run, every third plate up
+    // the overlap, before the core fills in. The fill alone can close a layer with
+    // parts reaching back from the seam, never over it, and leave a head loose.
+    const seams = [xTorso, xTorso + T.L, xHead].filter((x, i, a) => x > 1 && x < run.length - 1 && a.indexOf(x) === i);
+    const tie = plain("plate", 4, 2)!;
+    for (const x of seams) {
+      const p = run[x - 1], q = run[x];
+      const lo = Math.max(p.y0, q.y0), hi = Math.min(p.y1, q.y1);
+      const zw = Math.min(p.z1 - p.z0, q.z1 - q.z0);
+      if (hi - lo < 1 || zw < 2) continue;
+      for (let y = lo + (hi - lo > 3 ? 1 : 0); y < hi; y += 3) b.put(tie.id, x - 2, y, -1, tie.rot, jawColor(x, y));
+    }
+    // The jaw's steps too: wherever it drops, a tie across the four columns around the step.
+    if (open)
+      for (let i = 1; i < jawBands.length; i++) {
+        if (jawBands[i].y0 === jawBands[i - 1].y0) continue;
+        // Four columns around a gentle step; just the two either side of a steep one
+        // (a 4-long plate can't stay inside a jaw that drops a lot per column).
+        const wide = jawBands[i - 1].y0 - jawBands[i].y0 <= 2;
+        const from = Math.max(0, i - (wide ? 2 : 1)), to = Math.min(jawBands.length - 1, i + (wide ? 1 : 0)), n = to - from + 1;
+        const t = plain("plate", n, 2);
+        if (!t || n < 2) continue;
+        const span = jawBands.slice(from, to + 1);
+        const lo = Math.max(...span.map((c) => c.y0)), hi = Math.min(...span.map((c) => c.y1));
+        for (let y = lo; y < hi; y += wide ? 3 : 2) b.put(t.id, xHead + from, y, -1, t.rot, pal.belly);
+      }
+    core(b, 0, run, jawColor);
+    // Crown in the accent, back and tail with their rounded tops (a studded spine for features).
+    const spine = has("sail") || has("plates") || has("armor") ? pal.main : undefined;
+    roundTop(b, 0, bands.slice(0, xHead), pal.main, false, spine);
+    const crest = has("frill") || has("horns") || has("crests") ? pal.main : undefined; // studs left for them to stand on
+    roundTop(b, xHead, headBands, (x) => (x - xHead < hL - snout ? pal.accent : pal.main), hhw * 2 < 3, crest);
+  });
+
+  if (open)
+    b.module("Jaw", () => {
+      const x0 = xHead;
+      // Tongue down the middle, the rest tiled.
+      jawBands.forEach((c, i) => {
+        if (hhw >= 2 && i > 0) b.rect("tile", x0 + i, -1, 1, 2, c.y1, DARK_RED);
+        b.rect("tile", x0 + i, c.z0, 1, c.z1 - c.z0, c.y1, pal.belly);
+      });
+    });
+
+  // ---- legs: thigh and shin as bonded columns under the hips, the thigh
+  // overlapping the body's edge column so the body stands on it.
+
+  const tW = Math.min(8, Math.max(3, Math.round(T.hw * 0.75)));
+  const sa = Math.max(3, Math.round(Math.max(hind.shin[0] * Math.pow(k, 0.85), ta * 0.6)));
+  const legAt = (x: number, side: 1 | -1, name: string, spec: Plan["hind"]) =>
+    b.module(name, () => {
+      // The thigh reaches three columns in under the body (the body above it is
+      // flat bricks, see hipFlat), so the body stands on many studs, not two.
+      // (Never past the middle: a narrow body's two thighs would collide.)
+      const zIn = side > 0 ? Math.max(0, T.hw - 3) : Math.min(-tW, -T.hw - tW + 3);
+      const kneeY = FOOT + Math.round(0.9 * S(spec.shin[1], 4));
+      const top = torsoY0 + Math.round(T.H * 0.45);
+      // Thigh: in front of and behind the hip, tapering to the knee.
+      const tcols = Array.from({ length: ta }, (_, i) => ({ z0: zIn, z1: zIn + tW, y0: i === 0 || i === ta - 1 ? kneeY + 3 : kneeY, y1: top }));
+      core(b, x - Math.floor(ta / 2), tcols, () => pal.main);
+      // Where the thigh shows beside the body, its top is rounded like a muscle (the rest is under the body, taken).
+      roundTop(b, x - Math.floor(ta / 2), tcols, pal.main);
+      // Shin: a step behind the knee, down to the foot.
+      const sx = x - Math.floor(sa / 2) - 1;
+      const sW = Math.max(2, Math.min(tW, Math.round(tW * 0.7)));
+      const sZ = side > 0 ? zIn + tW - sW : zIn; // the shin under the thigh's outer side
+      core(b, sx, Array.from({ length: sa }, () => ({ z0: sZ, z1: sZ + sW, y0: FOOT, y1: kneeY + 3 })), () => pal.main);
+      // Foot: plates on the baseplate under the shin, reaching forward, with a claw per toe.
+      // Feet grow slower than the body (k^0.7): at full scale they turned into planks.
+      const fL = Math.max(3, Math.round(spec.foot * Math.pow(k, 0.7))), fW = Math.min(6, sW + 1);
+      const fz = side > 0 ? sZ : sZ + sW - fW;
+      b.rect("plate", sx - 1, fz, sa + 1 + fL, fW, 0, pal.main);
+      b.rect("plate", sx - 1, fz, sa + 1, fW, 1, pal.main);
+      // Toes: a brick course from the heel forward, so the foot has height, then the claws.
+      b.rect("brick", sx + sa, fz, fL - 1, fW, 1, pal.main);
+      const xT = sx + sa + fL - 1;
+      if (spec.claws && detail >= 1)
+        for (let i = 0; i < Math.min(3, fW); i++) {
+          const z = fz + Math.round((i * (fW - 1)) / Math.max(1, Math.min(3, fW) - 1));
+          if (!b.put(SIDE_STUD, xT, 1, z, 3, pal.main)) continue;
+          b.exact(OPEN_ROUND, [xT + 1 + PLATE_H, PLATE_H + 0.7, z + 0.5], rotZ(-Math.PI / 2), BLACK);
+          b.exact(CLAW, [xT + 1 + PLATE_H, PLATE_H + 0.7, z + 0.5], rotZ(-Math.PI / 2), BLACK);
+        }
+      b.rect("tile", sx + sa, fz, fL - 1, fW, 4, pal.main);
+    });
+  legAt(hipX, 1, "Right leg", hind);
+  legAt(hipX, -1, "Left leg", hind);
+  if (plan.fore) {
+      legAt(shX, 1, "Right front leg", plan.fore);
+    legAt(shX, -1, "Left front leg", plan.fore);
+  }
+
+  // ---- features on the studded spine and the head.
+  const spineTop = (x: number) => bands[x].y1 + 2;
+  if (has("sail"))
+    b.module("Sail", () => {
+      const xs = Array.from({ length: T.L - 2 }, (_, i) => xTorso + 1 + i);
+      const Hs = S(10, 6);
+      const sc: Col[] = xs.map((x, i) => {
+        const t = (i + 0.5) / xs.length;
+        return { z0: -1, z1: 1, y0: spineTop(x), y1: spineTop(x) + Math.max(2, Math.round(Hs * Math.pow(Math.sin(Math.PI * t), 0.8))) };
+      });
+      core(b, xs[0], sc, () => pal.accent);
+      roundTop(b, xs[0], sc, pal.accent, true);
+    });
+  if (has("plates"))
+    b.module("Back plates", () => {
+      for (let i = 0; i + 1 < T.L; i += 2) {
+        const x = xTorso + i, t = (i + 1) / T.L;
+        const n = Math.max(0, Math.round(2.4 * Math.pow(k, 0.6) * Math.sin(Math.PI * t) - 0.3));
+        const y = Math.max(spineTop(x), spineTop(x + 1));
+        for (let j = 0; j < n; j++) b.put("3003", x, y + 3 * j, -1, 0, pal.accent);
+        b.put(RIDGE_2x2, x, y + 3 * n, -1, 1, pal.accent);
+      }
+    });
+  if (has("armor"))
+    b.module("Armour", () => {
+      for (let x = xTorso + 1; x < xTorso + T.L - 1; x++) for (const z of [-2, -1, 0, 1]) if ((x + z + 4) % 2 === 0) b.put(CONE, x, spineTop(x), z, 0, pal.accent);
+    });
+  const headTop = (i: number) => headBands[i].y1 + 2;
+  if (has("frill"))
+    b.module("Frill", () => {
+      const fh = hhw + 2;
+      const fc: Col[] = [0, 1].map((i) => ({ z0: -fh, z1: fh, y0: headTop(i), y1: headTop(i) + S(6, 3) }));
+      core(b, xHead, fc, () => pal.accent);
+      roundTop(b, xHead, fc, pal.accent);
+    });
+  if (has("horns"))
+    b.module("Horns", () => {
+      const back = hL - snout;
+      for (const z of [-1, 0]) b.exact(TOOTH_INLINE, [xHead + back - 0.5, (headTop(back - 1) + 1) * PLATE_H, z + 0.5], TURN["+x"], WHITE, { cell: [xHead + back - 1, headTop(back - 1), z] });
+    });
+
+  return {
+    root: b,
+    sections: [],
+    title: plan.title,
+    rule: `statue on the grid: ${bands.length}-stud run (tail ${tailLen}, torso ${T.L}, head ${hL}), curves stepped at 2.5·tanθ plates per stud, hips at ${hipY} plates, every section bonded (no joints at this scale)`,
+  };
+}

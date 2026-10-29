@@ -15,9 +15,9 @@ import {
   type Personality,
 } from "../engine/generate";
 import { totalPieces } from "../engine/inventory";
-import { KINDS, SPECIES, generateBuild, type Build, type Kind, type Species } from "../engine/assembly";
-import { choose, type Recipe } from "../engine/learn/cookbook";
-import { cookbook, teachChoice } from "../engine/learn/client";
+import type { Build } from "../engine/assembly";
+import type { Recipe } from "../engine/learn/cookbook";
+import { teachChoice } from "../engine/learn/client";
 
 /** A design built from a learned recipe carries it, so your choice can teach the engine. */
 type Learned = Idea & { learned?: Pick<Recipe, "id" | "features" | "fitness" | "origin" | "gen"> };
@@ -25,6 +25,9 @@ import type { Start } from "./CreatePicker";
 import { imageToGrid, modelToGrid } from "../engine/convert";
 import type { PlacedBrick } from "../engine/grid";
 import { renderModelImage, renderModelImageLDraw } from "../scene/thumbnails";
+import { Studio } from "./Studio";
+import { Choice } from "./Choice";
+import { Button, Card, IconButton, Select, Slider, Switch } from "pane-react";
 
 interface Props {
   /** What the user chose to build before opening (the picker), if anything. */
@@ -35,16 +38,9 @@ interface Props {
   onClose: () => void;
 }
 
+// Builds is the journey; photo and 3D file are the way in from a file of your own.
+// (Characters and shapes, the older voxel generators, are no longer offered.)
 type Source = "builds" | "characters" | "shapes" | "photo" | "model";
-const SOURCES: { id: Source; label: string }[] = [
-  { id: "builds", label: "Builds" },
-  { id: "characters", label: "Voxel characters" },
-  { id: "shapes", label: "Shapes" },
-  { id: "photo", label: "Photo" },
-  { id: "model", label: "3D model" },
-];
-const SIZES = ["S", "M", "L"];
-const LEVELS = ["Easy", "Medium", "Hard"];
 const ARCHETYPES: (Archetype | "all")[] = ["all", "dino", "racer", "monster", "robot", "car"];
 const ARCH_LABEL: Record<Archetype | "all", string> = {
   all: "Surprise",
@@ -68,10 +64,6 @@ function download(name: string, text: string) {
 /** Models the generator can make: from geometry recipes, a photo, or any 3D model. */
 export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Props) {
   const [source, setSource] = useState<Source>(start?.source ?? "builds");
-  const [kind, setKind] = useState<Kind | "all">(start?.source === "builds" ? start.kind : "all");
-  const [species, setSpecies] = useState<Species | "all">("all");
-  const [buildSize, setBuildSize] = useState(1);
-  const [lvl, setLvl] = useState<0 | 1 | 2>(1);
   const [arch, setArch] = useState<Archetype | "all">("all");
   const [persona, setPersona] = useState<Personality>({ cute: 0.65, fierce: 0.35, quirky: 0.4 });
   // With an empty library there's nothing to limit to: design from any pieces.
@@ -116,30 +108,6 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
     };
     requestAnimationFrame(next);
   };
-
-  // Builds (Assembly Grammar): instant, so no worker — six variants per click.
-  useEffect(() => {
-    if (source !== "builds") return;
-    const kinds = kind === "all" ? KINDS.map((k) => k.id) : [kind];
-    const list: (Build & Learned)[] = [];
-    const t0 = performance.now();
-    for (let i = 0; i < 6; i++) {
-      const k = kinds[i % kinds.length];
-      const s = seed * 31 + i;
-      // Dinosaurs: one species asked for, or a different one on every card,
-      // built from the best recipes the learning engine has found so far.
-      const sp = k === "dino" ? (species !== "all" ? species : SPECIES[s % SPECIES.length].id) : undefined;
-      const rec = sp ? choose(cookbook(), sp, buildSize, s) : null;
-      const b = generateBuild(k, { size: buildSize, level: lvl, seed: s, mode: dream ? "any" : "mine", inv: inventory, species: sp, plan: rec?.plan });
-      list.push({
-        ...b,
-        recipe: `build-${k}-${i}`,
-        ...(rec ? { learned: { id: rec.id, features: rec.features, fitness: rec.fitness, origin: rec.origin, gen: rec.gen }, math: `${b.math} · recipe ${rec.origin} (gen ${rec.gen}), score ${(rec.fitness * 100).toFixed(0)}` } : {}),
-      });
-    }
-    setBusy(null);
-    show(list, Math.round(performance.now() - t0), "", true);
-  }, [inventory, seed, dream, source, kind, species, buildSize, lvl]);
 
   // Characters: a family of six around the personality sliders.
   useEffect(() => {
@@ -197,7 +165,7 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
       try {
         if (source === "photo") {
           const palette = buildPalette(inventory, dream, 1);
-          if (!palette.length) throw new Error("My Library has no plates or tiles yet: add some, or switch to Any pieces.");
+          if (!palette.length) throw new Error("My pieces has no plates or tiles yet: add some, or turn off Only my pieces.");
           const variants = dither ? [true, false] : [false];
           const out: Idea[] = [];
           let ms = 0;
@@ -216,7 +184,7 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
           if (alive) show(out, ms, ` · ${out[0].W}×${out[0].D} studs`);
         } else {
           const palette = buildPalette(inventory, dream, layers);
-          if (!palette.length) throw new Error("My Library has no plain parts of that height yet: add some, or switch to Any pieces.");
+          if (!palette.length) throw new Error("My pieces has no plain parts of that height yet: add some, or turn off Only my pieces.");
           const { grid, roleColors, triangles } = await modelToGrid(file, size, layers, palette, hollow);
           const r = await requestGrid(inventory, grid, roleColors, {
             recipe: "model",
@@ -240,127 +208,67 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
   const accept = source === "photo" ? "image/*" : ".glb,.gltf,.stl,.obj";
 
   return (
-    <section className="ideas card" role="dialog" aria-label="Ideas">
+    <Card as="section" className="ideas card" role="dialog" aria-label="Ideas">
       <header className="ideas-head">
         <div className="ideas-title">
-          <h2>Ideas</h2>
-          <div className="seg small">
-            {SOURCES.map(({ id: s, label }) => (
-              <button
-                key={s}
-                className={source === s ? "on" : ""}
-                onClick={() => {
-                  setSource(s);
-                  setFile(null);
-                  setIdeas(s === "photo" || s === "model" ? [] : null);
-                  setSize(s === "model" ? 16 : 32);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="seg small" title="Only what you own, or design at full size and see what to buy">
-            <button className={dream ? "on" : ""} onClick={() => setDream(true)}>
-              Any pieces
-            </button>
-            <button
-              className={!dream ? "on" : ""}
-              onClick={() => setDream(false)}
-              disabled={totalPieces(inventory) === 0}
-              title={totalPieces(inventory) === 0 ? "Add pieces to My Library first" : "Build only from My Library"}
-            >
-              Only mine
-            </button>
-          </div>
+          <h2 className="ideas-name">{source === "builds" ? "New designs" : "From a file"}</h2>
+          {(source === "photo" || source === "model") && (
+            <Choice
+              label="File"
+              value={source}
+              onChange={(v) => {
+                const s = v as typeof source;
+                setSource(s);
+                setFile(null);
+                setIdeas([]);
+                setSize(s === "model" ? 16 : 32);
+              }}
+              options={[
+                { value: "photo", label: "Photo" },
+                { value: "model", label: "3D file" },
+              ]}
+            />
+          )}
+          {source !== "builds" && totalPieces(inventory) > 0 && (
+            <span title="Only what you own, or design at full size and see what to buy">
+              <Switch label="Only my pieces" checked={!dream} onCheckedChange={(on) => setDream(!on)} />
+            </span>
+          )}
         </div>
         <div className="ideas-actions">
-          {(source === "shapes" || source === "characters" || source === "builds") && (
-            <button onClick={() => setSeed((s) => s + 1)} disabled={!!busy}>
+          {(source === "shapes" || source === "characters") && (
+            <Button variant="glass" size="sm" onClick={() => setSeed((s) => s + 1)} disabled={!!busy}>
               ↻ Shuffle
-            </button>
+            </Button>
           )}
-          <button onClick={onClose} aria-label="Close">
+          <IconButton variant="ghost" size="sm" onClick={onClose} aria-label="Close">
             ✕
-          </button>
+          </IconButton>
         </div>
       </header>
 
-      {source === "builds" && (
-        <div className="ideas-input persona">
-          <div className="seg small">
-            <button className={kind === "all" ? "on" : ""} onClick={() => setKind("all")}>
-              Surprise
-            </button>
-            {KINDS.map((k) => (
-              <button key={k.id} className={kind === k.id ? "on" : ""} onClick={() => setKind(k.id)}>
-                {k.label}
-              </button>
-            ))}
-          </div>
-          {kind === "dino" && (
-            <div className="seg small wrap" title="Species">
-              <button className={species === "all" ? "on" : ""} onClick={() => setSpecies("all")}>
-                All species
-              </button>
-              {SPECIES.map((sp) => (
-                <button key={sp.id} className={species === sp.id ? "on" : ""} onClick={() => setSpecies(sp.id)} title={sp.latin}>
-                  {sp.label}
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="seg small" title="Size">
-            {SIZES.map((label, i) => (
-              <button key={label} className={buildSize === i ? "on" : ""} onClick={() => setBuildSize(i)}>
-                {label}
-              </button>
-            ))}
-          </div>
-          <div className="seg small" title="Easy: the essentials · Hard: finishing tiles, grilles, details">
-            {LEVELS.map((label, i) => (
-              <button key={label} className={lvl === i ? "on" : ""} onClick={() => setLvl(i as 0 | 1 | 2)}>
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {source === "characters" && (
         <div className="ideas-input persona">
-          <div className="seg small">
-            {ARCHETYPES.map((a) => (
-              <button key={a} className={arch === a ? "on" : ""} onClick={() => setArch(a)}>
-                {ARCH_LABEL[a]}
-              </button>
-            ))}
-          </div>
-          <label className="slider" title="Target number of pieces">
-            <span>Pieces</span>
-            <input type="range" min={20} max={400} step={10} value={pieces} onChange={(e) => setPieces(Number(e.target.value))} />
-            <b>{pieces}</b>
-          </label>
-          <div className="seg small" title="Easy: big parts, brick layers · Hard: plate layers, more detail">
-            {(["easy", "medium", "hard"] as Level[]).map((lv) => (
-              <button key={lv} className={level === lv ? "on" : ""} onClick={() => setLevel(lv)}>
-                {lv[0].toUpperCase() + lv.slice(1)}
-              </button>
-            ))}
-          </div>
+          <Choice label="Character" value={arch} onChange={(v) => setArch(v as typeof arch)} options={ARCHETYPES.map((a) => ({ value: a, label: ARCH_LABEL[a] }))} />
+          <Slider label="Pieces" min={20} max={400} step={10} value={pieces} onValueChange={setPieces} />
+          <Choice
+            label="Difficulty"
+            title="Easy: big parts, brick layers · Hard: plate layers, more detail"
+            value={level}
+            onChange={(v) => setLevel(v as Level)}
+            options={(["easy", "medium", "hard"] as Level[]).map((lv) => ({ value: lv, label: lv[0].toUpperCase() + lv.slice(1) }))}
+          />
           {(["cute", "fierce", "quirky"] as (keyof Personality)[]).map((k) => (
-            <label key={k} className="slider">
-              <span>{k[0].toUpperCase() + k.slice(1)}</span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={persona[k]}
-                onChange={(e) => setPersona((p) => ({ ...p, [k]: Number(e.target.value) }))}
-              />
-              <b>{Math.round(persona[k] * 100)}</b>
-            </label>
+            <Slider
+              key={k}
+              label={k[0].toUpperCase() + k.slice(1)}
+              min={0}
+              max={1}
+              step={0.05}
+              value={persona[k]}
+              format={(v) => String(Math.round(v * 100))}
+              onValueChange={(v) => setPersona((p) => ({ ...p, [k]: v }))}
+            />
           ))}
         </div>
       )}
@@ -371,48 +279,48 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
             <input type="file" accept={accept} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
             <span>{file ? file.name : source === "photo" ? "Choose a photo…" : "Choose a .glb / .stl / .obj…"}</span>
           </label>
-          <label>
-            {source === "photo" ? "Width" : "Widest side"}
-            <select value={size} onChange={(e) => setSize(Number(e.target.value))}>
-              {(source === "photo" ? [16, 24, 32] : [8, 12, 16, 20, 24, 32]).map((n) => (
-                <option key={n} value={n}>
-                  {n} studs · {n * 8} mm
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select
+            size="sm"
+            label={source === "photo" ? "Width" : "Widest side"}
+            value={String(size)}
+            onValueChange={(v) => setSize(Number(v))}
+            options={(source === "photo" ? [16, 24, 32] : [8, 12, 16, 20, 24, 32]).map((n) => ({ value: String(n), label: `${n} studs · ${n * 8} mm` }))}
+          />
           {source === "photo" ? (
-            <label className="toggle">
-              <input type="checkbox" checked={dither} onChange={(e) => setDither(e.target.checked)} /> Also dithered
-            </label>
+            <Switch label="Also dithered" checked={dither} onCheckedChange={setDither} />
           ) : (
             <>
-              <label>
-                Layers
-                <select value={layers} onChange={(e) => setLayers(Number(e.target.value) as 1 | 3)}>
-                  <option value={3}>Bricks (9.6 mm)</option>
-                  <option value={1}>Plates (3.2 mm, finer)</option>
-                </select>
-              </label>
-              <label className="toggle">
-                <input type="checkbox" checked={hollow} onChange={(e) => setHollow(e.target.checked)} /> Hollow inside
-              </label>
+              <Select
+                size="sm"
+                label="Layers"
+                value={String(layers)}
+                onValueChange={(v) => setLayers(Number(v) as 1 | 3)}
+                options={[
+                  { value: "3", label: "Bricks (9.6 mm)" },
+                  { value: "1", label: "Plates (3.2 mm, finer)" },
+                ]}
+              />
+              <Switch label="Hollow inside" checked={hollow} onCheckedChange={setHollow} />
             </>
           )}
         </div>
       )}
 
-      <p className="muted small ideas-note">
-        {busy ?? note ?? ""}
-        {dream && !busy && " · Any pieces: standard parts in any quantity; each card shows what you'd need to buy."}
-      </p>
+      {source !== "builds" && (
+        <p className="hint ideas-note">
+          {busy ?? note ?? ""}
+          {dream && !busy && " · Any pieces: standard parts in any quantity; each card shows what you'd need to buy."}
+        </p>
+      )}
 
-      {busy || !ideas ? (
+      {source === "builds" ? (
+        <Studio start={start?.source === "builds" ? start.kind : "all"} inventory={inventory} onBuild={onBuild} onInstructions={onInstructions} />
+      ) : busy || !ideas ? (
         <div className="ideas-loading">{busy ?? "…"}</div>
       ) : ideas.length === 0 ? (
         <div className="ideas-loading">
           {source === "shapes" || source === "characters"
-            ? "Not enough plain bricks, plates or tiles yet. Add some, try the sample bucket, or switch to Any pieces."
+            ? "Not enough plain bricks, plates or tiles yet. Add some, try the sample bucket, or turn off Only my pieces."
             : file
               ? ""
               : source === "photo"
@@ -426,13 +334,13 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
             const buy = idea.needs.reduce((s, n) => s + n.need - n.have, 0);
             const have = idea.pieces - buy;
             return (
-              <article key={k} className="idea">
+              <Card as="article" key={k} className="idea">
                 <div className="idea-img">
                   {images[k] ? <img src={images[k]} alt="" /> : <span className="thumb loading" />}
                 </div>
                 <div className="idea-body">
                   <h3>{idea.title}</h3>
-                  <p className="muted small">{idea.math}</p>
+                  <p className="hint">{idea.math}</p>
                   {idea.recipe !== "model" && !idea.recipe.startsWith("photo") && !idea.recipe.startsWith("char") && (
                     <div className="palette">
                       {idea.palette.map((p) => (
@@ -452,11 +360,12 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
                   </p>
                   {"modules" in idea && (
                     <div className="modules" title="What it's made of: modules (sub-assemblies) and their parts">
-                      {(idea as Build).modules.map((m) => (
+                      {[...(idea as Build).modules].sort((a, b) => b.parts - a.parts).slice(0, 6).map((m) => (
                         <span key={m.name}>
                           {m.name} <b>{m.parts}</b>
                         </span>
                       ))}
+                      {(idea as Build).modules.length > 6 && <span className="muted">+{(idea as Build).modules.length - 6} more</span>}
                     </div>
                   )}
                   {"metrics" in idea && (
@@ -503,9 +412,18 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
                     </div>
                     <div title="Load ÷ clutch capacity at the weakest joint; under 100 % holds">
                       <dt>Stability</dt>
-                      <dd className={idea.stress <= 1 ? "ok" : "bad"}>
-                        {idea.stress <= 1 ? "Holds" : "Weak"} <span className="muted">{pct(Math.min(idea.stress, 9.99))}</span>
-                      </dd>
+                      {"held" in idea && (idea as Build).held !== undefined ? (
+                        <dd className={(idea as Build).held! >= 0.95 ? "ok" : "bad"} title="Share of parts held together by studs, pins and clips">
+                          Held {pct((idea as Build).held!)}
+                        </dd>
+                      ) : "real" in idea && (idea as Build).real ? (
+                        // Exact (off-grid) parts aren't load-tested yet; the design itself shipped as a set.
+                        <dd className="ok" title="An official LEGO design, built and sold as a set">Real set</dd>
+                      ) : (
+                        <dd className={idea.stress <= 1 ? "ok" : "bad"}>
+                          {idea.stress <= 1 ? "Holds" : "Weak"} <span className="muted">{pct(Math.min(idea.stress, 9.99))}</span>
+                        </dd>
+                      )}
                     </div>
                     <div>
                       <dt>You have</dt>
@@ -513,32 +431,32 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
                     </div>
                   </dl>
                   {(idea.substituted > 0 || idea.missing > 0) && (
-                    <p className="muted small">
+                    <p className="hint">
                       {idea.substituted > 0 && `${idea.substituted} studs in a stand-in colour. `}
                       {idea.missing > 0 && `${idea.missing} spots left open (no piece fits).`}
                     </p>
                   )}
                   <div className="idea-actions">
-                    <button className="primary" onClick={() => { lesson(idea, 1); onBuild(idea.bricks); }}>
-                      Build this
-                    </button>
-                    <button className="steps-btn" onClick={() => { lesson(idea, 0.5); onInstructions(idea.bricks, idea.title); }} title="Step-by-step instructions">
-                      Steps
-                    </button>
+                    <Button variant="accent" size="sm" onClick={() => { lesson(idea, 1); onInstructions(idea.bricks, idea.title); }} title="Step-by-step instructions">
+                      Build it
+                    </Button>
+                    <Button variant="glass" size="sm" onClick={() => { lesson(idea, 0.5); onBuild(idea.bricks); }} title="Put it on the baseplate to change it">
+                      Edit
+                    </Button>
                     {buy > 0 && (
-                      <button onClick={() => setOpen(open === k ? null : k)} title="Pieces to buy">
+                      <Button variant="glass" size="sm" onClick={() => setOpen(open === k ? null : k)} title="Pieces to buy" aria-expanded={open === k}>
                         Buy {buy}
-                      </button>
+                      </Button>
                     )}
                   </div>
                   {open === k && <ShoppingList idea={idea} />}
                 </div>
-              </article>
+              </Card>
             );
           })}
         </div>
       )}
-    </section>
+    </Card>
   );
 }
 
@@ -562,9 +480,9 @@ function ShoppingList({ idea }: { idea: Idea }) {
         ))}
         {rows.length > 12 && <li className="muted">…and {rows.length - 12} more lines</li>}
       </ul>
-      <button onClick={() => download(`${idea.recipe}-shopping.csv`, shoppingCSV(rows))}>
+      <Button variant="glass" size="sm" onClick={() => download(`${idea.recipe}-shopping.csv`, shoppingCSV(rows))}>
         Download CSV (Rebrickable format)
-      </button>
+      </Button>
     </div>
   );
 }
