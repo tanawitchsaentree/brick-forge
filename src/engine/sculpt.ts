@@ -419,6 +419,8 @@ export interface SculptOptions {
   MERGE_PASS?: boolean;
   /** Try at most this many forms (the most used first). */
   MAX_FORMS?: number;
+  /** capStuds picks its tile with the sculptor's air and use prior, not air alone (program v2 S7). */
+  CAP_PRIOR?: boolean;
   /** Cap studs left showing on smooth surfaces with tiles (default on). */
   CAP?: boolean;
   /** Swap plates whose studs all show on smooth surfaces for tiles (default on). */
@@ -948,7 +950,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   if (opts.MERGE) consolidate(built);
   phase.bridge = performance.now() - tp;
   tp = performance.now();
-  if (opts.CAP !== false && studs) capStuds(built, taken, wantG, studs, forms.filter((f) => !f.extra && PARTS[f.partId]?.category === "Tile" && f.units.length <= 4));
+  if (opts.CAP !== false && studs) capStuds(built, taken, wantG, studs, forms.filter((f) => !f.extra && PARTS[f.partId]?.category === "Tile" && f.units.length <= 4), opts.CAP_PRIOR ? { AIR, PRIOR } : undefined);
   if (opts.MERGE) consolidate(built);
   phase.cap = performance.now() - tp;
   return { bricks: built, residual, ms: performance.now() - t0, phase };
@@ -1148,7 +1150,11 @@ const footprintOf = (b: PlacedBrick) => {
  * designers place tiles, sideways included) that takes the stud and fills the
  * least space outside the shape. Studs the design shows are left alone.
  */
-function capStuds(bricks: PlacedBrick[], taken: Grid, want: Grid, studs: Set<number>, tiles: Form[]) {
+// `prior` (CAP_PRIOR, program v2 S7): choose the tile as the sculptor would,
+// AIR · air − PRIOR · log(1 + use), not by air alone. By air alone it took the
+// part that spills least, a corner round tile: 207 of them on the bench where
+// designers used 12.
+function capStuds(bricks: PlacedBrick[], taken: Grid, want: Grid, studs: Set<number>, tiles: Form[], prior?: { AIR: number; PRIOR: number }) {
   const exposed: number[] = [];
   for (const b of bricks)
     for (const c of studCells(b)) {
@@ -1161,7 +1167,7 @@ function capStuds(bricks: PlacedBrick[], taken: Grid, want: Grid, studs: Set<num
     const [ux, uy, uz] = unitOf(x, y, z);
     if (taken.get(ux, uy, uz) & (1 << bitOf(x, y, z))) continue; // capped by a tile already placed
     const bit = 1 << bitOf(x, y, z);
-    let best: { f: Form; x: number; y: number; z: number; air: number } | null = null;
+    let best: { f: Form; x: number; y: number; z: number; air: number; cost: number } | null = null;
     for (const f of tiles)
       for (const u of f.units) {
         if (!(u.mask & bit)) continue;
@@ -1175,7 +1181,8 @@ function capStuds(bricks: PlacedBrick[], taken: Grid, want: Grid, studs: Set<num
           }
           air += popcount(v.mask & ~want.get(X, Y, Z));
         }
-        if (!clash && (!best || air < best.air)) best = { f, x: ox, y: oy, z: oz, air };
+        const cost = prior ? prior.AIR * air - prior.PRIOR * Math.log1p(f.use) : air;
+        if (!clash && (!best || cost < best.cost)) best = { f, x: ox, y: oy, z: oz, air, cost };
       }
     if (!best) continue;
     const { f } = best;
