@@ -1,0 +1,25 @@
+{
+ "models": 343,
+ "parts": 138125,
+ "sampled": 8962,
+ "inTable": 6050,
+ "known": 5038,
+ "overlap": 0,
+ "fitNonPos": 0,
+ "belowMinCover": 0,
+ "eitherGate": 0,
+ "decisions": 6079,
+ "top1": 1023,
+ "top5": 1393,
+ "pct": {
+  "inTable": 67.5,
+  "knownTop": 56.2,
+  "overlap": 0,
+  "fitNonPos": 0,
+  "belowMinCover": 0,
+  "eitherGate": 0,
+  "currentTop1": 16.8,
+  "currentTop5": 22.9
+ },
+ "seconds": 705
+}
