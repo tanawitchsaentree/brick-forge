@@ -158,7 +158,7 @@ try {
     };
     const git = (c) => { try { return execSync(c, { cwd: ROOT }).toString().trim(); } catch { return null; } };
     const out = {
-      run: RUN, date: new Date().toISOString(), git: git("git rev-parse --short HEAD"), dirty: !!git("git status --porcelain -- src scripts"),
+      run: RUN, date: new Date().toISOString(), git: git("git rev-parse --short HEAD"), dirty: !!git("git status --porcelain -uno -- src scripts"),
       arg, ids, idsHash: crypto.createHash("sha1").update(ids.join(",")).digest("hex").slice(0, 12), opts, node: process.version,
       all: agg(res.filter((r) => r.tier !== "technic")), byLevel: Object.fromEntries(Object.entries(levels).map(([k, v]) => [k, agg(v)])), models: res,
     };
