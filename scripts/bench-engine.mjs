@@ -2,7 +2,9 @@
 // compare with the designer's. The target's whole set is left out of what the
 // engine learns from (leave-one-set-out), so it can't copy.
 //
-//   node scripts/bench-engine.mjs [ids,comma,separated] ['{"PIECE":40,...}']
+//   node scripts/bench-engine.mjs [ids,comma,separated | @set] ['{"PIECE":40,...}']
+//   BENCH_RUN=name  also write bench/results/<name>.json (config, git, per model, per level)
+//   sets (scripts/bench-sets.json, frozen): @core8 @levels @technic @nightly
 //
 //   PARITY = mean( IoU · smooth · held÷designer's · min(1, human pieces / ours)^½ · (1 − repeats) )
 //   copy   = mean( IoU · (½ + ½·finish) · held · min(1, human pieces / ours)^½ · (1 − repeats) )
@@ -15,6 +17,8 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
+import { execSync } from "node:child_process";
 import { createServer } from "vite";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
@@ -23,8 +27,15 @@ globalThis.fetch = async (u) => {
   return { ok: fs.existsSync(p), headers: { get: () => "application/json" }, json: async () => JSON.parse(fs.readFileSync(p, "utf8")) };
 };
 const DEFAULT = "75870-1,31009-1-310091,4917-1-49171,7219-1,7611-1,6743-1-67431,30190-1,31066-1-shuttle";
-const ids = (process.argv[2] || DEFAULT).split(",");
-const opts = JSON.parse(process.argv[3] || "{}");
+const SETS = JSON.parse(fs.readFileSync(path.join(ROOT, "scripts/bench-sets.json"), "utf8"));
+const flat = (v) => (Array.isArray(v) ? v : Object.values(v).flat());
+const arg = process.argv[2] || DEFAULT;
+const ids = arg.startsWith("@") ? arg.slice(1).split("+").flatMap((k) => flat(SETS[k])) : arg.split(",");
+const RUN = process.env.BENCH_RUN;
+// The frozen Phase 0 baseline config (docs/engine/phase0.md): it reproduces the
+// documented 0.382. Options given on the command line override it.
+const BASELINE = { MAX_FORMS: 1500, MOTIFS: 4 };
+const opts = { ...BASELINE, ...JSON.parse(process.argv[3] || "{}") };
 const OUT = process.env.BENCH_OUT; // write each build here (for viewing)
 
 const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
@@ -39,6 +50,7 @@ try {
   const { residualBlobs, makeBlobPart } = await load("/src/engine/madeParts.ts");
   const { sculptArticulated } = await load("/src/engine/articulate.ts");
   const { prune } = await load("/src/engine/necessity.ts");
+  const M = await load("/src/engine/benchMetrics.ts");
   const shapes = JSON.parse(fs.readFileSync(path.join(ROOT, "public/shapes.json"), "utf8"));
   S.installShapes(shapes);
   const corpus = JSON.parse(fs.readFileSync(path.join(ROOT, "public/corpus/index.json"), "utf8")).models;
@@ -54,6 +66,7 @@ try {
   }));
   const res = [];
   for (const id of ids) {
+    const w0 = performance.now();
     const set = corpus.find((m) => m.id === id).set;
     const trainSet = corpus.filter((m) => m.set !== set && learnable(m));
     const train = trainSet.map((m) => models.get(m.id));
@@ -114,11 +127,45 @@ try {
     // Copy score: identical to the designer = 1. Parity score: as good as the designer = 1.
     row.copy = +(row.iou * (0.5 + 0.5 * row.finish) * row.held * economy * (1 - row.repeats)).toFixed(3);
     row.score = +(row.iou * row.smooth * row.heldVsHuman * economy * (1 - row.repeats)).toFixed(3);
-    res.push(row);
     console.log(JSON.stringify(row));
+    // Phase 0 measurements (src/engine/benchMetrics.ts): kept off the console line above so it reads as before.
+    row.tier = corpus.find((m) => m.id === id).tier;
+    const mixO = M.mixOf(r.bricks), mixH = M.mixOf(real);
+    row.mix = { ours: mixO, human: mixH, diff: M.mixDiff(mixO, mixH) };
+    row.structure = { ours: M.structureOf(r.bricks), human: M.structureOf(real) };
+    Object.assign(row, M.visibleSmooth(ours, target));
+    row.wallMs = Math.round(performance.now() - w0);
+    // The build itself, hashed: a refactor that should change nothing must give the same hash (phase regression tests).
+    const canon = r.bricks.map((b) => [b.partId, b.color, b.rot, b.x, b.y, b.z, b.place ? b.place.map((v) => +v.toFixed(4)) : null]);
+    row.outHash = crypto.createHash("sha1").update(JSON.stringify(canon)).digest("hex").slice(0, 16);
+    res.push(row);
     if (OUT) fs.writeFileSync(path.join(OUT, `out-${id}.json`), JSON.stringify(r.bricks));
   }
   const avg = (k) => +(res.reduce((s, r) => s + r[k], 0) / res.length).toFixed(3);
+  if (RUN) {
+    const levels = {};
+    for (const r of res) (levels[r.tier] ??= []).push(r);
+    const agg = (rows) => {
+      const m = (f) => +(rows.reduce((s, r) => s + f(r), 0) / rows.length).toFixed(4);
+      return {
+        n: rows.length,
+        parity: m((r) => r.score), iou: m((r) => r.iou), smooth: m((r) => r.smooth), heldVsHuman: m((r) => r.heldVsHuman),
+        repeats: m((r) => r.repeats), piecesXHuman: m((r) => r.ours / r.human), copy: m((r) => r.copy),
+        vsmooth: m((r) => r.vsmooth), mixL1: m((r) => r.mix.diff.l1), oneDiff: m((r) => r.mix.diff.one),
+        overLimit: m((r) => r.structure.ours.overLimit), unconnected: m((r) => r.structure.ours.unconnected),
+        worstJoint: +Math.max(...rows.map((r) => r.structure.ours.worst)).toFixed(3), msMean: m((r) => r.ms),
+      };
+    };
+    const git = (c) => { try { return execSync(c, { cwd: ROOT }).toString().trim(); } catch { return null; } };
+    const out = {
+      run: RUN, date: new Date().toISOString(), git: git("git rev-parse --short HEAD"), dirty: !!git("git status --porcelain -- src scripts"),
+      arg, ids, idsHash: crypto.createHash("sha1").update(ids.join(",")).digest("hex").slice(0, 12), opts, node: process.version,
+      all: agg(res.filter((r) => r.tier !== "technic")), byLevel: Object.fromEntries(Object.entries(levels).map(([k, v]) => [k, agg(v)])), models: res,
+    };
+    fs.mkdirSync(path.join(ROOT, "bench/results"), { recursive: true });
+    fs.writeFileSync(path.join(ROOT, "bench/results", `${RUN}.json`), JSON.stringify(out, null, 1));
+    console.log(`wrote bench/results/${RUN}.json`);
+  }
   console.log(`MEAN iou ${avg("iou")} smooth ${avg("smooth")} held÷human ${avg("heldVsHuman")} repeats ${avg("repeats")} pieces×human ${(res.reduce((s, r) => s + r.ours / r.human, 0) / res.length).toFixed(2)} | copy ${avg("copy")} | PARITY ${avg("score")}`);
 } finally {
   await vite.close();

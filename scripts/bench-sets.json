@@ -1,0 +1,45 @@
+{
+  "note": "Frozen benchmark sets (Phase 0). Do not edit: later phases diff against runs on exactly these. Chosen with seed 20261029, one model per set, no set shared with core8.",
+  "core8": [
+    "75870-1",
+    "31009-1-310091",
+    "4917-1-49171",
+    "7219-1",
+    "7611-1",
+    "6743-1-67431",
+    "30190-1",
+    "31066-1-shuttle"
+  ],
+  "levels": {
+    "junior": [
+      "30023-1",
+      "30035-1",
+      "6363-1-1"
+    ],
+    "creator": [
+      "6581-1-1",
+      "8119-1-combinationwith8122",
+      "30283-1"
+    ],
+    "advanced": [
+      "20011-1",
+      "40272-1",
+      "31027-1-kart"
+    ],
+    "expert": [
+      "10243-1",
+      "21318-1-autumn"
+    ]
+  },
+  "technic": [
+    "8260-1-82601",
+    "42036-1"
+  ],
+  "nightly": [
+    "10179-1",
+    "10253-1",
+    "10256-1",
+    "10261-1",
+    "10276-1"
+  ]
+}
