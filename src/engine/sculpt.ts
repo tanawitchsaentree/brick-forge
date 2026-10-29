@@ -402,6 +402,12 @@ export interface SculptOptions {
   FLOAT?: number;
   PRIOR?: number;
   GAMMA?: number;
+  /**
+   * Least share of its own volume a part must fill with target cells (program v2 S4,
+   * the sliver rule; 0 = off). A 1×1 sent after the corner of an off-grid designer
+   * part fills a quarter of itself and is left out.
+   */
+  MIN_FILL?: number;
   /** Fewest target cells a part must fill to be worth a piece. */
   MIN_COVER?: number;
   /** Per stud left showing: bonus where the target shows studs, penalty on its smooth surfaces. */
@@ -443,6 +449,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   const t0 = performance.now();
   const phase: Record<string, number> = {};
   // Defaults tuned on the reconstruction benchmark (docs/engine.md).
+  const MIN_FILL = opts.MIN_FILL ?? 0;
   const AIR = opts.AIR ?? 3, PIECE = opts.PIECE ?? 60, HOLD = opts.HOLD ?? 2, FLOAT = opts.FLOAT ?? 300, PRIOR = opts.PRIOR ?? 3, GAMMA = opts.GAMMA ?? 0.7, MIN_COVER = opts.MIN_COVER ?? 16, STUD_OK = opts.STUD_OK ?? 0, STUD_BAD = opts.STUD_BAD ?? 40, REPEAT = opts.REPEAT ?? 25;
   const studs = target.studs;
   const want = new Map<number, number>();
@@ -544,6 +551,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
       }
     }
     if (!full && (W ? (W.gates ? cover + (W.weights.air ?? 0) * air <= 0 || cover < MIN_COVER : cover <= 0) : cover - AIR * air <= 0 || cover < MIN_COVER)) return null;
+    if (!full && MIN_FILL && cover < MIN_FILL * (cover + air)) return null; // a sliver: mostly outside the target
     let ok = 0, bad = 0;
     for (const p of f.probes) {
       if (taken.get(ox + p.dx, oy + p.dy, oz + p.dz) & (1 << p.bit)) engaged++; // its studs into placed parts
