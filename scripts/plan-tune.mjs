@@ -78,6 +78,15 @@ const rhoOf = (set, W) =>
   });
 const mean = (v) => v.filter(Number.isFinite).reduce((s, x) => s + x, 0) / Math.max(1, v.filter(Number.isFinite).length);
 let W = { ...DEFAULT_WEIGHTS, split: 2 };
+if (process.env.VARIANTS) {
+  // Fixed variants, reported on both sets (no fitting).
+  for (const v of JSON.parse(process.env.VARIANTS)) {
+    const Wv = { ...W, ...v };
+    console.log(JSON.stringify(v), "train ρ", mean(rhoOf(T, Wv)).toFixed(3), "held-out ρ", mean(rhoOf(H, Wv)).toFixed(3));
+  }
+  await vite.close();
+  process.exit(0);
+}
 let best = mean(rhoOf(T, W));
 console.log("start", JSON.stringify(W), "train ρ", best.toFixed(3), "held-out ρ", mean(rhoOf(H, W)).toFixed(3));
 const rounds = +(process.argv[2] ?? 2);

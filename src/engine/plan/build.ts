@@ -75,7 +75,7 @@ export function buildPlan(text: string, lib: Library, opts: { weights?: PlanWeig
  * library from wherever it's served). Runs the pipeline against a cache, collects the
  * files it missed, fetches them, and repeats until nothing new is asked for.
  */
-export async function planModel(text: string, fetchFile: (path: string) => Promise<string | null>, dirs = { ldraw: "ldraw", shadow: "shadow" }, opts: Parameters<typeof buildPlan>[2] = {}): Promise<BuildPlan> {
+export async function planModel(text: string, fetchFile: (path: string) => Promise<string | null>, dirs: { ldraw: string; shadow: string | null } = { ldraw: "ldraw", shadow: null }, opts: Parameters<typeof buildPlan>[2] = {}): Promise<BuildPlan> {
   const cache = new Map<string, string | null>();
   for (let round = 0; round < 40; round++) {
     const missed = new Set<string>();

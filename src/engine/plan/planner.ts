@@ -25,10 +25,12 @@ export interface PlanWeights {
   near: number; // stay near the last part
   leaf: number; // take off parts held by few joints first
   split?: number; // cost of a step that joins two separate pieces
+  carry?: number; // build first what many units rest on (the base before the garden)
   official?: number; // (diagnostic) the file's own order
 }
 const MAX_RING_UNITS = 4, MAX_RING_PARTS = 24;
-export const DEFAULT_WEIGHTS: PlanWeights = { height: 1, outward: 0.3, sameDir: 0.6, near: 0.4, leaf: 0.2 };
+// Chosen on 17 corpus booklets and checked on 7 held out (scripts/plan-tune.mjs VARIANTS): ρ 0.513 → 0.568 / 0.561 → 0.635.
+export const DEFAULT_WEIGHTS: PlanWeights = { height: 2, outward: 1, sameDir: 0.6, near: 0.1, leaf: 0.2 };
 
 export interface Validator {
   name: string;
@@ -86,7 +88,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
   }
   // Scopes with too many loose parts get sub-assemblies from the joint graph (Layer B).
   let clustered = 0;
-  if (opts.clusters ?? true)
+  if (opts.clusters ?? false)
     for (const [name, sc] of [...scopes]) {
       if (sc.parts.length <= (opts.maxLoose ?? 150)) continue;
       const groups = subassemblies(sc.parts, edges, blk);
@@ -224,8 +226,19 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
       let deg = 0;
       for (const q of uadj[k].keys()) if (s.present[q]) deg++;
       v += W.leaf * (1 / (1 + deg));
+      v += (W.carry ?? 0) * (1 - carried[k] / maxCarried); // carries little → came on late → comes off early
       return v;
     };
+    // What rests on each unit: the units above it reachable through joints going up.
+    const carried = units.map((_, k) => {
+      const seen = new Set([k]), q = [k];
+      while (q.length) {
+        const x = q.pop()!;
+        for (const y of uadj[x].keys()) if (!seen.has(y) && ucentre[y][1] < ucentre[x][1] - 2) seen.add(y), q.push(y);
+      }
+      return seen.size - 1;
+    });
+    const maxCarried = Math.max(1, ...carried);
     const AX: Vec3[] = [[0, -1, 0], [0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
     /** A ring of units blocking one another along d that can leave together (smallest found). */
     const compoundMove = (present: Uint8Array): { ks: number[]; d: Vec3 } | null => {

@@ -67,7 +67,7 @@ function analyse(name, text, opts = {}) {
   const inferred = process.env.INTERLOCK === "0" ? [] : interlocks(nodes, blk);
   if (inferred.length) edges.push(...inferred), (blk = blocking(lib, nodes, edges));
   const tBlock = performance.now() - t;
-  const plan = planAssembly(nodes, edges, blk, { beam: +(process.env.BEAM ?? 4), hierarchy: process.env.HIER !== "0", clusters: process.env.CLUSTER !== "0" });
+  const plan = planAssembly(nodes, edges, blk, { beam: +(process.env.BEAM ?? 4), hierarchy: process.env.HIER !== "0", clusters: process.env.CLUSTER === "1" });
   const types = {};
   for (const e of edges) types[e.type] = (types[e.type] ?? 0) + 1;
   // Assembly order per part.
