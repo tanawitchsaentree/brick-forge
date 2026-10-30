@@ -109,3 +109,5 @@ export function recolor<B extends { color: number }>(bricks: B[], scheme: number
 }
 
 export const SCHEME_COUNT = SCHEMES.length;
+/** The first this many schemes are the F1 team liveries (engine/assembly/f1.ts LIVERIES, colour-led ones). */
+export const LIVERY_SCHEMES = LIVERIES.filter((l) => !NEUTRAL.has(l.main)).length;

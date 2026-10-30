@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { KINDS, type Kind } from "../engine/assembly/kinds";
-import { F1_ANCHOR, LIVERIES, SPECIES, evaluateBuild, kindLabel, type Build } from "../engine/assembly";
+import { SPECIES, evaluateBuild, kindLabel, type Build } from "../engine/assembly";
 import { totalPieces, type Inventory } from "../engine/inventory";
 import type { PlacedBrick } from "../engine/grid";
 import { TIERS, tierLabel, type Tier } from "../engine/style";
-import { corpusIndex, inBand, loadDesign, recolor, SCHEME_COUNT, type CorpusModel } from "../scene/corpus";
+import { corpusIndex, inBand, loadDesign, recolor, LIVERY_SCHEMES, SCHEME_COUNT, type CorpusModel } from "../scene/corpus";
 import { describe, engineDesign, parallel, rigBuild, type Variation } from "../scene/engine";
 import { renderModelImageLDraw } from "../scene/thumbnails";
 import { colorOf } from "../engine/colors";
@@ -114,7 +114,7 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
 
   async function fillNew(t: Tile, k: Kind, models: CorpusModel[], token: number) {
     if (k === "dino" && level !== "technic") return fillDino(t);
-    if (k === "racer" && level !== "technic") return fillRacer(t);
+    if (k === "racer" && level !== "technic") return fillRacer(t, models);
     const pool = level === "technic" ? models.filter((m) => m.tier === "technic").map((m) => ({ ...m, kind: k })) : inBand(models, k, size);
     if (!pool.length) return update(t.id, { status: "failed", label: "No designs to start from" });
     const base = pick(pool);
@@ -162,20 +162,29 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
   }
 
   /**
-   * F1 cars from the 77244 study (engine/assembly/f1.ts): floor and axle lines,
-   * 4-wide tub, sidepods, nose and front wing, rear wing on its pillar, driver,
-   * halo and airbox, wheels outside the body. The corpus F1s are 30–40-part
-   * Creator cars, and stretching them moves the wheels off their axles.
+   * F1 cars from real designers' F1s in the corpus, in a team livery: the hand
+   * recipe (engine/assembly/f1.ts) was 6.5 % connectors where 77244 is 36.5 %,
+   * part mix L1 0.81 against it. Junior: 30190 (Ferrari 150°, 32 parts),
+   * Creator: 392 (194), Advanced and up: 5540 (Formula 1 Racer, 429). Repainted
+   * only: stretching an F1 moved its wheels off their axles.
    */
-  async function fillRacer(t: Tile) {
-    const livery = Math.floor(Math.random() * LIVERIES.length);
-    update(t.id, { label: `${LIVERIES[livery].name}…` });
-    await new Promise((r) => setTimeout(r));
-    const detail = level === "junior" ? 0 : level === "creator" ? 1 : 2;
-    const scale = Math.min(2, size + (level === "expert" || level === "master" ? 1 : 0));
-    const build = await rigBuild("racer", { size: scale, level: detail, seed: (Math.random() * 1e9) | 0, mode: "any", inv: inventory, plan: { ...F1_ANCHOR(scale), livery } });
-    update(t.id, { status: "done", build, from: `${LIVERIES[livery].name} livery · built like Speed Champions 77244`, label: "" });
-    update(t.id, { img: await renderModelImageLDraw(build.bricks, 360) });
+  async function fillRacer(t: Tile, models: CorpusModel[]) {
+    const id = level === "junior" ? "30190-1" : level === "creator" ? "392-1" : "5540-1-55401";
+    const m = models.find((x) => x.id === id);
+    if (!m) return update(t.id, { status: "failed", label: "No F1 design to start from" });
+    update(t.id, { label: `${m.name}…` });
+    // Wheels and tyres keep the designer's colours (5540's tyres aren't plain black,
+    // so a livery repainted them white); one livery per tile across a batch.
+    const all = await loadDesign(m.id);
+    const wheel = (b: (typeof all)[number]) => /^(Wheel|Tyre|Tire)/i.test(PARTS[b.partId]?.name ?? "") || /^(Wheel|Tyre)/.test(PARTS[b.partId]?.category ?? "");
+    const painted = recolor(all.filter((b) => !wheel(b)), t.id % LIVERY_SCHEMES);
+    if (!painted) return update(t.id, { status: "failed", label: "Couldn't repaint it" });
+    const body = painted.bricks[Symbol.iterator]();
+    const r = { name: painted.name, bricks: all.map((b) => (wheel(b) ? b : body.next().value!)) };
+    const set = m.set.replace(/-1$/, "");
+    const build = evaluateBuild("racer", { title: `F1 car · ${r.name}`, rule: `LEGO ${set} (${m.name}), ${r.name} livery`, size, seed: t.id, recipe: `f1-${m.id}-${t.id}` }, r.bricks, inventory);
+    update(t.id, { status: "done", build, from: `LEGO ${set} ${m.name}, in ${r.name} livery`, label: "" });
+    update(t.id, { img: await renderModelImageLDraw(r.bricks, 360) });
   }
 
   async function fillSet(t: Tile, k: Kind, models: CorpusModel[]) {
