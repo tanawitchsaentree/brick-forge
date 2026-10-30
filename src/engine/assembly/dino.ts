@@ -484,7 +484,7 @@ export interface Plan {
   hind: { thigh: [number, number]; shin: [number, number]; foot: number; claws: boolean; stride?: number };
   fore?: { thigh: [number, number]; shin: [number, number]; foot: number; claws: boolean; stride?: number };
   arms?: { len: number; reach: number };
-  /** joint: the shins in the joints' colour (31058's grey hinge legs); main if absent. */
+  /** joint: the knees in the joints' colour (31058's grey hinges); main if absent. */
   colors: { main: number[]; belly: number[]; accent: number[]; joint?: number };
   features: Feature[];
 }
@@ -501,7 +501,7 @@ export const PLANS: Record<Species, Plan> = {
     // curling up 10°/30°/60°, the neck rising 30°+ so the snout is over the shoulders.
     torso: { L: 8, hw: 2, H: 10, pitch: 4 },
     head: { L: 9, hw: 2, H: 6, snout: 3, bend: 25, jawOpen: 45, teeth: true },
-    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [10, 20, 30] },
+    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [8, 14, 20] },
     // A big green thigh, a thin grey shin (31058's hinge-and-Technic legs).
     hind: { thigh: [4, 11], shin: [1, 11], foot: 4, claws: true, stride: 3 },
     arms: { len: 5, reach: 40 },
@@ -1075,7 +1075,8 @@ function buildLeg(
   shin.module(name, () => {
     ankle = rig.ball(shin, out, sz, 1, sc);
     const cols: Col[] = Array.from({ length: sa }, () => ({ z0: sZ0, z1: sZ0 + sW, y0: 0, y1: sLen + 3 }));
-    core(shin, 0, cols, () => pal.joint);
+    // Green, with the knee end in the joints' colour (31058: small grey joints, not grey stilts).
+    core(shin, 0, cols, (_x, y) => (y >= sLen - 1 ? pal.joint : pal.main));
     shin.rect("tile", 0, sZ0, sa, sW, sLen + 3, pal.joint); // the knee's top, tiled
   });
   // Foot: a plate, a heel post up to the ankle socket, claws at the toes.
