@@ -115,6 +115,16 @@ export function connectionGraph(lib: Library, nodes: Node[]): Edge[] {
     for (const f of near(m.mid, m.length / 2 + 40)) {
       if (f.part === m.part) continue;
       if (f.kind === "ball" || f.kind === "finger") continue;
+      // A clip (from the LDraw clip primitives) grips a bar that runs through its centre, whichever way.
+      if (f.kind === "clip" && f.length === 0) {
+        if (Math.abs(m.radius - 4) > 0.8 || lineDist(m.pos, m.axis, f.pos) > 2) continue;
+        const t = dot(sub(f.pos, m.pos), m.axis);
+        if (t < -2 || t > m.length + 2) continue;
+        depth = Math.min(t, m.length - t);
+        touching = false;
+        addEdge(m.part, f.part, "bar", m.axis, "any", f.pos, { rot: true, slide: true }, true);
+        continue;
+      }
       if (Math.abs(dot(m.axis, f.axis)) < 0.98) continue;
       if (lineDist(m.pos, m.axis, f.pos) > 1.5) continue;
       const ov = overlap(m.axis, m.pos, m.end, f.pos, f.end);

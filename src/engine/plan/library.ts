@@ -87,7 +87,8 @@ function gridOffsets(g: string | undefined): Vec3[] {
 const transformSnap = (s: Snap, x: Xf): Snap => {
   const v = apR(x.R, s.axis), k = Math.hypot(...v);
   const stretch = s.scale === "YOnly" || s.scale === "full";
-  return { ...s, pos: apX(x, s.pos), axis: norm(v), length: stretch ? s.length * k : s.length };
+  const widen = s.scale === "full" || s.scale === "ROnly" ? Math.hypot(x.R[0], x.R[3], x.R[6]) : 1; // a unit cylinder or sphere scaled to its radius
+  return { ...s, pos: apX(x, s.pos), axis: norm(v), length: stretch ? s.length * k : s.length, radius: s.radius * widen };
 };
 
 /** A part's triangles (flat x0 y0 z0 x1 … per triangle, part-local) for the narrow-phase collision test. */
@@ -354,22 +355,35 @@ function primitiveSnaps(n: string): Snap[] {
   else if (/^npeghol\w*\.dat$/.test(f)) out = [cyl("F", "R", 6, 1, [0, 1, 0])];
   else if (/^(axle|axlehol\d*|axleho\d+|axl\dhol\w*|axl\dho\d+|axlehole|axl\dhole)\.dat$/.test(f)) out = [{ ...cyl("M", "A", 6, 1, [0, 1, 0], "none", "YOnly"), group: "axle?" }];
   else if (/^(axleend\w*|axl\dend)\.dat$/.test(f)) out = [{ ...cyl("M", "A", 6, 0, [0, 0, 0]), group: AXLE_END }];
+  // Bars and clips, balls and sockets.
+  else if (/^clip\d+\.dat$/.test(f)) out = [{ kind: "clip", gender: "F", shape: "R", radius: 4, length: 0, caps: "none", pos: [0, 0, 0], axis: ax, center: true }];
+  else if (f === "joint8ball.dat") out = [{ kind: "ball", gender: "M", shape: "R", radius: 8, length: 0, caps: "none", pos: [0, 0, 0], axis: ax, center: true }];
+  else if (/^joint8socket\d*\.dat$/.test(f)) out = [{ kind: "ball", gender: "F", shape: "R", radius: 8, length: 0, caps: "none", pos: [0, 0, 0], axis: ax, center: true }];
+  else if (/^[248]-8sphe\.dat$/.test(f)) out = [{ kind: "ball", gender: "M", shape: "R", radius: 1, length: 0, caps: "none", pos: [0, 0, 0], axis: ax, center: true, scale: "full", group: "sphere?" }];
+  else if (f === "4-4cyli.dat") out = [{ ...cyl("M", "R", 1, 1, [0, 1, 0], "none", "full"), group: "cyl?" }];
+  if (/^(stud2|stud2a|stud2-logo\d*)\.dat$/.test(f)) out.push({ kind: "cyl", gender: "F", shape: "R", radius: 4, length: 4, caps: "none", pos: [0, -4, 0], axis: [0, 1, 0], center: false }); // a hollow stud takes a bar
   primCache.set(n, out);
   return out;
 }
 
+const BAR = /^~?(Bar|Antenna|Minifig Lightsaber|Lightsaber|Equipment|Minifig Tool|Weapon)|with Bar|Bar Holder|Handle|Hose Nozzle|Telescope/i;
 const SYSTEM = /^(Brick|Plate|Tile|Slope|Wedge|Technic Brick|Technic Plate|Bracket|Panel|Hinge|Door|Window|Cone|Dish|Arch|Round|Cylinder|Car|Vehicle|Train|Boat|Baseplate|Support|Fence|Bar|Turntable|Container|Box|Roof)/i;
 
 /** A part's connectors from its inherited primitive snaps: axles told from holes, segments merged, undersides added. */
 function partSnapsFromPrimitives(raw: Snap[], box: [Vec3, Vec3], name: string): Snap[] {
   const isAxle = raw.some((s) => s.group === AXLE_END);
-  const snaps = raw.filter((s) => s.group !== AXLE_END && s.length > 0).map((s) => (s.group === "axle?" ? { ...s, gender: (isAxle ? "M" : "F") as Snap["gender"], group: undefined } : s));
+  const bar = BAR.test(name), socket = /Socket|Cup/i.test(name), balls = /Ball|Towball|Joint/i.test(name);
+  const snaps = raw
+    .filter((s) => s.group !== AXLE_END && (s.length > 0 || s.kind !== "cyl"))
+    .filter((s) => (s.group === "cyl?" ? bar && Math.abs(s.radius - 4) <= 0.6 && s.length >= 3 : true)) // a cylinder is a bar only on a bar part
+    .filter((s) => (s.group === "sphere?" ? balls && s.radius >= 4 && s.radius <= 14 : true))
+    .map((s) => (s.group === "axle?" ? { ...s, gender: (isAxle ? "M" : "F") as Snap["gender"], group: undefined } : s.group === "cyl?" ? { ...s, radius: 4, group: undefined } : s.group === "sphere?" ? { ...s, gender: (socket ? "F" : "M") as Snap["gender"], group: undefined } : s));
   // Merge coaxial segments of one kind: an axle drawn in pieces, a hole drawn as two rims.
   const out: Snap[] = [];
   const used = new Set<number>();
   snaps.forEach((s, k) => {
     if (used.has(k)) return;
-    if (s.shape === "R" && s.gender === "M" && s.length <= 4) return void out.push(s); // studs stay single
+    if (s.kind !== "cyl" || (s.shape === "R" && s.gender === "M" && s.length <= 4 && s.radius > 5)) return void out.push(s); // studs, clips, balls stay single
     let lo = 0, hi = s.length; // along s.axis from s.pos
     const proj = (p: Vec3) => (p[0] - s.pos[0]) * s.axis[0] + (p[1] - s.pos[1]) * s.axis[1] + (p[2] - s.pos[2]) * s.axis[2];
     const off = (p: Vec3) => {
@@ -379,7 +393,7 @@ function partSnapsFromPrimitives(raw: Snap[], box: [Vec3, Vec3], name: string): 
     for (let changed = true; changed; ) {
       changed = false;
       snaps.forEach((q, j) => {
-        if (j === k || used.has(j) || q.gender !== s.gender || q.shape !== s.shape || Math.abs(q.radius - s.radius) > 0.5) return;
+        if (j === k || used.has(j) || q.kind !== "cyl" || q.gender !== s.gender || q.shape !== s.shape || Math.abs(q.radius - s.radius) > 0.5) return;
         if (Math.abs(q.axis[0] * s.axis[0] + q.axis[1] * s.axis[1] + q.axis[2] * s.axis[2]) < 0.99 || off(q.pos) > 0.5) return;
         const a = proj(q.pos), b = a + (q.axis[0] * s.axis[0] + q.axis[1] * s.axis[1] + q.axis[2] * s.axis[2]) * q.length;
         const [qa, qb] = a < b ? [a, b] : [b, a];
