@@ -1262,13 +1262,14 @@ function bridge(bricks: PlacedBrick[], taken: Grid, plates: Form[]) {
       for (const k of gs.keys()) anchors.add(k);
       for (const k of gc.keys()) {
         const [x, y, z] = unkey(k);
-        anchors.add(ukey(x, y - 1, z));
+        if (y >= 1) anchors.add(ukey(x, y - 1, z)); // not under the table: the ground is layer 0
       }
       for (const a of anchors) {
         const [ax, ay, az] = unkey(a);
         for (const f of plates)
           for (const u of f.units) {
             const x = ax - u.dx, y = ay - u.dy, z = az - u.dz;
+            if (f.units.some((v) => y + v.dy < 0)) continue; // a bridging plate never goes below the ground
             if (f.units.some((v) => taken.get(x + v.dx, y + v.dy, z + v.dz) & v.mask)) continue;
             // On top: both groups' studs into it. Below: its studs into both.
             const ok = (hits(gs, f, x, y, z, false) && hits(mainStuds, f, x, y, z, false)) || (hits(gc, f, x, y, z, true) && hits(mainCells, f, x, y, z, true));
