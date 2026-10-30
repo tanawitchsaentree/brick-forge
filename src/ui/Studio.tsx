@@ -218,14 +218,23 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     update(t.id, { img: await draw(() => renderModelImageLDraw(build.bricks, 360)) });
   }
 
-  /** The T. rex as LEGO builds it: 31058 (161 pieces) up to Advanced, 31151 (603, far more detail) at Expert and Master. */
+  /**
+   * Dinosaurs as LEGO builds them, rebuilt from the booklets (data/golden): up to Advanced
+   * 31058's three models (T. rex 161, Triceratops 110, Pterodactyl 101 pieces) in turn
+   * across a batch; at Expert and Master 31151's T. rex (603, far more detail).
+   */
   async function fillRex(t: Tile) {
-    update(t.id, { label: "T. rex…" });
     const big = level === "expert" || level === "master";
-    const set = big ? { id: "31151", name: "T. rex", load: () => import("../../data/golden/31151-rex.ldr?raw") } : { id: "31058", name: "Mighty Dinosaurs", load: () => import("../../data/golden/31058-rex.ldr?raw") };
-    const bricks = await loadDesignText(`${set.id}-rex`, () => set.load().then((m) => m.default));
-    const build = evaluateBuild("dino", { title: "T. rex", rule: `LEGO ${set.id} ${set.name}, rebuilt from its booklet`, size, seed: t.id, recipe: `rex-${set.id}` }, bricks, inventory);
-    update(t.id, { status: "done", build, from: `Tyrannosaurus rex, as LEGO ${set.id} builds it`, label: "" });
+    const SMALL = [
+      { id: "31058", key: "rex", name: "T. rex", latin: "Tyrannosaurus rex", load: () => import("../../data/golden/31058-rex.ldr?raw") },
+      { id: "31058", key: "trike", name: "Triceratops", latin: "Triceratops horridus", load: () => import("../../data/golden/31058-trike.ldr?raw") },
+      { id: "31058", key: "ptero", name: "Pterodactyl", latin: "Pteranodon", load: () => import("../../data/golden/31058-ptero.ldr?raw") },
+    ];
+    const set = big ? { id: "31151", key: "rex", name: "T. rex", latin: "Tyrannosaurus rex", load: () => import("../../data/golden/31151-rex.ldr?raw") } : SMALL[t.id % SMALL.length];
+    update(t.id, { label: `${set.name}…` });
+    const bricks = await loadDesignText(`${set.id}-${set.key}`, () => set.load().then((m) => m.default));
+    const build = evaluateBuild("dino", { title: set.name, rule: `LEGO ${set.id}, rebuilt from its booklet`, size, seed: t.id, recipe: `${set.key}-${set.id}` }, bricks, inventory);
+    update(t.id, { status: "done", build, from: `${set.latin}, as LEGO ${set.id} builds it`, label: "" });
     update(t.id, { img: await draw(() => renderModelImageLDraw(bricks, 360)) });
   }
 
