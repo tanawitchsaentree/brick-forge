@@ -44,7 +44,7 @@ const TOOTH_INLINE = "49668"; // Plate 1×1 with Tooth In-line (horn, spike, cla
 const CLAWS = "27261"; // Plate 1×2 with 3 Rocky Claws
 const EYE = "lb-eye"; // brick with side stud + round tile eye
 
-const BLACK = 0, WHITE = 15, DBG = 72, DARK_PINK = 5, DARK_RED = 320;
+const BLACK = 0, WHITE = 15, DBG = 72, DARK_RED = 320;
 
 // ------------------------------------------------------------- teeth (31058)
 // How LEGO's 31058 Mighty Dinosaurs T. rex does a mouth (reverse-engineered from
@@ -494,13 +494,16 @@ export const PLANS: Record<Species, Plan> = {
   rex: {
     title: "T. rex",
     biped: true,
-    torso: { L: 8, hw: 3, H: 9, pitch: 12 },
+    // 31058 Mighty Dinosaurs (booklets/rex/31058-1.jpg): a lean, level body, the head
+    // and the tail end at about one height.
+    torso: { L: 8, hw: 3, H: 7, pitch: 4 },
     // A big head (31058 / 31151: about a third of the body) and the tail held up.
-    head: { L: 7, hw: 2.5, H: 8, snout: 3, bend: -14, jawOpen: 36, teeth: true },
-    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [2, 8, 8] },
-    hind: { thigh: [4, 11], shin: [2, 11], foot: 4, claws: true },
+    head: { L: 9, hw: 2.5, H: 7, snout: 3, bend: 20, jawOpen: 45, teeth: true },
+    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [8, 16, 20] },
+    hind: { thigh: [2, 11], shin: [1, 11], foot: 4, claws: true },
     arms: { len: 5, reach: 40 },
-    colors: { main: [288, 72, 70, 4], belly: [19, 28, 71], accent: [330, 28, 72] },
+    // 31058's colours, always: Green over Tan, the head green all over.
+    colors: { main: [2], belly: [19], accent: [2] },
     features: ["stripe"],
   },
   raptor: {
@@ -894,7 +897,7 @@ function build(plan: Plan, pool: Pool, k: number, pal: Palette, detail: number, 
         core(j, 0, jc, (_x, y) => (y >= 1 ? pal.belly : pal.main));
         roundEnds(j, 0, jc, () => pal.belly, { front: true }); // a rounded chin, not a cut-off slab
         // The tongue: dark red tiles down the middle, the jaw's edges tiled in its own colour.
-        if (Hd.hw >= 2) j.rect("tile", 1, -1, JL - 1, 2, JH, toothed ? DARK_RED : DARK_PINK);
+        if (Hd.hw >= 2) j.rect("tile", 1, -1, JL - 1, 2, JH, DARK_RED); // 31058's dark red mouth, with teeth or without
         j.rect("tile", 0, -Hd.hw, JL, Hd.hw * 2, JH, pal.belly);
       });
       // Nothing of the head under the jaw line in front of the joint.
