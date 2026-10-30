@@ -16,7 +16,7 @@ const read = (p) => {
     return null;
   }
 };
-const lib = makeLibrary(read, "public/ldraw", "booklets/shadow");
+const lib = makeLibrary(read, "public/ldraw", process.env.CONNECTORS === "shadow" ? "booklets/shadow" : null);
 const dir = path.join(ROOT, "bench/results/plan-json");
 fs.mkdirSync(dir, { recursive: true });
 for (const t of process.argv.slice(2)) {

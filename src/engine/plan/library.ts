@@ -1,8 +1,9 @@
 // Part geometry and connectors for assembly planning (docs/engine/assembly-planning.md),
 // in LDraw units (LDU: a stud is 20, a plate 8, a brick 24; −y is up).
 //
-// Connectors come from LDCad's shadow library (github.com/RolandMelkert/LDCadShadowLibrary,
-// CC BY-SA 4.0): SNAP_CYL lines give studs, anti-studs, pins, holes, axles and bars with
+// Connectors come from the LDraw primitives by default (primitiveSnaps, below: the LDraw
+// library's own licence, shippable). Optionally from LDCad's shadow library (github.com/RolandMelkert/LDCadShadowLibrary,
+// CC BY-SA 4.0, local use only — the user's decision): SNAP_CYL lines give studs, anti-studs, pins, holes, axles and bars with
 // their gender, cross-section and axis; SNAP_CLP clips, SNAP_FGR hinge fingers, SNAP_GEN
 // ball joints. A part inherits the connectors of every file it references (stud.dat,
 // connhole.dat, a subpart), moved by that reference's matrix, unless its own shadow
@@ -103,7 +104,12 @@ export interface Library {
  * A library over an LDraw folder and a shadow-library folder, through `read(path)`
  * (null when missing). `ldraw` and `shadow` are folder prefixes.
  */
-export function makeLibrary(read: (path: string) => string | null, ldraw: string, shadow: string): Library {
+/**
+ * `shadow`: a folder with LDCad's shadow library (CC BY-SA 4.0: local use only), or null to read
+ * connectors from the LDraw primitives alone (see `primitiveSnaps`): the LDraw library's own
+ * licence, nothing else, so it can ship.
+ */
+export function makeLibrary(read: (path: string) => string | null, ldraw: string, shadow: string | null): Library {
   const norm1 = (n: string) => n.trim().toLowerCase().replace(/\\/g, "/");
   const fileCache = new Map<string, string | null>();
   const ldFile = (n: string) => {
@@ -131,6 +137,10 @@ export function makeLibrary(read: (path: string) => string | null, ldraw: string
     if (hit) return hit;
     const res = { snaps: [] as Snap[], clear: false };
     ownCache.set(n, res);
+    if (shadow === null) {
+      res.snaps = primitiveSnaps(n);
+      return res;
+    }
     const text = depth < 8 ? shadowFile(n) : null;
     if (text)
       for (const line of text.split(/\r?\n/)) {
@@ -282,7 +292,8 @@ export function makeLibrary(read: (path: string) => string | null, ldraw: string
       let name = text ? (text.split(/\r?\n/)[0] ?? "").replace(/^0\s*/, "").trim() : "";
       const moved = name.match(/^~Moved to\s+(\S+)/i);
       if (moved) name = this.part(moved[1])?.name ?? name; // a stub: the name of what it moved to
-      const info = text && box ? { id: n.replace(/\.dat$/, ""), name, box, snaps: snapsOf(n), flex: FLEX.test(name) } : null;
+      const snaps = text && box ? (shadow === null ? partSnapsFromPrimitives(snapsOf(n), box, name) : snapsOf(n)) : [];
+      const info = text && box ? { id: n.replace(/\.dat$/, ""), name, box, snaps, flex: FLEX.test(name) } : null;
       partCache.set(n, info);
       return info;
     },
@@ -316,4 +327,78 @@ function snapOf(kind: string, p: Record<string, string>): Snap | null {
     return { kind: "ball", gender: p.gender === "F" ? "F" : "M", shape: "R", radius: r, length: 0, caps: "none", pos: [0, 0, 0], axis, center: true, group: p.group };
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Connectors from the LDraw primitives alone (no shadow library). LDraw builds parts from
+// standard primitives whose geometry is fixed by the library's spec: a stud is a cylinder r 6
+// from y 0 to −4; a Technic pin half (connect*, confric*) r 6 over 20; pin holes (peghole*,
+// beamhole*, connhole*, npeghol*) r 6; the axle cross section (axle, axlehol*, axl*hol*) is one
+// LDU along y, stretched by its reference. Which way a cross-section is (an axle or an axle hole)
+// isn't in the primitive: a part with axle ends (axleend*, axl*end) is an axle. Studs are
+// received under a part's footprint, on the stud grid (a brick's underside), for System parts.
+
+const AXLE_END = "axle-end"; // a marker, resolved per part
+const primCache = new Map<string, Snap[]>();
+function primitiveSnaps(n: string): Snap[] {
+  const hit = primCache.get(n);
+  if (hit) return hit;
+  const f = n.replace(/^.*\//, "");
+  const ax: Vec3 = [0, -1, 0];
+  const cyl = (gender: "M" | "F", shape: Shape, radius: number, length: number, pos: Vec3, caps: Snap["caps"] = "none", scale: Snap["scale"] = "none"): Snap => ({ kind: "cyl", gender, shape, radius, length, caps, pos, axis: ax, center: false, scale });
+  let out: Snap[] = [];
+  if (/^(stud|stud2|studa|stud2a|stud-logo\d*|stud2-logo\d*|stud6a?|stud10|stud15|studel|studp01)\.dat$/.test(f)) out = [cyl("M", "R", 6, 4, [0, 0, 0], "one")];
+  else if (/^(connect\d*|confric\d*)\.dat$/.test(f)) out = [cyl("M", "R", 6, 20, [0, 0, 0])];
+  else if (/^(peghole\d*)\.dat$/.test(f)) out = [cyl("F", "R", 6, 2, [0, 2, 0])];
+  else if (/^(beamhol\w*|connhol\w*)\.dat$/.test(f)) out = [cyl("F", "R", 6, 20, [0, 10, 0])];
+  else if (/^npeghol\w*\.dat$/.test(f)) out = [cyl("F", "R", 6, 1, [0, 1, 0])];
+  else if (/^(axle|axlehol\d*|axleho\d+|axl\dhol\w*|axl\dho\d+|axlehole|axl\dhole)\.dat$/.test(f)) out = [{ ...cyl("M", "A", 6, 1, [0, 1, 0], "none", "YOnly"), group: "axle?" }];
+  else if (/^(axleend\w*|axl\dend)\.dat$/.test(f)) out = [{ ...cyl("M", "A", 6, 0, [0, 0, 0]), group: AXLE_END }];
+  primCache.set(n, out);
+  return out;
+}
+
+const SYSTEM = /^(Brick|Plate|Tile|Slope|Wedge|Technic Brick|Technic Plate|Bracket|Panel|Hinge|Door|Window|Cone|Dish|Arch|Round|Cylinder|Car|Vehicle|Train|Boat|Baseplate|Support|Fence|Bar|Turntable|Container|Box|Roof)/i;
+
+/** A part's connectors from its inherited primitive snaps: axles told from holes, segments merged, undersides added. */
+function partSnapsFromPrimitives(raw: Snap[], box: [Vec3, Vec3], name: string): Snap[] {
+  const isAxle = raw.some((s) => s.group === AXLE_END);
+  const snaps = raw.filter((s) => s.group !== AXLE_END && s.length > 0).map((s) => (s.group === "axle?" ? { ...s, gender: (isAxle ? "M" : "F") as Snap["gender"], group: undefined } : s));
+  // Merge coaxial segments of one kind: an axle drawn in pieces, a hole drawn as two rims.
+  const out: Snap[] = [];
+  const used = new Set<number>();
+  snaps.forEach((s, k) => {
+    if (used.has(k)) return;
+    if (s.shape === "R" && s.gender === "M" && s.length <= 4) return void out.push(s); // studs stay single
+    let lo = 0, hi = s.length; // along s.axis from s.pos
+    const proj = (p: Vec3) => (p[0] - s.pos[0]) * s.axis[0] + (p[1] - s.pos[1]) * s.axis[1] + (p[2] - s.pos[2]) * s.axis[2];
+    const off = (p: Vec3) => {
+      const t = proj(p);
+      return Math.hypot(p[0] - s.pos[0] - s.axis[0] * t, p[1] - s.pos[1] - s.axis[1] * t, p[2] - s.pos[2] - s.axis[2] * t);
+    };
+    for (let changed = true; changed; ) {
+      changed = false;
+      snaps.forEach((q, j) => {
+        if (j === k || used.has(j) || q.gender !== s.gender || q.shape !== s.shape || Math.abs(q.radius - s.radius) > 0.5) return;
+        if (Math.abs(q.axis[0] * s.axis[0] + q.axis[1] * s.axis[1] + q.axis[2] * s.axis[2]) < 0.99 || off(q.pos) > 0.5) return;
+        const a = proj(q.pos), b = a + (q.axis[0] * s.axis[0] + q.axis[1] * s.axis[1] + q.axis[2] * s.axis[2]) * q.length;
+        const [qa, qb] = a < b ? [a, b] : [b, a];
+        const gap = s.gender === "F" && s.shape === "R" ? 22 : 1;
+        if (qa > hi + gap || qb < lo - gap) return;
+        lo = Math.min(lo, qa), hi = Math.max(hi, qb), used.add(j), (changed = true);
+      });
+    }
+    used.add(k);
+    out.push({ ...s, pos: [s.pos[0] + s.axis[0] * lo, s.pos[1] + s.axis[1] * lo, s.pos[2] + s.axis[2] * lo], length: hi - lo });
+  });
+  // The underside: anti-studs on the stud grid over the footprint (System parts with a flat bottom).
+  if (SYSTEM.test(name.replace(/^~/, ""))) {
+    const [lo, hi] = box;
+    const nx = Math.round((hi[0] - lo[0]) / 20), nz = Math.round((hi[2] - lo[2]) / 20);
+    if (nx >= 1 && nz >= 1 && nx * nz <= 256) {
+      const x0 = (lo[0] + hi[0]) / 2 - ((nx - 1) * 20) / 2, z0 = (lo[2] + hi[2]) / 2 - ((nz - 1) * 20) / 2;
+      for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) out.push({ kind: "cyl", gender: "F", shape: "S", radius: 6, length: 4, caps: "one", pos: [x0 + i * 20, hi[1], z0 + k * 20], axis: [0, -1, 0], center: false });
+    }
+  }
+  return out;
 }

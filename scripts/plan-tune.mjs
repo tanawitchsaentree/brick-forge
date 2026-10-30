@@ -25,7 +25,7 @@ const read = (p) => {
     return null;
   }
 };
-const lib = makeLibrary(read, "public/ldraw", "booklets/shadow");
+const lib = makeLibrary(read, "public/ldraw", process.env.CONNECTORS === "shadow" ? "booklets/shadow" : null);
 const spearman = (a, b) => {
   const rank = (v) => {
     const o = v.map((x, i) => [x, i]).sort((p, q) => p[0] - q[0]);

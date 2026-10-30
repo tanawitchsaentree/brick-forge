@@ -30,7 +30,8 @@ const read = (p) => {
     return null;
   }
 };
-const lib = makeLibrary(read, "public/ldraw", "booklets/shadow");
+// Connectors from the LDraw primitives (shippable); CONNECTORS=shadow uses LDCad's shadow library (CC BY-SA, local only).
+const lib = makeLibrary(read, "public/ldraw", process.env.CONNECTORS === "shadow" ? "booklets/shadow" : null);
 
 const spearman = (a, b) => {
   const rank = (v) => {

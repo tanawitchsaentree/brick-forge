@@ -12,7 +12,7 @@ const { connectionGraph, contactFallback } = await L("/src/engine/plan/graph.ts"
 const { blocking, interlocks } = await L("/src/engine/plan/blocking.ts");
 const { planAssembly } = await L("/src/engine/plan/planner.ts");
 const read = (p) => { try { return fs.readFileSync(path.join(ROOT, p), "latin1"); } catch { return null; } };
-const lib = makeLibrary(read, "public/ldraw", "booklets/shadow");
+const lib = makeLibrary(read, "public/ldraw", process.env.CONNECTORS === "shadow" ? "booklets/shadow" : null);
 const [id, n = "15"] = process.argv.slice(2);
 const nodes = flatten(fs.readFileSync(path.join(ROOT, "public/corpus", `${id}.mpd`), "latin1"), lib).nodes;
 const e0 = connectionGraph(lib, nodes), edges = e0.concat(contactFallback(lib, nodes, e0));
