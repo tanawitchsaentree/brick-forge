@@ -656,8 +656,11 @@ button.link.danger { color: var(--ds-status-critical-mark); }
 .tile-body h3 { margin: 0; font-size: var(--ds-type-label); color: var(--ds-text-primary); }
 .tile-from { margin: 0; font-size: var(--ds-type-caption); line-height: 1.35; color: var(--ds-text-secondary); }
 .tile .chips { display: flex; flex-wrap: wrap; gap: var(--ds-gap-xs); margin-top: var(--ds-gap-xs); }
-.tile-actions { display: flex; align-items: center; gap: var(--ds-gap-sm); margin-top: var(--ds-gap-md); }
-.tile-actions > :first-child { flex: 1; }
+.tile-actions { display: flex; align-items: center; gap: var(--ds-gap-xs); margin-top: var(--ds-gap-md); }
+/* Three text actions share the row (the first a little more), the ⋯ keeps its size: they fit a 230 px card. */
+.tile-actions > button:not(:last-child) { flex: 1 1 auto; min-width: 0; padding-inline: var(--ds-gap-md); }
+.tile-actions > :first-child { flex-grow: 1.4; }
+.tile-actions > :last-child { flex: none; }
 .details {
   margin-top: var(--ds-gap-md); padding-top: var(--ds-gap-md); border-top: var(--ds-width-hairline) solid var(--ds-line-divider);
   display: flex; flex-direction: column; gap: var(--ds-gap-xs); font-size: var(--ds-type-caption); color: var(--ds-text-secondary);

@@ -263,12 +263,15 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
                       {mine && <Badge tone={buy === 0 ? "positive" : "neutral"}>{buy ? `${buy} to buy` : "you have all"}</Badge>}
                     </div>
                     <div className="tile-actions">
-                      {/* Look first: the main action is the 3D view, where building and editing are. */}
-                      <Button variant="accent" size="sm" onClick={() => setViewing(t.id)} title="Turn it around in 3D before you build it">
-                        View
+                      {/* The main action: onto the baseplate, to change it there. Steps and the 3D look are one click too. */}
+                      <Button variant="accent" size="sm" onClick={() => onBuild(b.bricks)} title="Put it on the baseplate to change it">
+                        Place
                       </Button>
                       <Button variant="glass" size="sm" onClick={() => onInstructions(b.bricks, b.title)} title="Step-by-step instructions">
                         Build it
+                      </Button>
+                      <Button variant="glass" size="sm" onClick={() => setViewing(t.id)} title="Turn it around in 3D">
+                        View
                       </Button>
                       <IconButton variant="ghost" size="sm" onClick={() => setOpen(open === t.id ? null : t.id)} aria-label="Details" aria-expanded={open === t.id}>
                         {open === t.id ? "−" : "⋯"}

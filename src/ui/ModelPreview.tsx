@@ -64,11 +64,11 @@ export function ModelPreview({ title, from, bricks, facts, onInstructions, onEdi
             <p className="preview-facts">{facts.join(" · ")}</p>
           </div>
           <div className="preview-actions">
-            <Button variant="glass" onClick={onEdit} title="Put it on the baseplate to change it">
-              Edit on baseplate
-            </Button>
-            <Button variant="accent" onClick={onInstructions} title="Step-by-step instructions">
+            <Button variant="glass" onClick={onInstructions} title="Step-by-step instructions">
               Build it step by step
+            </Button>
+            <Button variant="accent" onClick={onEdit} title="Put it on the baseplate to change it">
+              Place on baseplate
             </Button>
           </div>
         </footer>
