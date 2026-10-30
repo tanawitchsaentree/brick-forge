@@ -71,19 +71,19 @@ function torso() {
   m.put("3660", "tan", -50, -24, 0, RY90).put("3001", "tan", 0, -24, 0).put("3660", "tan", 50, -24, 0, RYm90);
   // level 2: arm balls at the front sides, green plates
   m.put("14417", "dbg", -60, -32, -10, I, "arm ball").put("14417", "dbg", -60, -32, 10, RY180, "arm ball");
-  m.put("3020", "green", 0, -32, 0).put("3023", "green", 50, -32, 0, RY90);
+  m.put("3020", "green", 0, -32, 0).put("3023", "green", 70, -32, 0, RY90, "under the rear 1x2");
   // level 3: green inverted slopes widen the front to 4, 2x2, 1x2s, the hip brick with its two 10.2 mm balls
   m.put("3660", "green", -60, -56, -10, I).put("3660", "green", -60, -56, 10, RY180);
   m.put("3003", "green", -20, -56, 0).put("3004", "green", 10, -56, 0, RY90);
   m.put("17114", "dbg", 40, -56, 0, RY90, "hip balls").put("3004", "green", 70, -56, 0, RY90);
   // level 4: neck hinges at the front, dark green stripes, green 2x4, the tail ball pointing back
-  m.put("30383", "dbg", -90, -64, -10, RY180, "neck hinge, finger out at the front edge").put("30383", "dbg", -90, -64, 10, RY180, "neck hinge");
+  m.put("30383", "dbg", -80, -64, -10, RY180, "neck hinge, finger at the front edge").put("30383", "dbg", -80, -64, 10, RY180, "neck hinge");
   m.put("3023", "dkgreen", -60, -64, -30).put("3023", "dkgreen", -60, -64, 30);
   m.put("3020", "green", 20, -64, 0).put("14417", "dbg", 70, -64, 0, RYm90, "tail ball");
   // level 5: the back — 2x2 and 45° slopes in front, curved 6x4 wedge behind
   m.put("3003", "green", -60, -88, 0).put("3040b", "green", -50, -88, -30, RY90).put("3040b", "green", -50, -88, 30, RY90);
   m.put("43712", "green", -20, -88, 0, RYm90, "back shell: 2x2 studs at the front, curving down to the tail");
-  m.joints = { armL: [-60, -28, 30], armR: [-60, -28, -30], neck: [-100, -68, 0], hipL: [40, -46, 40], hipR: [40, -46, -40], tail: [90, -60, 0] };
+  m.joints = { armL: [-60, -28, 30], armR: [-60, -28, -30], neck: [-90, -68, 0], hipL: [40, -46, 40], hipR: [40, -46, -40], tail: [90, -60, 0] };
   return m;
 }
 
@@ -107,7 +107,7 @@ function tail1() {
   m.put("3020", "tan", 70, 20, 10, I, "underside");
   m.put("4032a", "dkgreen", 30, 12, 10).put("3022", "green", 70, 12, 10).put("14417", "dbg", 100, 12, 10, RYm90, "ball for tail 2");
   m.put("3020", "green", 50, 4, 10);
-  m.put("14418", "lbg", 30, -4, 0, RY180, "socket").put("3023", "dkgreen", 30, -4, 20).put("3023", "dkgreen", 70, -4, 10, RY90);
+  m.put("14418", "lbg", 30, -4, 0, RY180, "socket").put("3023", "dkgreen", 30, -4, 20).put("3023", "dkgreen", 80, -4, 10, RY90);
   m.put("11153", "green", 50, -28, 0, RY90).put("11153", "green", 50, -28, 20, RY90);
   m.joints = { next: [120, 16, 10] };
   return m;
@@ -136,9 +136,9 @@ function thigh() {
   // flat: x' back, z' down, studs up (−y')
   m.put("30357", "green", 20, 0, 20, RY180, "hip 3x3").put("41769", "green", 70, 0, 10, RY90);
   m.put("92013", "dkgreen", -10, -24, -10, RY90, "hip socket").put("3062b", "black", 20, -24, -20);
-  m.put("3010", "dkgreen", 40, -24, 20).put("92013", "dkgreen", 100, -24, 10, RYm90, "ankle socket");
+  m.put("3010", "dkgreen", 50, -24, 0, I, "on the 3x3 and the wedge's stud row").put("92013", "dkgreen", 110, -24, 10, RYm90, "ankle socket");
   m.put("30357", "green", 20, -32, 20, RY180).put("41770", "green", 70, -32, 10, RY90);
-  m.joints = { hip: [-10, -14, -46], ankle: [100, -14, 46] };
+  m.joints = { hip: [-10, -14, -46], ankle: [110, -14, 46] };
   turn(m, Rx(-90)); // (x', y', z') → (x', z', −y'): z' down, studs → +Z
   return rebase(m, m.joints.hip);
 }
@@ -180,12 +180,12 @@ function head() {
   // core now spans x −112..8, y −10..10 (top at −10), z ±20; side studs at x −92 and −12
   // top: 2x2 on the 4 studs, the eye plates behind, the neck socket, brow wedges, the wheel-arch brow, curved tops
   m.put("3003", "green", -44, -34, 0);
-  m.put("11458", "dbg", -2, -18, 10).put("11458", "dbg", -2, -18, -10);
+  m.put("11458", "dbg", -4, -18, 10).put("11458", "dbg", -4, -18, -10); // on the rear 26604s' top studs (x −14)
   for (const z of [1, -1]) {
-    m.put("4274", "lbg", 8, -24, 18 * z, z > 0 ? RY90 : ori(Z, Y, nX));
-    m.put("58176", "torange", 8, -24, 24 * z, z > 0 ? oriYZ(nZ, Y) : oriYZ(Z, Y), "eye");
+    m.put("4274", "lbg", 6, -24, 10 * z, z > 0 ? RY90 : ori(Z, Y, nX));
+    m.put("58176", "torange", 6, -24, 28 * z, z > 0 ? oriYZ(nZ, Y) : oriYZ(Z, Y), "eye");
   }
-  m.put("14704", "lbg", -12, -26, 0, RYm90, "neck socket").put("3023", "green", -12, -34, 0, RY90);
+  m.put("14704", "lbg", -14, -26, 0, RYm90, "neck socket").put("3023", "green", -14, -34, 0, RY90);
   m.put("15068", "green", -4, -42, 0, I, "on the arch's high studs");
   m.put("43722", "dkgreen", -94, -18, 20, RY90).put("43723", "dkgreen", -94, -18, -20, RY90);
   m.put("47755", "dkgreen", -44, -42, 0, RY90, "brow ridge");
@@ -195,12 +195,12 @@ function head() {
   m.put("15208", "white", -120, 0, 0, front, "front teeth").put("3023", "green", -128, 0, 0, front);
   // side wall (left), SNOT on the 26604 side studs; mirrored below for the right
   const wall = mod("w");
-  wall.put("15208", "white", -92, 0, 28, studsPZ_tDown, "upper teeth").put("3023", "dkgreen", -52, 0, 28, studsPZ);
-  wall.put("60897", "tan", -12, 0, 28, studsPZ_tDown, "jaw hinge clip");
-  wall.put("15068", "green", -92, -10, 28, oriYZ(nZ, X)).put("41769", "green", -32, -10, 36, wedgePZ, "cheek");
+  wall.put("15208", "white", -84, 0, 28, studsPZ_tDown, "upper teeth, on the front 26604 side stud (x −94)").put("3023", "dkgreen", -44, 0, 28, studsPZ);
+  wall.put("60897", "tan", -14, 0, 28, studsPZ_tDown, "jaw hinge clip, on the rear 26604 side stud");
+  wall.put("15068", "green", -84, -10, 28, oriYZ(nZ, X)).put("41769", "green", -24, -10, 36, wedgePZ, "cheek");
   for (const q of [...wall.parts, ...mirror(wall, "w2").parts]) m.parts.push(q);
-  m.put("87994", "black", -12, 20, -30, ori(X, Z, nY), "jaw hinge bar");
-  m.joints = { neck: [8, -22, 0], jaw: [-12, 20, 0] };
+  m.put("87994", "black", -14, 20, -30, ori(X, Z, nY), "jaw hinge bar");
+  m.joints = { neck: [6, -22, 0], jaw: [-14, 20, 0] };
   return rebase(m, m.joints.neck);
 }
 
@@ -210,11 +210,11 @@ function jaw() {
   for (const x of [-20, -60, -100]) m.put("52107", "dktan", x, 0, 0);
   m.put("2431", "dkred", -60, -8, 0, I, "tongue");
   const side = mod("s");
-  side.put("15208", "white", -80, 12, 18, studsPZ_tUp, "lower teeth").put("15208", "white", -40, 12, 18, studsPZ_tUp, "lower teeth");
-  side.put("2431", "tan", -60, 12, 26, studsPZ).put("60897", "tan", -10, 12, 18, studsPZ_tUp, "hinge clip");
-  side.put("11477", "tan", -120, 12, 10, oriYZ(nZ, X), "chin");
+  side.put("15208", "white", -80, 10, 18, studsPZ_tUp, "lower teeth").put("15208", "white", -40, 10, 18, studsPZ_tUp, "lower teeth");
+  side.put("2431", "tan", -60, 10, 26, studsPZ).put("60897", "tan", -10, 10, 18, studsPZ_tUp, "hinge clip");
+  side.put("11477", "tan", -120, 10, 10, oriYZ(nZ, X), "chin");
   for (const q of [...side.parts, ...mirror(side, "s2").parts]) m.parts.push(q);
-  m.joints = { hinge: [-10, -8, 0] };
+  m.joints = { hinge: [-10, -10, 0] };
   return rebase(m, m.joints.hinge);
 }
 
