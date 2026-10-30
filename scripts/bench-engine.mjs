@@ -156,7 +156,12 @@ try {
     const canon = r.bricks.map((b) => [b.partId, b.color, b.rot, b.x, b.y, b.z, b.place ? b.place.map((v) => +v.toFixed(4)) : null]);
     row.outHash = crypto.createHash("sha1").update(JSON.stringify(canon)).digest("hex").slice(0, 16);
     res.push(row);
-    if (OUT) fs.writeFileSync(path.join(OUT, `out-${id}.json`), JSON.stringify(r.bricks));
+    if (OUT) {
+      fs.writeFileSync(path.join(OUT, `out-${id}.json`), JSON.stringify(r.bricks));
+      // The made-to-measure parts' definitions, so a picture can draw them (scripts/render-compare.mjs).
+      const madeDefs = [...new Set(r.bricks.map((b) => b.partId))].filter((p) => /^made-/.test(p)).map((p) => PARTS[p]);
+      fs.writeFileSync(path.join(OUT, `out-${id}.made.json`), JSON.stringify(madeDefs));
+    }
   }
   const avg = (k) => +(res.reduce((s, r) => s + r[k], 0) / res.length).toFixed(3);
   if (RUN) {

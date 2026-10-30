@@ -22,6 +22,10 @@ const TIER_WEIGHTS: Record<Tier, Partial<SculptOptions>> = {
 };
 // The 1,500 most used forms: 7× faster on the benchmark and no worse (docs/engine.md).
 for (const w of Object.values(TIER_WEIGHTS)) w.MAX_FORMS = 1500;
+// S8 (program v2, docs/engine/track-s.md): no unheld part resting on a part with no
+// stud into it. Passed the paired gate (14 of 19, every level up; validated on a
+// disjoint set first). Technic isn't gated, so it keeps the old behaviour.
+for (const [tier, w] of Object.entries(TIER_WEIGHTS)) if (tier !== "technic") w.NO_FLOAT = "onSmooth";
 import { makeBlobPart, residualBlobs } from "./madeParts";
 import { connections, components } from "./connect";
 import { installShapeBits, iou, partCells, vkey, voxelize, type PartShape } from "./shape";

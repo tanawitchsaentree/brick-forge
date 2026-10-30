@@ -20,9 +20,14 @@ const rows = [];
 for (const id of ids.split(",")) {
   const mpd = fs.readFileSync(path.join(ROOT, "public/corpus", `${id}.mpd`), "latin1");
   const builds = cols.map((c) => JSON.parse(fs.readFileSync(path.join(c.split(":")[0], `out-${id}.json`), "utf8")));
-  const imgs = await p.evaluate(async ({ mpd, id, builds }) => {
+  const madeFile = (c) => path.join(c.split(":")[0], `out-${id}.made.json`);
+  const made = cols.flatMap((c) => (fs.existsSync(madeFile(c)) ? JSON.parse(fs.readFileSync(madeFile(c), "utf8")) : []));
+  const imgs = await p.evaluate(async ({ mpd, id, builds, made }) => {
     const { importLDraw } = await import("/src/engine/ldrawImport.ts");
     const { PARTS } = await import("/src/engine/parts.ts");
+    // The made-to-measure parts, registered as the app does (scene/ldraw makeParts).
+    const { makeParts } = await import("/src/scene/ldraw.ts");
+    await makeParts(made.map((def) => ({ id: def.id, name: def.name, ldraw: def.made, inline: true, def })));
     const T = await import("/src/scene/thumbnails.ts");
     const real = importLDraw(mpd, id).bricks;
     const all = [real, ...builds];
@@ -32,14 +37,14 @@ for (const id of ids.split(",")) {
       res.push({ url: await T.renderModelImageLDraw(known, 420, { azimuth: 0.7, elevation: 0.45 }), n: bricks.length, made: bricks.length - known.length });
     }
     return res;
-  }, { mpd, id, builds });
+  }, { mpd, id, builds, made });
   rows.push({ id, imgs });
 }
 // One HTML page with the pictures in a grid, screenshotted.
 const labels = ["designer", ...cols.map((c) => c.split(":")[1] ?? c)];
 const html = `<body style="margin:0;font:13px system-ui;background:#fff"><table style="border-collapse:collapse">
 <tr><th></th>${labels.map((l) => `<th style="padding:4px">${l}</th>`).join("")}</tr>
-${rows.map((r) => `<tr><td style="padding:4px;writing-mode:vertical-rl">${r.id}</td>${r.imgs.map((im) => `<td style="padding:2px;text-align:center"><img src="${im.url}" width="300"><br>${im.n} pcs${im.made ? ` (${im.made} made, not drawn)` : ""}</td>`).join("")}</tr>`).join("")}
+${rows.map((r) => `<tr><td style="padding:4px;writing-mode:vertical-rl">${r.id}</td>${r.imgs.map((im) => `<td style="padding:2px;text-align:center"><img src="${im.url}" width="300"><br>${im.n} pcs${im.made ? ` (${im.made} not drawn)` : ""}</td>`).join("")}</tr>`).join("")}
 </table></body>`;
 const q = await b.newPage();
 await q.setContent(html);
