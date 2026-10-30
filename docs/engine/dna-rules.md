@@ -59,3 +59,21 @@ Pictures (`/tmp/prev/feat-compare.png`): with features first, the cottage has it
 Next:
 1. Roofs from rules, on the corpus's 34 houses.
 2. A DNA that proposes window and door slots itself (spacing, height over the floor, what they sit on), so the oracle can go.
+
+## Step 4: why roofs look worst (counted)
+
+`scripts/roof-parts.mjs`: parts with open sky over them in the upper 40 % of a house.
+
+| | designers (35 houses, 1,455 roof parts) | ours (31009, 112 roof parts) |
+|---|---|---|
+| slope / curve / wedge | **68.4 %** | 21.4 % |
+| tile | 7.2 % | **48.2 %** |
+| plate, studs up | 12.9 % | 20.5 % |
+| most used | Slope 45 2×4 (246), 2×2 (205), 2×8 (118), 2×1 (86), Slope 33 3×4 (72); Slope 45 2×2 double convex (44, ridges) | Tile 1×1 corner round (23), Tile 1×1 (15), Tile 1×1 round (10) |
+| placed by | — | greedy 63, **capStuds 39**, finishTops 8, bridge 2 |
+
+It isn't the vocabulary: all 38 of 31009's roof slopes are among the 1,500 forms tried. Nor the score at the designer's spot: replayed there, the sculptor picks the designer's slope or a bigger part (17 of 38 outranked, all by parts covering 416–456 cells with no air against the slope's 208–304).
+
+What happens: the greedy lays slopes but not the next row over each one's studded top strip, which is how designers stack a roof (rows stepping up, each covering the one below, double slopes on the ridge). The studs left showing are then capped by capStuds one at a time with 1×1 corner tiles, which is the scattered look.
+
+A roof has a grammar: rows of slopes stepping up, a ridge, gable ends. A part-at-a-time fill doesn't know it. This is where the DNA idea applies most directly. Next: a roof generator from rules mined from these 35 houses, under the sculptor's walls, measured on held-out houses (roof slope share, pieces, PARITY_v2, pictures).
