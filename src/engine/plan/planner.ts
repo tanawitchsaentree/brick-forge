@@ -207,8 +207,10 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
     }
     void comps; // (a scope in several pieces still can't split a piece further)
 
-    interface State { present: Uint8Array; left: number; seq: { k: number; d: Vec3; forced?: string; split?: boolean }[]; cost: number; last: number; lastDir: Vec3 | null }
-    let beam: State[] = [{ present: full.slice(), left: units.length, seq: [], cost: 0, last: -1, lastDir: null }];
+    interface State { present: Uint8Array; h: number; left: number; seq: { k: number; d: Vec3; forced?: string; split?: boolean }[]; cost: number; last: number; lastDir: Vec3 | null }
+    // Zobrist keys: the set of units taken off, as an XOR of a random word per unit.
+    const zob = units.map((_, k) => (Math.imul(k + 1, 2654435761) ^ Math.imul(k + 7, 40503)) >>> 0);
+    let beam: State[] = [{ present: full.slice(), h: 0, left: units.length, seq: [], cost: 0, last: -1, lastDir: null }];
     const score = (s: State, k: number, d: Vec3) => {
       const c = ucentre[k];
       let v = 0;
@@ -249,7 +251,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
           taken++;
           const present = s.present.slice();
           present[c.k] = 0;
-          next.push({ present, left: s.left - 1, seq: [...s.seq, { k: c.k, d: c.d, split }], cost: s.cost - c.v + (split ? W.split ?? 2 : 0), last: c.k, lastDir: c.d });
+          next.push({ present, h: (s.h ^ zob[c.k]) >>> 0, left: s.left - 1, seq: [...s.seq, { k: c.k, d: c.d, split }], cost: s.cost - c.v + (split ? W.split ?? 2 : 0), last: c.k, lastDir: c.d });
         }
         if (!taken && s === beam[0] && !next.length) {
           // Stuck: relax — the least-blocked unit comes off anyway, noted.
@@ -266,7 +268,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
           else violations.disconnected++;
           const present = s.present.slice();
           present[best] = 0;
-          next.push({ present, left: s.left - 1, seq: [...s.seq, { k: best, d: bestD, forced: why }], cost: s.cost + 10, last: best, lastDir: bestD });
+          next.push({ present, h: (s.h ^ zob[best]) >>> 0, left: s.left - 1, seq: [...s.seq, { k: best, d: bestD, forced: why }], cost: s.cost + 10, last: best, lastDir: bestD });
         }
       }
       // Validators on the partial builds every few removals.
@@ -280,7 +282,8 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
       const seen = new Set<string>();
       beam = [];
       for (const s of next) {
-        const key = s.seq.map((x) => x.k).sort((a, b) => a - b).join(",");
+        // Same parts left and the same last unit (the score depends on it): one state.
+        const key = `${s.h}:${s.last}`;
         if (seen.has(key)) continue;
         seen.add(key);
         beam.push(s);

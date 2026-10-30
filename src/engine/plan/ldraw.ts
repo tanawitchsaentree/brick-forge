@@ -13,6 +13,8 @@ export interface Node {
   /** Sub-model chain from the main model down, with an instance number: "chassis#1/wheel#3". */
   path: string;
   step: number;
+  /** Where it comes from: the FILE section (or "<main>") and the 0-based line in the whole text. */
+  src: { file: string; line: number };
 }
 
 export interface Flat {
@@ -27,14 +29,17 @@ const embedded = (lines: string[]) => lines.some((l) => /^\s*0\s+!LDRAW_ORG\s+.*
 
 export function flatten(text: string, lib: Library): Flat {
   const files = new Map<string, string[]>();
+  const firstLine = new Map<string, number>(); // text line of each section's first body line
   let cur: string[] | null = null, main = "";
   const lines = text.split(/\r?\n/);
-  for (const line of lines) {
+  for (let li = 0; li < lines.length; li++) {
+    const line = lines[li];
     const m = line.match(/^\s*0\s+FILE\s+(.+?)\s*$/i);
     if (m) {
       const name = m[1].toLowerCase();
       cur = [];
       files.set(name, cur);
+      firstLine.set(name, li + 1);
       if (!main) main = name;
       continue;
     }
@@ -46,9 +51,11 @@ export function flatten(text: string, lib: Library): Flat {
       main = "<main>";
       cur = [];
       files.set(main, cur);
+      firstLine.set(main, li);
     }
     cur?.push(line);
   }
+  const lineNo = (file: string, k: number) => (firstLine.get(file) ?? 0) + k;
   const nodes: Node[] = [];
   const unknown: Record<string, number> = {};
   const flex: Record<string, number> = {};
@@ -57,8 +64,9 @@ export function flatten(text: string, lib: Library): Flat {
   let step = 0;
   const walk = (name: string, X: Xf, color: number, path: string, depth: number, replay: boolean) => {
     if (depth > 20) return;
-    for (const line of files.get(name) ?? []) {
-      const t = line.trim().split(/\s+/);
+    const body = files.get(name) ?? [];
+    for (let ln = 0; ln < body.length; ln++) {
+      const t = body[ln].trim().split(/\s+/);
       if (t[0] === "0" && /^(STEP|ROTSTEP)$/i.test(t[1] ?? "")) {
         if (!replay) step++;
         continue;
@@ -90,7 +98,7 @@ export function flatten(text: string, lib: Library): Flat {
         flex[info.id] = (flex[info.id] ?? 0) + 1;
         continue;
       }
-      nodes.push({ i: nodes.length, id: info.id, color: c, xf: W, path, step });
+      nodes.push({ i: nodes.length, id: info.id, color: c, xf: W, path, step, src: { file: name, line: lineNo(name, ln) } });
     }
   };
   walk(main, { R: [1, 0, 0, 0, 1, 0, 0, 0, 1], t: [0, 0, 0] }, 7, "", 0, false);
