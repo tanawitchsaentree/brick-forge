@@ -79,28 +79,55 @@ const { torso } = (() => {
 // Surfaces: a part "on" surface S has its LDraw origin at S − (its height below the origin):
 // plates S−8, bricks S−24, studless curves (11477, 15068, 85984, 29119) S.
 
-Object.assign(SYM, { 26601: "a", 4304: "x", 30414: "x", 87087: "x", 14417: "x", 80563: "x" });
+Object.assign(SYM, { 26601: "a", 25269: "a", 4304: "x", 30414: "x", 87087: "x", 14417: "x", 80563: "x" });
 
 const SIDES = [-1, 1]; // −Z (right) and +Z (left)
 const side = (s) => (s < 0 ? I : RY180); // a part whose feature points to its −Z: towards that side
 
-// The flank panel (steps 43–52, again 54–63): three olive 2×4 plates, a row of dark green
-// wedged curves along the top edge rolling over the back, dark green tile strips hanging down
-// ("scales"), quarter tiles at their ends, a black 2×2 plate under the front corner.
-// Built flat, studs up (−y'), x' = down the flank, z' = along the body (+z' to the rear);
-// stood up later with its studs facing out.
+// the axis-aligned rotation that takes each local vector a[i] to the world direction b[i]
+const ROTS = (() => { const V = [X, Y, Z, nX, nY, nZ], out = [];
+  for (const px of V) for (const py of V) { const pz = cross(px, py); if (pz.some((v) => v !== 0) && px.every((v, i) => v * py[i] === 0)) out.push(ori(px, py, pz)); }
+  return out; })();
+const dir = (v) => v.map(Math.sign);
+function rotTo(...pairs) {
+  for (const R of ROTS) if (pairs.every(([a, b]) => dir(app(R, a)).every((v, i) => v === Math.sign(b[i])))) return R;
+  throw new Error("no rotation " + JSON.stringify(pairs));
+}
+
+// The flank panel (steps 43–52; the second one, steps 54–63, is its mirror image). Built in place on the
+// left (+Z) wall, studs out: three olive 2x4 plates stood on end side by side, a black 2x2 and an olive
+// cut-corner 2x2 at the front; a row of dark green curves along the top edge rolls over the back; dark
+// green 1x2 tiles hang down between bare olive studs ("scales"), quarter tiles at their tips.
+// Panel grid: v = column along the body (v1 rear x 50 … v8 front x -90), u = row up the wall
+// (u1 y -74 … u4 y -134, u5 = the curves' overhang above the top edge). Its anti-studs (inner face z 40)
+// sit on the 1x4 side-stud brick's four studs (step 19, x -70…-10, y -94 = row u2).
+const PX = [0, 50, 30, 10, -10, -30, -50, -70, -90], PY = [0, -74, -94, -114, -134, -154];
+const Rpan = oriYZ(nZ, X); //   plate studs → +Z, plate length (local x) → up (−Y)
+const Rcur = ori(X, nZ, Y); //  curved slope: studless face → +Z, its length (local z) → down the wall
+const R26 = rotTo([Y, nZ], [[1, 0, -1], [-1, 1, 0]]); // cut corner (local +x −z) → front-bottom
+const RQ_DOWN = rotTo([Y, nZ], [[1, 0, -1], [-1, 1, 0]]); // quarter tile: round corner (local +x −z) → front-bottom
+const RQ_UP = RQ_DOWN;
 function flank() {
   const m = mod("flank");
-  // three olive 2x4 plates: two along the top edge, one staggered below
-  m.put("3020", "olive", 20, 0, 40, RY90, "olive 2x4").put("3020", "olive", 20, 0, 120, RY90, "olive 2x4").put("3020", "olive", 60, 0, 80, RY90, "olive 2x4");
-  // top edge (steps 43–50): a wedged curve at each end, three 2x2 curves between, all rolling over the edge (x' < 0)
-  m.put("29119", "dkgreen", 0, 0, 10, RY90, "edge wedge").put("29120", "dkgreen", 0, 0, 150, RY90, "edge wedge");
-  for (const z of [40, 80, 120]) m.put("15068", "dkgreen", 0, -4.5, z, I, "edge curve");
-  // the scales: 1x2 tiles down the flank, quarter tiles at their tips
-  for (const z of [50, 70, 90, 110]) m.put("3069b", "dkgreen", 40, -8, z, I, "scale");
-  for (const [x, z] of [[30, 10], [30, 30], [30, 130], [30, 150], [70, 90], [70, 110]]) m.put("25269", "dkgreen", x, -8, z, I, "scale tip");
-  m.put("26601", "olive", 80, -8, 60, I, "cut corner").put("3070b", "dkgreen", 70, -16, 50, I).put("25269", "dkgreen", 70, -16, 70, I);
-  m.put("3022", "black", 60, 8, 100, I, "under the rear corner");
+  const at = (v, u) => [(PX[Math.floor(v)] + PX[Math.ceil(v)]) / 2, (PY[Math.floor(u)] + PY[Math.ceil(u)]) / 2];
+  const P = (id, c, v, u, z, R, note) => { const [x, y] = at(v, u); m.put(id, c, x, y, z, R, note); };
+  // step 43–47: the plates (a curve bridges each joint, so they hold together before the panel is hung)
+  P("3020", "olive", 1.5, 2.5, 48, Rpan, "panel plate (v1-2)");
+  P("3020", "olive", 3.5, 2.5, 48, Rpan, "panel plate (v3-4)");
+  P("3020", "olive", 5.5, 2.5, 48, Rpan, "panel plate (v5-6)");
+  // steps 43–48, 50: the top edge, rolling over the back: wedged curve at each end, 2x2 curves between
+  P("29119", "dkgreen", 1, 4.5, 48, Rcur, "top edge, rear end");
+  for (const v of [2.5, 4.5, 6.5]) P("15068", "dkgreen", v, 4.5, 48, Rcur, "top edge");
+  // step 49: black 2x2 under the front of the top edge; step 51: olive cut-corner 2x2 below it
+  P("3022", "black", 7.5, 3.5, 48, Rpan, "front corner, under the last curve");
+  P("26601", "olive", 7.5, 1.5, 48, R26, "front bottom corner (cut corner at u1 v8)");
+  P("29120", "dkgreen", 8, 4.5, 48, Rcur, "top edge, front end");
+  // step 50: the scales, quarter tiles beside the curves, a 1x1 tile; step 52: quarter tiles at the scale tips
+  for (const v of [2, 4, 6, 8]) P("3069b", "dkgreen", v, 2.5, 56, Rpan, "scale");
+  for (const v of [1, 3, 5]) P("25269", "dkgreen", v, 3, 56, RQ_UP, "quarter tile under the curve");
+  for (const v of [2, 4, 6]) P("25269", "dkgreen", v, 1, 56, RQ_DOWN, "scale tip");
+  P("25269", "dkgreen", 7, 2, 56, RQ_DOWN, "scale tip");
+  P("3070b", "dkgreen", 7, 3, 56, Rpan);
   return m;
 }
 
@@ -174,40 +201,57 @@ function torso() {
   m.put("80563", "dbg", 20, -118, -10, oriYZ(nZ, X), "chest joint socket").put("44225", "lbg", 20, -118, 5, ori(X, nZ, Y), "chest joint disk");
   for (const [x, s] of [[0, -1], [40, -1], [20, 1]]) m.put("61332", "black", x, -118, 20 * s, oriYZ(Y, nX));
   m.put("3004", "tan", -90, -152, 0, RY90);
-  // step 35: four side-stud plates on the 1x4 technic bricks
-  for (const s of SIDES) m.put("4304", "black", 20, -144, 30 * s, side(s));
+  // orientations used below
+  const RSL = RY180, RSR = I; //               spine slopes, high edge on the centre line
+  const RCAP = I, RHUMP = I;
+  // step 35: four side-stud plates, two behind each red/tan stack (booklet p.24–25): one on the 1x4 technic
+  // brick's rear studs, one on the rear deck riser; raised row with the side studs outside
+  for (const s of SIDES) m.put("4304", "black", 40, -144, 30 * s, side(s)).put("4304", "black", 80, -144, 30 * s, side(s), "step 35");
 
-  // ---------- steps 36–40: the back
-  m.put("3020", "olive", 0, -152, 0, RY90, "bridges the two 1x4 technic bricks");
-  for (const x of [40, 80, 120, 160]) m.put("3020", "dkgreen", x, -112, 0, RY90);
-  for (const [x, y] of [[-20, -160], [-20, -168], [140, -120]]) m.put("41769", "dkgreen", x, y, -40, RY90, "back wedge").put("41770", "dkgreen", x, y, 40, RY90, "back wedge");
-  for (const x of [-40, 0]) for (const s of SIDES) m.put("3069b", "dkgreen", x, -176, 50 * s);
-  m.put("80545", "dkgreen", 100, -144, 0, I, "hump");
-  for (const x of [50, 150, 170]) m.put("85984", "dkgreen", x, -112, 0, RY90, "spine (step 39)");
-  m.put("3022", "black", 20, -144, 0).put("15068", "dkgreen", 20, -148.5, 0, I);
-  
-  for (const s of SIDES) m.put("4304", "black", -60, -120, 30 * s, side(s), "step 35").put("85984", "dkgreen", -60, -120, 30 * s, I, "spine");
-  m.put("3010", "olive", -60, -136, 10, I).put("85984", "dkgreen", -60, -112, -10, I, "spine");
-  for (const s of SIDES) m.put("6005", "dkgreen", -110, -128, 30 * s, RY90, "shoulder arch").put("6141", "olive", -110, -128, 30 * s);
-  m.put("47753", "dkgreen", -140, -152, 0, RY90, "front of the back, over the chest");
-  m.put("3710", "dkgreen", 140, -128, -50).put("3710", "dkgreen", 140, -128, 50).put("3710", "dkgreen", 140, -136, 50);
-  m.put("3070b", "dkgreen", 170, -136, -50).put("3070b", "dkgreen", 170, -144, 50).put("3069b", "dkgreen", 120, -136, -50);
-  for (const s of SIDES) m.put("3040b", "dkgreen", -110, -152, 30 * s, RYm90, "INF: shoulder point, on the arch's stud");
+  // ---------- step 20 (parts listed in the back) and steps 36–38: the rear deck, raised in plates from the tail
+  // socket / 1x2 / 1x1 deck (y -104) to the 4304s' level (y -144); the rear 4304s stand on it
+  m.put("3020", "dkgreen", 100, -112, 0, RY90, "step 20: rear deck").put("3710", "dkgreen", 130, -112, 0, RY90, "step 20: rear deck, last row");
+  m.put("3710", "dkgreen", 90, -120, 0, RY90, "step 37").put("3020", "dkgreen", 120, -120, 0, RY90, "step 20: rear deck");
+  m.put("3020", "dkgreen", 100, -128, 0, RY90, "step 36: rear riser (carries the rear 4304s)").put("3710", "dkgreen", 130, -128, 0, RY90, "step 37");
+  m.put("3020", "dkgreen", 120, -136, 0, RY90, "step 38: rear riser");
+  m.put("41770", "dkgreen", 120, -144, 0, RY180, "step 38: rear riser, across").put("41769", "dkgreen", 140, -152, 0, I, "step 38: rear end of the deck, across");
+  for (const s of SIDES) m.put("3070b", "dkgreen", 150, -160, 30 * s, I, "step 20: tile on the rear corner");
+  m.put("3010", "olive", 70, -128, 0, RY90, "INF: under the rear 4304s, behind the 1x4 technic bricks");
+  // ---------- steps 36–39: the back. Olive 2x4 between the 4304 rows, two wedge-plate pairs as the deck
+  // (stud rows on the spine, tapered edges outside), the 85984 ridge on the spine, the double wedge as the hump.
+  m.put("3020", "olive", 60, -144, 0, I, "step 36: between the two 4304 rows");
+  m.put("41769", "dkgreen", 0, -152, -20, RYm90, "step 37 deck: arch ledges, tan plates, 4304s; narrows to the rear").put("41770", "dkgreen", 0, -152, 20, RYm90, "step 37 deck");
+  m.put("41769", "dkgreen", 80, -152, 20, RY90, "step 36 deck: narrows to the front (a notch at the joint shows the 4304 studs)").put("41770", "dkgreen", 80, -152, -20, RY90, "step 36 deck");
+  for (const x of [-20, 20, 60]) m.put("85984", "dkgreen", x, -152, 10, RSL, "step 39: spine ridge").put("85984", "dkgreen", x, -152, -10, RSR, "step 39: spine ridge");
+  m.put("80545", "dkgreen", 120, -184, 0, RHUMP, "step 39: hump");
+  // step 38: shoulder arches, foot on the side-stud brick's front stud, ledge behind under the step-37 deck
+  for (const s of SIDES) m.put("6005", "dkgreen", -30, -152, 30 * s, RY90, "step 38: shoulder arch, ledge under the deck");
+  // step 40: the chest cover; the curved cap between the shoulders; a tile on the tan 1x2 brick
+  m.put("47753", "dkgreen", -140, -152, 0, RY90, "step 40: over the chest");
+  m.put("3021", "black", -50, -136, 0, I, "step 37: black 2x3, front centre between the shoulders (on the slopes' studs)");
+  m.put("3022", "black", -60, -144, 0, I, "step 40: on the 2x3").put("15068", "dkgreen", -60, -144, 0, RCAP, "step 40: between the shoulders");
+  m.put("3069b", "dkgreen", -90, -160, 0, RY90, "step 40: on the tan 1x2 brick");
 
-  // ---------- steps 41–42: shoulder plates on the chest's side studs
+  // INF (no place in steps 36–42 of the booklet): two slopes on the 1x6 technic brick carry the step-40 cap;
+  // two round plates in the cavity under it, a tile in each arch's hollow
+  for (const z of [-10, 10]) m.put("3040b", "dkgreen", -50, -128, z, RYm90, "INF: under the step-40 cap");
+  m.put("6141", "olive", -70, -112, -10, I, "INF: in the cavity").put("6141", "olive", -70, -120, -10, I, "INF");
+  for (const s of SIDES) m.put("3069b", "dkgreen", -40, -112, 30 * s, I, "INF: in the arch's hollow, on the side-stud brick");
+  for (const s of SIDES) m.put("3069b", "dkgreen", 80, -138, 48 * s, s > 0 ? ori(X, nZ, Y) : ori(X, Z, nY), "INF: on the rear 4304s' side studs");
+
+  // ---------- steps 41–42: cheek plates flat on the chest's side-stud walls, studs out
   for (const s of SIDES) {
     const R = s > 0 ? oriYZ(nZ, X) : oriYZ(Z, X);
     const Rp = s > 0 ? ori(X, nZ, Y) : ori(X, Z, nY);
-    m.put(s > 0 ? "41769" : "41770", "olive", -140, -100, 32 * s, R, "shoulder wedge");
-    m.put("3710", "dkgreen", -140, -110, 40 * s, Rp).put("3069b", "dkgreen", -160, -110, 48 * s, Rp).put("3069b", "dkgreen", -120, -110, 48 * s, Rp);
+    const Rt = s > 0 ? ori(Y, nZ, nX) : ori(Y, Z, X);
+    m.put(s > 0 ? "41769" : "41770", "olive", -140, -100, 32 * s, R, "cheek wedge plate");
+    m.put("3710", "dkgreen", -140, -110, 40 * s, Rp).put("3069b", "dkgreen", -170, -100, 48 * s, Rt).put("3069b", "dkgreen", -130, -100, 48 * s, Rt);
   }
 
-  // ---------- steps 43–64: the flank panels (the second one is the mirror), studs out
-  const fr = mod("fr");
-  merge(fr, flank(), ori(Y, Z, X), [-100, -104, -48]);
-  merge(m, fr);
-  merge(m, mirror(fr, "fl"));
-
+  // ---------- steps 43–64: the flank panels (the second one is the mirror), hung on the side-stud bricks
+  const fl = flank();
+  merge(m, fl);
+  merge(m, mirror(fl, "fr"));
   m.joints = {
     neck: [-200, -102, 0], //    57909 ball, axis −X
     tail: [136.4, -94, 0], //    67696 socket, opening +X
@@ -338,47 +382,64 @@ return { tail1, tail2, tail3, tail4, armL, armR };
 })();
 
 // ======================================== LEGS (steps 95–170)
-const { thighR, thighL, footR, footL } = (() => {
+const { HIP, thighFlat, TILT, thighR, thighL, footR, footL } = (() => {
 // Legs of the 31151 T-rex (booklet 6520924 steps 95–133 right leg, 134–170 left leg = mirror).
-// thigh: a slab built flat (studs = outward), the hip cap (79505 rotation disk) at one end, two 67696
-// wide ball sockets (ankle) at the other. foot: 2× 85943 holding two 53585 balls on an 87083 axle, three toes.
+// thigh: a slab built flat (studs = outward), two 67696 wide ball sockets (ankle) at one end of a 79180
+// bracket, the slab running along x from the bracket's flange, turning sideways (−z) at the knee into the
+// hip cap (79505 rotation disk in a ring of 18646). foot: 2× 85943 holding two 53585 balls on an 87083 axle.
 Object.assign(SYM, { 67696: "z", 65304: "z", 61332: "z", 42924: "z", 89678: "z", 87083: "z", 32062: "z", 26601: "a" });
 
-// ---------- THIGH, flat frame b: studs up (−y) = outward, y = 0 the inner face; x from the ankle (0) to the hip.
-// Grid: stud centres at odd multiples of 10 in x and z.
-function thighFlat() {
+// ---------- THIGH, flat frame: studs up (−y) = outward, y = 0 the inner face.
+// Booklet grid: stud (i, j) at x = 20i + 10, z = −20j − 70 (i along the slab from the ankle, j across it toward
+// the hip). Sockets at i −1..0, j −4..−3 (x = 0, z = 0); flange of the 79180 at j −1..0; slab i 0..9, j 0..4;
+// hip ring centred on (i 6.5, j 7.5). Levels: flange/wedge −16..−8, bricks −40..−16, top plates −48..−40.
+const gx = (i) => 20 * i + 10, gz = (j) => -20 * j - 70;
+const HIP = [gx(6.5), 0, gz(7.5)]; // (140, 0, −220)
+function thighFlat(capR = I) {
   const m = mod("thigh-r");
-  // ankle block (95, 105, 106): two wide sockets, cups → −x, 40 apart (the foot's two balls)
-  m.put("67696", "dbg", 0, -24, 0, RY180, "ankle socket 1");
-  m.put("79180", "black", 30, -32, 0, RYm90, "bracket: upper 2x3 on socket 1, lower 2x2 flange toward the slab");
-  m.put("3023", "olive", 0, -40, 10, I, "spacer under socket 2");
-  m.put("67696", "dbg", 0, -64, 0, RY180, "ankle socket 2");
-  m.put("44728", "black", 0, -72, -10, I, "bracket on socket 2, 2x2 face → −z (back)");
-  m.put("99207", "dbg", 0, 0, -10, I, "inverted bracket under socket 1, 2x2 face → −z");
-  // layer 1 on the flange (96–97)
-  m.put("50304", "olive", 140, -16, 10, RY90, "8x3 wedge, narrow end on the flange");
-  for (const y of [-16, -24, -32]) m.put("3023", "olive", 60, y, 10, I);
-  // underside (100, 101)
-  m.put("3023", "olive", 160, -8, 10, I, "under the wedge").put("26601", "olive", 200, -8, 0, I, "under the wedge's wide end");
-  m.put("41767", "olive", 100, -8, -20, RYm90, "under the wedge, bulging inward");
-  // brick layer (98, 99)
-  m.put("3004", "olive", 60, -40, -10, I);
-  m.put("41767", "olive", 120, -40, 0, RYm90, "wedged brick along the wedge");
-  m.put("3001", "dkgreen", 200, -40, 20, I, "2x4 at the wide end (the knee)");
-  m.put("41768", "olive", 100, -8, 20, RYm90, "under the wedge, bulging inward");
+  // ankle block (95, 105, 106)
+  m.put("67696", "dbg", 0, -24, 0, RY180, "ankle socket 1, cup → −x");
+  m.put("79180", "black", 0, -32, -30, I, "bracket: 2x3 on socket 1, 2x2 flange one brick lower toward −z (j −1..0)");
+  for (const y of [-16, -24, -32]) m.put("3023", "olive", gx(-1), y, gz(-0.5), RY90, "stack on the flange (96–97)");
+  m.put("50305", "olive", gx(3.5), -16, gz(1), RY90, "8x3 wedge: tip on the flange (i0 j0), straight edge j0, wide end (3) at i6–7");
+  // brick layer (98, 99, 101)
+  m.put("3004", "olive", gx(0.5), -40, gz(0), I);
+  m.put("41767", "olive", gx(3.5), -40, gz(0.5), RYm90, "4x2 wedge brick, studs j0, 2 wide at i2 tapering to 1 at i5");
+  m.put("3001", "dkgreen", gx(6.5), -40, gz(1.5), RY90, "2x4 at the knee, across the slab (j0..3)");
+  m.put("41768", "olive", gx(4.5), -40, gz(2.5), RY180, "4x2 wedge brick, studs i5 j1..4, 1 wide at j1, 2 wide (i4) at j4");
+  m.put("41767", "olive", gx(8.5), -40, gz(2.5), RY180, "4x2 wedge brick, studs i8 j1..4, widening to i9 at j4");
+  // under the far end (100): bridge the wedge to the 3020 of step 118
+  m.put("26601", "olive", gx(6.5), -8, gz(1.5), RY180, "under the wedge's wide end");
+  m.put("3023", "olive", gx(6.5), -8, gz(0), I, "under the wedge's wide end");
   // top layer (102–104)
-  m.put("43722", "dbg", 50, -48, 0, RY90, "3x2 wedge at the ankle end").put("3022", "black", 40, -56, 0, I);
-  m.put("50305", "olive", 160, -48, 10, RYm90, "top 8x3 wedge, reversed: the slab's zigzag");
-  m.put("78329", "dbg", 70, -56, 30, I, "1x5 on the top wedge's wide end");
-  m.put("3710", "olive", 140, -56, -10, I).put("3023", "olive", 240, -56, -10, I).put("26601", "olive", 140, -56, 20, I);
-  // dewclaw on the back face (107): plate with an offset pin hole, curved top, pin, small claw
+  m.put("78329", "dbg", gx(-1), -40, gz(-2), RY90, "1x5 on the bracket and the stack (i−1, j−4..0)");
+  m.put("43722", "dbg", gx(0.5), -40, gz(-3), RY180, "3x2 wedge plate: studs i0 j−4..−2, wing over i1");
+  m.put("3022", "black", gx(-0.5), -48, gz(-1.5), I);
+  m.put("50305", "olive", gx(2.5), -48, gz(1), RY90, "top 8x3 wedge: tip i−1, straight edge j0, wide end at i5–6");
+  m.put("3710", "olive", gx(7), -48, gz(1.5), RY90, "across the knee (i7, j0..3)");
+  m.put("3023", "olive", gx(5.5), -48, gz(3), I, "i5–6, j3");
+  m.put("26601", "olive", gx(8.5), -48, gz(1.5), RYm90, "on the far wedge brick (i8–9, j1–2)");
+  // second socket (105), brackets for the dewclaw on the +z (free) face (106–107)
+  m.put("3023", "olive", gx(-0.5), -56, gz(-2), I, "on the black 2x2, beside socket 2");
+  m.put("67696", "dbg", 0, -64, 0, RY180, "ankle socket 2 on the 1x5 / 3x2 wedge");
+  m.put("44728", "black", 0, -72, 10, RY180, "bracket on socket 2, 2x2 face → +z");
+  m.put("99207", "dbg", 0, 0, 10, RY180, "inverted bracket under socket 1, 2x2 face → +z");
   const dc = mod("dc");
   dc.put("11458", "dbg", 0, 0, 0, I).put("11477", "olive", -10, 0, 0, RY90).put("61332", "black", 10, -6, 0, ori(Z, Y, nX)).put("53451", "black", 10, -6, -24, oriYZ(nZ, Y), "dewclaw");
-  merge(m, dc, ori(X, Z, nY), [0, -42, -32]);
+  merge(m, dc, ori(nX, nZ, nY), [0, -42, 32]);
   // top of the ankle (108)
-  m.put("50950", "dbg", 10, -96, -10, RY90).put("11153", "olive", 20, -88, 10, RY90);
+  m.put("50950", "dbg", gx(-1), -96, -10, I, "curved slopes run down from the ankle top toward the slab").put("11153", "olive", gx(0), -96, -20, I);
   // hip cap (109–118), c-frame centred on the hip axis
-  const xh = 260, zh = -80; // hip behind the knee (slab wide end, +z): the Z of step 132
+  merge(m, cap(), capR, HIP);
+  m.put("3020", "dkgreen", gx(6.5), 0, gz(3.5), RY90, "under the slab-cap joint (118): wedge underside j1..2 to the inner ring");
+  // shell over the hip (119)
+  m.put("3020", "tan", gx(6.5), -56, gz(3.5), RY90, "from the knee's top plates (i6–7, j2..3) onto the outer ring (j5)").put("3022", "dbg", gx(6.5), -64, gz(4.5), I);
+  m.put("4032a", "white", gx(6.5), -56, HIP[2] - 20, I, "on the outer ring");
+  m.put("47753", "dkgreen", gx(6.5), -80, HIP[2] + 80, RY180, "shell, low end on the tan plate").put("47753", "dkgreen", gx(6.5), -80, HIP[2], I, "shell, low end on the white round plate");
+  m.joints = { hip: [...HIP], ankle: [-36.4, -34, 0] };
+  return m;
+}
+function cap() { // code cap of v2 (unchanged internals)
   const c = mod("cap");
   c.put("18646", "dkgreen", 0, -8, 0, I, "inner ring, front half").put("18646", "dkgreen", 0, -8, 0, RY180, "inner ring, back half");
   c.put("79505", "black", 0, -22, 0, ori(X, nY, nZ), "hip rotation disk, disk face inward (+y)");
@@ -396,21 +457,14 @@ function thighFlat() {
   for (const x of [-20, 20]) c.put("3023", "olive", x, -40, 30, I);
   c.put("3022", "dbg", 0, -40, -20, I);
   c.put("18646", "dkgreen", 0, -48, 0, I, "outer ring").put("18646", "dkgreen", 0, -48, 0, RY180, "outer ring");
-  // (the 79505 disk carries its own pin into the torso socket; inventory leaves no 61332 for a hip pin)
-  merge(m, c, I, [xh, 0, zh]);
-  m.put("3020", "dkgreen", 220, 0, -40, RY90, "under the slab-cap joint (118)");
-  // shell over the hip (119): tan 2x4 on a white round 2x2, DBG 2x2, two curved 4x4 wedges
-  m.put("4032a", "white", 240, -56, -60, I).put("3020", "tan", 240, -64, -40, RY90).put("3022", "dbg", 240, -72, -40, I);
-  m.put("47753", "dkgreen", 240, -88, -60, I).put("47753", "dkgreen", 240, -88, -20, RY180);
-  m.joints = { hip: [xh, 0, zh], ankle: [-36.4, -34, 0] };
-  return m;
+  return c;
 }
-// stand up: b x → −Y (up), b y (inner) → +Z, b z → −X (forward). Right leg (−Z side); origin = hip
-const R0 = ori(nY, Z, nX);
-const STAND = (() => { // b x → up, b y (inner) → +Z, b z → forward; then turned about Z so the hip is 43 LDU in front of the ankle
-  const v = app(R0, [260 + 36.4, 0, -80]); const want = Math.atan2(-43, -Math.hypot(v[0], v[1])), now = Math.atan2(v[0], v[1]);
-  return mul(Rz((-(want - now) * 180) / Math.PI), R0);
-})();
+
+// stand up: flat x (along the slab, ankle → knee) → forward (−X), flat −z (toward the hip) → up (−Y),
+// flat y (inner face) → +Z (right leg on the −Z side); then pitched about Z by TILT degrees (+ = toes up: knee rises, hip moves back over the ankle).
+const R0 = ori(nX, Z, Y);
+const TILT = +(process.env.TILT ?? 5);
+const STAND = mul(Rz(TILT), R0);
 function thighR() { const m = thighFlat(); turn(m, STAND); return rebase(m, m.joints.hip); }
 function thighL() { return mirror(thighR(), "thigh-l"); }
 
@@ -438,7 +492,7 @@ function footRaw() {
 function footR() { const m = footRaw(); return rebase(m, m.joints.ball); }
 function footL() { return mirror(footR(), "foot-l"); }
 
-return { thighR, thighL, footR, footL };
+return { HIP, thighFlat, TILT, thighR, thighL, footR, footL };
 })();
 
 // ======================================== HEAD and JAW (steps 187–235)
@@ -555,7 +609,7 @@ return { head, jaw };
 // pose (degrees): body = torso pitch (nose up); head, jaw, tail segments relative to their parent; arms [Rz, Ry, Rx]
 // about the shoulder ball; thighs about the hip axis relative to the torso; feet about the ankle (world: 0 = flat)
 const P = JSON.parse(process.env.POSE ?? "null") ?? {
-  body: 30, head: -30, jaw: 35, tail: [-36, -6, -8, -14], armL: [110, 0, 0], armR: [125, 0, 0], thighL: -24, thighR: -36, footL: 0, footR: 0,
+  body: 40, head: -36, jaw: 35, tail: [-46, -6, -8, -12], armL: [100, 0, 0], armR: [115, 0, 0], thighL: -2, thighR: -11.3, footL: 0, footR: 0,
 };
 const M = {};
 const place = (m, R, t) => (M[m.name] = { m, R, t });
