@@ -55,7 +55,12 @@ export function residualBlobs(target: Voxels, bricks: PlacedBrick[], minCells: n
     if (blob.length < minCells) continue;
     // Compact gaps only (a part, not a skin): the blob fills ≥ 40 % of its box.
     const cs = blob.map(unkey);
-    const vol = [0, 1, 2].reduce((v, a) => v * (Math.max(...cs.map((c) => c[a])) - Math.min(...cs.map((c) => c[a])) + 1), 1);
+    // Box volume by a loop (spreading a big blob's cells into Math.max overflowed the stack).
+    const vol = [0, 1, 2].reduce((v, a) => {
+      let lo = Infinity, hi = -Infinity;
+      for (const c of cs) (lo = Math.min(lo, c[a])), (hi = Math.max(hi, c[a]));
+      return v * (hi - lo + 1);
+    }, 1);
     if (blob.length >= vol * 0.4) blobs.push(blob);
   }
   return blobs;

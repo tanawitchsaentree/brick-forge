@@ -91,24 +91,24 @@ try {
       const rows = tune.map((m, i) => {
         const r = sculpt(targets[i], { forms, MAX_FORMS: o.MAX_FORMS, ...params });
         const made = withMade(targets[i], r.bricks, m.id);
-        return parityOf(reals[i], targets[i], r.bricks, made);
+        return { ...parityOf(reals[i], targets[i], r.bricks, made), made };
       });
       const mean = (k) => +(rows.reduce((s, r) => s + r[k], 0) / rows.length).toFixed(4);
-      return { parity: mean(o.OBJECTIVE ?? "parityV2"), parityV1: mean("parity"), parityV2: mean("parityV2"), iou: mean("iou"), smooth: mean("smooth"), heldVsHuman: mean("heldVsHuman"), piecesXHuman: mean("piecesXHuman"), repeats: mean("repeats"), s: Math.round((performance.now() - t0) / 1000), rows: rows.map((r) => r.parity) };
+      return { parity: mean(o.OBJECTIVE ?? "parityV2"), parityV1: mean("parity"), parityV2: mean("parityV2"), iou: mean("iou"), smooth: mean("smooth"), heldVsHuman: mean("heldVsHuman"), piecesXHuman: mean("piecesXHuman"), repeats: mean("repeats"), made: mean("made"), s: Math.round((performance.now() - t0) / 1000), rows: rows.map((r) => r.parity) };
     };
     // GRID: just evaluate these values of one option against the defaults, no search
     // (e.g. {"MIN_FILL":[0.8,0.85,0.9]}), to choose a rule's value away from the bench.
     if (o.GRID) {
       const base = evaluate({});
       const res = [{ params: {}, ...base }];
-      console.log("defaults", JSON.stringify({ parity: base.parity, piecesXHuman: base.piecesXHuman, heldVsHuman: base.heldVsHuman }));
+      console.log("defaults", JSON.stringify({ parity: base.parity, piecesXHuman: base.piecesXHuman, heldVsHuman: base.heldVsHuman, iou: base.iou, made: base.made }));
       // GRID: {"KEY": [values]} or a list of option sets [{...}, {...}].
       const sets = Array.isArray(o.GRID) ? o.GRID : Object.entries(o.GRID).flatMap(([k, vals]) => vals.map((v) => ({ [k]: v })));
       for (const params of sets) {
           const r = evaluate(params);
           const wins = r.rows.filter((x, i) => x > base.rows[i] + 0.001).length, losses = r.rows.filter((x, i) => x < base.rows[i] - 0.001).length;
           res.push({ params, ...r, wins, losses });
-          console.log(`GRID ${JSON.stringify(params)}`, JSON.stringify({ parity: r.parity, piecesXHuman: r.piecesXHuman, heldVsHuman: r.heldVsHuman, wins, losses, of: r.rows.length }));
+          console.log(`GRID ${JSON.stringify(params)}`, JSON.stringify({ parity: r.parity, piecesXHuman: r.piecesXHuman, heldVsHuman: r.heldVsHuman, iou: r.iou, made: r.made, wins, losses, of: r.rows.length }));
         }
       fs.writeFileSync(path.join(ROOT, OUT), JSON.stringify({ grid: o.GRID, tuning: tune.map((m) => m.id), res }, null, 1));
       break main;
