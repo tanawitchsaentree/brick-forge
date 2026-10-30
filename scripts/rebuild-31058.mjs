@@ -62,7 +62,7 @@ function mirror(m, name) {
 const studsPZ = ori(X, nZ, Y); //          plate studs → +Z, length along X, part +Z → +Y
 const studsPZ_tDown = oriYZ(nZ, nY); //    studs → +Z, part −Z feature (teeth, clip) → down
 const studsPZ_tUp = oriYZ(nZ, Y); //       studs → +Z, part −Z feature → up
-const wedgePZ = oriYZ(nZ, X); //           studs → +Z, plate length (part Z) along X
+const wedgePZ = oriYZ(nZ, nX); //          studs → +Z, wide end (part +Z) forward, stud row (part +X) at the bottom
 
 // =============== TORSO (steps 1–10) — origin: top of the tan 2×6 belly plate
 function torso() {
@@ -77,13 +77,13 @@ function torso() {
   m.put("3003", "green", -20, -56, 0).put("3004", "green", 10, -56, 0, RY90);
   m.put("17114", "dbg", 40, -56, 0, RY90, "hip balls").put("3004", "green", 70, -56, 0, RY90);
   // level 4: neck hinges at the front, dark green stripes, green 2x4, the tail ball pointing back
-  m.put("30383", "dbg", -60, -64, -10, RY180, "neck hinge").put("30383", "dbg", -60, -64, 10, RY180, "neck hinge");
+  m.put("30383", "dbg", -90, -64, -10, RY180, "neck hinge, finger out at the front edge").put("30383", "dbg", -90, -64, 10, RY180, "neck hinge");
   m.put("3023", "dkgreen", -60, -64, -30).put("3023", "dkgreen", -60, -64, 30);
   m.put("3020", "green", 20, -64, 0).put("14417", "dbg", 70, -64, 0, RYm90, "tail ball");
   // level 5: the back — 2x2 and 45° slopes in front, curved 6x4 wedge behind
-  m.put("3003", "green", -40, -88, 0).put("3040b", "green", -30, -88, -30, RY90).put("3040b", "green", -30, -88, 30, RY90);
-  m.put("43712", "green", 0, -88, 0, RYm90, "back shell");
-  m.joints = { armL: [-60, -28, 30], armR: [-60, -28, -30], neck: [-70, -68, 0], hipL: [40, -46, 40], hipR: [40, -46, -40], tail: [90, -60, 0] };
+  m.put("3003", "green", -60, -88, 0).put("3040b", "green", -50, -88, -30, RY90).put("3040b", "green", -50, -88, 30, RY90);
+  m.put("43712", "green", -20, -88, 0, RYm90, "back shell: 2x2 studs at the front, curving down to the tail");
+  m.joints = { armL: [-60, -28, 30], armR: [-60, -28, -30], neck: [-100, -68, 0], hipL: [40, -46, 40], hipR: [40, -46, -40], tail: [90, -60, 0] };
   return m;
 }
 
@@ -155,10 +155,10 @@ function foot() {
   heel.joints.ball = [30, -2, 0];
   turn(heel, Rz(-P.heel));
   for (const q of heel.parts) m.put(q.id, q.c, ...add(q.p, [20, -12, 0]), q.R, q.note);
-  m.put("11477", "green", -10, -8, 0, I).put("54200", "green", -30, -8, -10, RY90).put("54200", "green", -30, -8, 10, RY90);
-  m.put("99021", "dbg", -36, -2, 0, I);
+  m.put("11477", "green", 0, -8, 0, I).put("54200", "green", -20, -8, -10, RY90).put("54200", "green", -20, -8, 10, RY90);
+  m.put("99021", "dbg", -50, -2, 0, I, "holds the middle claw");
   const claw = ori(Z, X, Y); // grows forward, curls down
-  m.put("87747", "black", -44, -8, -10, claw, "claw").put("87747", "black", -44, -8, 10, claw, "claw").put("87747", "black", -42, -22, 0, claw, "claw");
+  m.put("87747", "black", -44, -8, -10, claw, "claw").put("87747", "black", -44, -8, 10, claw, "claw").put("87747", "black", -50, -22, 0, claw, "claw");
   m.joints = { ball: add(heel.joints.ball, [20, -12, 0]) };
   return rebase(m, m.joints.ball);
 }
@@ -182,14 +182,14 @@ function head() {
   m.put("3003", "green", -44, -34, 0);
   m.put("11458", "dbg", -2, -18, 10).put("11458", "dbg", -2, -18, -10);
   for (const z of [1, -1]) {
-    m.put("4274", "lbg", 8, -24, 14 * z, z > 0 ? RY90 : ori(Z, Y, nX));
-    m.put("58176", "torange", 8, -24, 18 * z, z > 0 ? oriYZ(nZ, Y) : oriYZ(Z, Y), "eye");
+    m.put("4274", "lbg", 8, -24, 18 * z, z > 0 ? RY90 : ori(Z, Y, nX));
+    m.put("58176", "torange", 8, -24, 24 * z, z > 0 ? oriYZ(nZ, Y) : oriYZ(Z, Y), "eye");
   }
   m.put("14704", "lbg", -12, -26, 0, RYm90, "neck socket").put("3023", "green", -12, -34, 0, RY90);
-  m.put("15068", "green", -24, -34, 0, I);
+  m.put("15068", "green", -4, -42, 0, I, "on the arch's high studs");
   m.put("43722", "dkgreen", -94, -18, 20, RY90).put("43723", "dkgreen", -94, -18, -20, RY90);
   m.put("47755", "dkgreen", -44, -42, 0, RY90, "brow ridge");
-  m.put("11153", "green", -84, -50, 10, RY90).put("11153", "green", -84, -50, -10, RY90);
+  m.put("11153", "green", -100, -42, 10, RY90, "snout top, on the brow wedges").put("11153", "green", -100, -42, -10, RY90);
   // snout front: tri-tooth plate on the front studs, green 1x2 over it
   const front = oriYZ(X, nY); // studs → −X, teeth (part −Z) → down
   m.put("15208", "white", -120, 0, 0, front, "front teeth").put("3023", "green", -128, 0, 0, front);
@@ -212,7 +212,7 @@ function jaw() {
   const side = mod("s");
   side.put("15208", "white", -80, 12, 18, studsPZ_tUp, "lower teeth").put("15208", "white", -40, 12, 18, studsPZ_tUp, "lower teeth");
   side.put("2431", "tan", -60, 12, 26, studsPZ).put("60897", "tan", -10, 12, 18, studsPZ_tUp, "hinge clip");
-  side.put("11477", "tan", -110, 12, 10, oriYZ(nZ, X), "chin");
+  side.put("11477", "tan", -120, 12, 10, oriYZ(nZ, X), "chin");
   for (const q of [...side.parts, ...mirror(side, "s2").parts]) m.parts.push(q);
   m.joints = { hinge: [-10, -8, 0] };
   return rebase(m, m.joints.hinge);
@@ -231,17 +231,17 @@ function neck() {
 
 // =============== assembly in the photo's pose
 const P = {
-  neckUp: 38, headTilt: -24, jawOpen: 35, // head about level: −(neck up) + a little nose-up
+  neckUp: 38, headTilt: -10, jawOpen: 42, // head about level: −(neck up) + a little nose-up
   tail: [-12, -18, -24], // each segment's extra lift (negative = up for +X parts)
-  armDown: -28, thighL: 80, thighR: 30, footL: 14, heel: 60, // L = left (+Z, the far side in the photo: the front leg)
+  armL: -45, armR: -75, thighL: 75, thighR: 25, footL: 0, heel: 60, // L = left (+Z, the far side in the photo: the front leg)
 };
 const M = {};
 const place = (m, R, t) => (M[m.name] = { m, R, t });
 const at = (name, j) => add(app(M[name].R, M[name].m.joints[j]), M[name].t);
 
 const T = torso(); place(T, I, [0, 0, 0]);
-const A = arm(); place(A, mul(Ry(-20), Rz(P.armDown)), at("torso", "armL"));
-place(mirror(A, "arm-r"), mul(Ry(20), Rz(P.armDown)), at("torso", "armR"));
+const A = arm(); place(A, mul(Ry(20), Rz(P.armL)), at("torso", "armL"));
+place(mirror(A, "arm-r"), mul(Ry(-10), Rz(P.armR)), at("torso", "armR"));
 const N = neck(); place(N, Rz(P.neckUp), at("torso", "neck"));
 const H = head(); place(H, mul(M.neck.R, Rz(P.headTilt)), at("neck", "head"));
 const J = jaw(); place(J, mul(M.head.R, Rz(-P.jawOpen)), at("head", "jaw"));
