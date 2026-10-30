@@ -258,13 +258,16 @@ Typed edges include "touch" joints: a pin end flush with a hole, which carries n
 
 What lowered the false alarms (official✗):
 
+Each step is measured with the step-aware official check:
+
 | change | 42064 | 8258 |
 |---|---|---|
-| boxes only | 25.5% | 22.5% |
-| + mesh narrow phase, interlock joints | 25.5% | — |
-| + two-leg ways out | 19.2% | 24.8% |
-| + first leg until clear of every partner (axle ends) | 15.0% | 14.6% |
-| + a step's stuck parts as one group, touch joints | **13.3%** | **13.9%** |
+| mesh narrow phase + interlock joints | 25.5% | — |
+| + sample vertices pulled in 0.75 LDU | 24.0% | — |
+| + two-leg ways out (first leg = the part's own length) | 19.2% | 24.8% |
+| + first leg until clear of every joined partner (axle ends) | 15.0% | 14.6% |
+| + a step's stuck parts as one group | 13.5% | 14.0% |
+| + touch joints | **13.3%** | **13.9%** |
 
 On 8258, of the remaining false alarms:
 - 54 are beams, 36 pins, 21 axles and 16 gears blocked;
