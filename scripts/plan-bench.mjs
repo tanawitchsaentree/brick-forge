@@ -148,6 +148,11 @@ function analyse(name, text, opts = {}) {
     for (const i of left) {
       const why = free(i);
       offFail++, why === "blocked" ? offBlocked++ : offNoDir++;
+      if (process.env.AGG2) {
+        const cat = (k) => lib.part(nodes[k].id).name.match(/^(Technic \w+|\w+)/)?.[1] ?? "?";
+        const sig = `${why}: ${cat(i)}`;
+        (globalThis.agg ??= {})[sig] = (globalThis.agg[sig] ?? 0) + 1;
+      }
       if (process.env.AGG && why === "noDir") {
         const sig = byPart[i].filter((e) => present[e.a === i ? e.b : e.a] && e.sense !== "any").map((e) => `${e.type}${e.sense}${e.a === i ? "M" : "F"}`).sort().join("+");
         (globalThis.agg ??= {})[sig] = (globalThis.agg[sig] ?? 0) + 1;

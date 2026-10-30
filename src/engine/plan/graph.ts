@@ -35,6 +35,8 @@ export interface Edge {
   friction: boolean;
   /** How far the connectors overlap along the axis (LDU): the length to slide before they part. */
   depth?: number;
+  /** Only meets the hole end to end: no load, but the part slides through it (see the matcher). */
+  touch?: boolean;
 }
 
 interface WSnap extends Snap {
@@ -92,9 +94,9 @@ export function connectionGraph(lib: Library, nodes: Node[]): Edge[] {
     return out;
   };
   const edges = new Map<string, Edge>();
-  let depth = 0;
+  let depth = 0, touching = false;
   const addEdge = (a: number, b: number, type: EdgeType, axis: Vec3, sense: Edge["sense"], at: Vec3, dof: Edge["dof"], friction = false) => {
-    const k = `${a}|${b}|${type}`;
+    const k = `${a}|${b}|${type}${touching ? "~" : ""}`;
     const e = edges.get(k);
     if (e) e.depth = Math.max(e.depth ?? 0, depth);
     if (e) {
@@ -105,7 +107,7 @@ export function connectionGraph(lib: Library, nodes: Node[]): Edge[] {
       if (e.sense === 1 && (sense === 0 || dot(axis, e.axis) < 0.98)) e.sense = 0;
       return;
     }
-    edges.set(k, { a, b, type, axis, sense, n: 1, at: [at], dof, friction, depth });
+    edges.set(k, { a, b, type, axis, sense, n: 1, at: [at], dof, friction, depth, touch: touching || undefined });
   };
   const fric = nodes.map((n) => /friction|with ridges/i.test(lib.part(n.id)?.name ?? ""));
   for (const m of snaps) {
@@ -116,8 +118,12 @@ export function connectionGraph(lib: Library, nodes: Node[]): Edge[] {
       if (Math.abs(dot(m.axis, f.axis)) < 0.98) continue;
       if (lineDist(m.pos, m.axis, f.pos) > 1.5) continue;
       const ov = overlap(m.axis, m.pos, m.end, f.pos, f.end);
-      if (ov < Math.min(2, 0.4 * Math.min(m.length, f.length || m.length))) continue;
+      // A pin or axle whose end only meets a hole (flush, or a hair inside) isn't held by it, but
+      // it slides straight through: a "touch" joint, for the way out only (no load).
+      const touch = ov < Math.min(2, 0.4 * Math.min(m.length, f.length || m.length));
+      if (touch && (ov < -1 || studLike(m) || f.kind === "clip" || f.caps === "one")) continue;
       depth = ov;
+      touching = touch;
       if (f.kind === "clip") {
         if (Math.abs(m.radius - f.radius) > 1) continue;
         addEdge(m.part, f.part, "bar", m.axis, "any", m.mid, { rot: true, slide: true }, true);
@@ -139,6 +145,7 @@ export function connectionGraph(lib: Library, nodes: Node[]): Edge[] {
       addEdge(m.part, f.part, type, axis, sense, m.mid, dof, fric[m.part] || fric[f.part]);
     }
   }
+  touching = false;
   // Hinge fingers: two finger sets on one axis, opposite genders, same radius.
   const fingers = snaps.filter((s) => s.kind === "finger");
   for (const p of fingers)

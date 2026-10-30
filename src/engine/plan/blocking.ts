@@ -212,7 +212,7 @@ export function blocking(lib: Library, nodes: Node[], edges: Edge[], shrink = 2.
     byPart[e.b].push(e);
   }
   const permits = (e: Edge, moving: number, d: Vec3) => {
-    if (e.sense === "any") return true;
+    if (e.sense === "any" || e.touch) return true; // a touch holds nothing
     const s = moving === e.b ? 1 : -1; // b leaves a along +axis; a leaves b along −axis
     const c = dot(e.axis, d) * s;
     return e.sense === 1 ? c > 0.99 : Math.abs(c) > 0.99;
@@ -283,7 +283,9 @@ export function blocking(lib: Library, nodes: Node[], edges: Edge[], shrink = 2.
       const lo = [0, 1, 2].map((q) => Math.min(blo[q], blo[q] + d[q] * L)), hi = [0, 1, 2].map((q) => Math.max(bhi[q], bhi[q] + d[q] * L));
       const start = firstLeg ? overlapAtStart(i) : new Set<number>();
       const joined = new Set<number>();
-      if (firstLeg) for (const e of byPart[i]) if (permits(e, i, d)) joined.add(e.a === i ? e.b : e.a);
+      // Joint partners that let it go along d aren't in its way on the first leg; a touch only
+      // along its axis (the pin slides on through the hole it meets).
+      if (firstLeg) for (const e of byPart[i]) if (e.touch ? Math.abs(dot(e.axis, d)) > 0.99 : permits(e, i, d)) joined.add(e.a === i ? e.b : e.a);
       const seen = new Set<number>();
       cellsOf(lo, hi, (key) => {
         for (const j of hash.get(key) ?? []) {

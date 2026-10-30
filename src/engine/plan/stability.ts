@@ -99,7 +99,7 @@ export function checkStability(lib: Library, nodes: Node[], edges: Edge[], opts:
   const studCols: { col: number; part: number[] }[] = [];
   for (const e of edges) {
     const a = idx.get(e.a), b = idx.get(e.b);
-    if (a === undefined || b === undefined || e.type === "gear") continue;
+    if (a === undefined || b === undefined || e.type === "gear" || e.touch) continue;
     const n = e.axis;
     const [u, v] = perp(n);
     for (const at of e.at) {
