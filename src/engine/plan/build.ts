@@ -31,7 +31,7 @@ export interface BuildPlan {
  * (within `reach` LDU of the step's first part), up to `size` parts (the corpus booklets'
  * median is about 5). A sub-assembly going on is a step of its own.
  */
-export function groupSteps(plan: Plan, nodes: Node[], size = 5, reach = 80): BuildStep[] {
+export function groupSteps(plan: Plan, nodes: Node[], size = 5, reach = 60, boxes?: { lo: Vec3; hi: Vec3 }[], technic?: (i: number) => boolean): BuildStep[] {
   const out: BuildStep[] = [];
   const placed = new Set<number>();
   for (const s of plan.steps) {
@@ -44,9 +44,18 @@ export function groupSteps(plan: Plan, nodes: Node[], size = 5, reach = 80): Bui
     }
     const last = out[out.length - 1];
     const same = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2] > 0.999;
-    // One area, or one layer: a booklet step lays a course of bricks right round a wall.
-    const d = last ? ([0, 1, 2].map((k) => nodes[fresh[0]].xf.t[k] - nodes[last.parts[0]].xf.t[k]) as Vec3) : [0, 0, 0];
-    const near = last && last.kind === "parts" && (Math.hypot(...d) <= reach || Math.abs(d[1]) <= 8);
+    // One area, or one layer: a booklet step lays a course of bricks right round a wall. Every
+    // part of the step counts (not just its first): close to one of them (within `reach`, at most
+    // a brick higher or lower), or on the step's own level (within a plate of its first part).
+    const big = (i: number) => {
+      const b = boxes?.[i];
+      return !!b && (b.hi[0] - b.lo[0]) * (b.hi[2] - b.lo[2]) >= 160 * 160; // a baseplate-size part is a step of its own
+    };
+    const pos = (i: number) => nodes[i].xf.t;
+    const near =
+      last && last.kind === "parts" && !big(fresh[0]) && !last.parts.some(big) &&
+      fresh.every((f) => last.parts.some((q) => Math.abs(pos(f)[1] - pos(q)[1]) <= 8 || (Math.hypot(...([0, 1, 2].map((k) => pos(f)[k] - pos(q)[k]) as Vec3)) <= reach && (Math.abs(pos(f)[1] - pos(q)[1]) <= 24 || (technic?.(f) && technic?.(q))))));
+    // (Technic frames go up as well as along: a booklet step pins a whole beam assembly at once.)
     // Booklet steps mix directions (a plate on top, a tile on the side) as long as it's one area.
     if (last && last.kind === "parts" && last.scope === s.scope && near && last.parts.length + fresh.length <= size && !s.forced && !last.note?.startsWith("relaxed")) {
       if (!same(last.dir, s.dir) || last.partDirs) last.partDirs ??= last.parts.map(() => last.dir);
@@ -71,7 +80,7 @@ export function buildPlan(text: string, lib: Library, opts: { weights?: PlanWeig
   // Booklets put more parts in a step the bigger the model (the corpus: about 3 for 30–260 parts,
   // about 10 for 1,300): size ≈ 2 + parts / 170, reach about 2 studs a part.
   const size = opts.stepSize ?? Math.min(12, Math.max(3, Math.round(3 + nodes.length / 120)));
-  const steps = groupSteps(plan, nodes, size, 80 * size);
+  const steps = groupSteps(plan, nodes, size, 40 * size, blk.boxes, (i) => /^Technic/.test(lib.part(nodes[i].id)?.name ?? ""));
   return {
     nodes: nodes.map((n) => ({ id: n.id, color: n.color, matrix: [...n.xf.R, ...n.xf.t], path: n.path, src: n.src })),
     steps,
