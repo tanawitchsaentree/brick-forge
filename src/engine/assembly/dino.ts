@@ -480,10 +480,12 @@ export interface Plan {
   head: { L: number; hw: number; H: number; snout: number; bend: number; jawOpen: number; teeth: boolean };
   tail: { n: number; L: number; hw: number; H: number; taper: number; bend: number[] };
   /** Leg column sizes: thigh/shin thickness (x) and joint-to-joint length (plates). */
-  hind: { thigh: [number, number]; shin: [number, number]; foot: number; claws: boolean };
-  fore?: { thigh: [number, number]; shin: [number, number]; foot: number; claws: boolean };
+  /** stride: the feet this many studs ahead (one leg) and behind (the other) of the hips, walking. */
+  hind: { thigh: [number, number]; shin: [number, number]; foot: number; claws: boolean; stride?: number };
+  fore?: { thigh: [number, number]; shin: [number, number]; foot: number; claws: boolean; stride?: number };
   arms?: { len: number; reach: number };
-  colors: { main: number[]; belly: number[]; accent: number[] };
+  /** joint: the shins in the joints' colour (31058's grey hinge legs); main if absent. */
+  colors: { main: number[]; belly: number[]; accent: number[]; joint?: number };
   features: Feature[];
 }
 
@@ -494,16 +496,17 @@ export const PLANS: Record<Species, Plan> = {
   rex: {
     title: "T. rex",
     biped: true,
-    // 31058 Mighty Dinosaurs (booklets/rex/31058-1.jpg): a lean, level body, the head
-    // and the tail end at about one height.
-    torso: { L: 8, hw: 3, H: 7, pitch: 4 },
-    // A big head (31058 / 31151: about a third of the body) and the tail held up.
-    head: { L: 9, hw: 2.5, H: 7, snout: 3, bend: 20, jawOpen: 45, teeth: true },
-    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [8, 16, 20] },
-    hind: { thigh: [2, 11], shin: [1, 11], foot: 4, claws: true },
+    // 31058 Mighty Dinosaurs (booklets/rex/31058-1.jpg, docs/engine/dna-31058.md): a
+    // 4-wide, 12-plate-tall level body; head ≈ 0.9 × torso, tail ≈ 1.8 × torso
+    // curling up 10°/30°/60°, the neck rising 30°+ so the snout is over the shoulders.
+    torso: { L: 8, hw: 2, H: 10, pitch: 4 },
+    head: { L: 9, hw: 2, H: 6, snout: 3, bend: 25, jawOpen: 45, teeth: true },
+    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [10, 20, 30] },
+    // A big green thigh, a thin grey shin (31058's hinge-and-Technic legs).
+    hind: { thigh: [4, 11], shin: [1, 11], foot: 4, claws: true, stride: 3 },
     arms: { len: 5, reach: 40 },
     // 31058's colours, always: Green over Tan, the head green all over.
-    colors: { main: [2], belly: [19], accent: [2] },
+    colors: { main: [2], belly: [19], accent: [2], joint: DBG },
     features: ["stripe"],
   },
   raptor: {
@@ -607,6 +610,7 @@ interface Palette {
   main: number;
   belly: number;
   accent: number;
+  joint: number;
 }
 
 export interface DinoDesign {
@@ -627,7 +631,8 @@ export function dinosaur(species: Species, pool: Pool, size: number, detail: num
   const k = [0.72, 1, 1.4, 1.9, 2.5, 3.3, 4.3, 5.4][Math.max(0, Math.min(7, size))] * (0.94 + r() * 0.12);
   // The species' signature colour more often than not, else one of the others.
   const pick = (xs: number[]) => (r() < 0.55 ? xs[0] : xs[1 + Math.floor(r() * (xs.length - 1))] ?? xs[0]);
-  const pal: Palette = { main: pick(plan.colors.main), belly: pick(plan.colors.belly), accent: pick(plan.colors.accent) };
+  const main = pick(plan.colors.main);
+  const pal: Palette = { main, belly: pick(plan.colors.belly), accent: pick(plan.colors.accent), joint: plan.colors.joint ?? main };
   // Master scale: one statue on the grid (joints can't carry a model this big, see statue()).
   if (size >= 4 && DINO_TUNING.statue) return statue(plan, pool, k, pal, detail);
   // Balance: build once, find the centre of mass of everything the legs carry,
@@ -1038,7 +1043,9 @@ function buildLeg(
   // Foot on the baseplate: its socket under the hip, slightly behind.
   const footZ = side > 0 ? hw + 1 : -hw - 2; // foot's inner column
   const fW = wide(2.2);
-  const xa = Math.round(hip.world[0] - 0.4);
+  // Walking (31058's stride) at sizes S and M only: from L up the stride levers the hip joint past its hold (stress 1.12).
+  const stride = S(10, 1) / 10 < 1.2 ? S(spec.stride ?? 0, 0) : 0;
+  const xa = Math.round(hip.world[0] - 0.4 + side * stride);
   const A = Rig.socketCentre(inn, footZ, ankleLayer, xa);
   // IK in the x–y plane.
   const dx = A[0] - hip.world[0], dy = A[1] - hip.world[1];
@@ -1068,8 +1075,8 @@ function buildLeg(
   shin.module(name, () => {
     ankle = rig.ball(shin, out, sz, 1, sc);
     const cols: Col[] = Array.from({ length: sa }, () => ({ z0: sZ0, z1: sZ0 + sW, y0: 0, y1: sLen + 3 }));
-    core(shin, 0, cols, () => pal.main);
-    shin.rect("tile", 0, sZ0, sa, sW, sLen + 3, pal.main); // the knee's top, tiled
+    core(shin, 0, cols, () => pal.joint);
+    shin.rect("tile", 0, sZ0, sa, sW, sLen + 3, pal.joint); // the knee's top, tiled
   });
   // Foot: a plate, a heel post up to the ankle socket, claws at the toes.
   const f = rig.root;
