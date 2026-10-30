@@ -408,6 +408,13 @@ export interface SculptOptions {
    * part fills a quarter of itself and is left out.
    */
   MIN_FILL?: number;
+  /**
+   * Program v2 S8: a part that engages no stud and isn't on the bottom layer isn't
+   * placed at all. FLOAT only demoted it, and the greedy took the best candidate at
+   * an anchor even when its score was negative: 53.5 % of unconnected parts sat on
+   * or under a part with no stud between them.
+   */
+  NO_FLOAT?: boolean;
   /** Fewest target cells a part must fill to be worth a piece. */
   MIN_COVER?: number;
   /** Per stud left showing: bonus where the target shows studs, penalty on its smooth surfaces. */
@@ -449,7 +456,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   const t0 = performance.now();
   const phase: Record<string, number> = {};
   // Defaults tuned on the reconstruction benchmark (docs/engine.md).
-  const MIN_FILL = opts.MIN_FILL ?? 0;
+  const MIN_FILL = opts.MIN_FILL ?? 0, NO_FLOAT = !!opts.NO_FLOAT;
   const AIR = opts.AIR ?? 3, PIECE = opts.PIECE ?? 60, HOLD = opts.HOLD ?? 2, FLOAT = opts.FLOAT ?? 300, PRIOR = opts.PRIOR ?? 3, GAMMA = opts.GAMMA ?? 0.7, MIN_COVER = opts.MIN_COVER ?? 16, STUD_OK = opts.STUD_OK ?? 0, STUD_BAD = opts.STUD_BAD ?? 40, REPEAT = opts.REPEAT ?? 25;
   const studs = target.studs;
   const want = new Map<number, number>();
@@ -598,6 +605,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   /** The score of a placement from its terms: the hand-tuned one, or weighted features. Null if a gate drops it. */
   const score = (fi: number, t: Terms) => {
     const f = forms[fi];
+    if (NO_FLOAT && !t.engaged && !t.grounded) return null; // S8: nothing holds it
     if (!W) {
       const fit = t.cover - AIR * t.air;
       if (fit <= 0 || t.cover < MIN_COVER) return null;

@@ -50,7 +50,7 @@ try {
     return made;
   };
 
-  {
+  main: {
     const SETS = JSON.parse(fs.readFileSync(path.join(ROOT, "scripts/bench-sets.json"), "utf8"));
     const benchIds = [SETS.core8, ...Object.values(SETS.levels), SETS.technic, SETS.nightly].flat();
     const benchSets = new Set(benchIds.map((id) => corpus.find((m) => m.id === id).set));
@@ -58,7 +58,9 @@ try {
     // Tuning models: one per set, 30–400 pieces, a third each Junior / Creator / Advanced, seeded.
     let seed = o.SEED;
     const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648), seed / 2147483648);
-    const taken = new Set();
+    // EXCLUDE: a tuning run's file whose models' sets stay out (a validation set disjoint from it).
+    const taken = new Set(o.EXCLUDE ? JSON.parse(fs.readFileSync(path.join(ROOT, o.EXCLUDE), "utf8")).tuning.map((id) => corpus.find((m) => m.id === id).set) : []);
+    const excluded = new Set(taken);
     const tune = [];
     // Per level: how many, and the size range (o.MIX overrides; the default covers small to Expert).
     const MIX = o.MIX ?? { junior: [3, 30, 400], creator: [4, 30, 400], advanced: [4, 30, 400] };
@@ -73,7 +75,7 @@ try {
         n++;
       }
     }
-    const learnFrom = usable.filter((m) => !taken.has(m.set));
+    const learnFrom = usable.filter((m) => !taken.has(m.set) || excluded.has(m.set)); // the excluded tuning sets may teach the forms
     const train = learnFrom.map((m) => readModel(m.id));
     const keep = (id) => shapes[id] && isStructure(id) && !PARTS[id].printed && PARTS[id].w <= 8 && PARTS[id].d <= 8 && PARTS[id].h <= 9;
     const learned = learnForms(train, keep).filter((f) => f.use >= o.MIN_USE);
@@ -94,6 +96,23 @@ try {
       const mean = (k) => +(rows.reduce((s, r) => s + r[k], 0) / rows.length).toFixed(4);
       return { parity: mean(o.OBJECTIVE ?? "parityV2"), parityV1: mean("parity"), parityV2: mean("parityV2"), iou: mean("iou"), smooth: mean("smooth"), heldVsHuman: mean("heldVsHuman"), piecesXHuman: mean("piecesXHuman"), repeats: mean("repeats"), s: Math.round((performance.now() - t0) / 1000), rows: rows.map((r) => r.parity) };
     };
+    // GRID: just evaluate these values of one option against the defaults, no search
+    // (e.g. {"MIN_FILL":[0.8,0.85,0.9]}), to choose a rule's value away from the bench.
+    if (o.GRID) {
+      const base = evaluate({});
+      const res = [{ params: {}, ...base }];
+      console.log("defaults", JSON.stringify({ parity: base.parity, piecesXHuman: base.piecesXHuman, heldVsHuman: base.heldVsHuman }));
+      // GRID: {"KEY": [values]} or a list of option sets [{...}, {...}].
+      const sets = Array.isArray(o.GRID) ? o.GRID : Object.entries(o.GRID).flatMap(([k, vals]) => vals.map((v) => ({ [k]: v })));
+      for (const params of sets) {
+          const r = evaluate(params);
+          const wins = r.rows.filter((x, i) => x > base.rows[i] + 0.001).length, losses = r.rows.filter((x, i) => x < base.rows[i] - 0.001).length;
+          res.push({ params, ...r, wins, losses });
+          console.log(`GRID ${JSON.stringify(params)}`, JSON.stringify({ parity: r.parity, piecesXHuman: r.piecesXHuman, heldVsHuman: r.heldVsHuman, wins, losses, of: r.rows.length }));
+        }
+      fs.writeFileSync(path.join(ROOT, OUT), JSON.stringify({ grid: o.GRID, tuning: tune.map((m) => m.id), res }, null, 1));
+      break main;
+    }
     // The constants and how each is varied.
     const start = { AIR: 3, PIECE: 60, HOLD: 2, FLOAT: 300, PRIOR: 3, GAMMA: 0.7, STUD_BAD: 40, REPEAT: 25, MIN_COVER: 16 };
     const steps = (k, v) =>
