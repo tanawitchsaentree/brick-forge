@@ -115,7 +115,7 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
   async function fillNew(t: Tile, k: Kind, models: CorpusModel[], token: number) {
     if (k === "dino" && level !== "technic") return fillDino(t);
     if (k === "racer" && level !== "technic") return fillRacer(t, models);
-    if (k === "car" && level !== "technic") return fillCar(t, models);
+    if ((k === "car" || k === "robot") && level !== "technic") return fillReal(t, k, models);
     const pool = level === "technic" ? models.filter((m) => m.tier === "technic").map((m) => ({ ...m, kind: k })) : inBand(models, k, size);
     if (!pool.length) return update(t.id, { status: "failed", label: "No designs to start from" });
     const base = pick(pool);
@@ -175,7 +175,9 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     const painted = recolor(all.filter((b) => !wheel(b)), scheme);
     const body = painted?.bricks[Symbol.iterator]();
     const bricks = body ? all.map((b) => (wheel(b) ? b : body.next().value!)) : all;
-    const scheme_ = painted?.name ?? "its own colours";
+    // Named after the scheme only if it repainted a real share of the model (a white racer keeps its white).
+    const changed = bricks.filter((b, i) => b.color !== all[i].color).length;
+    const scheme_ = painted && changed >= bricks.length * 0.15 ? painted.name : "its own colours";
     const set = m.set.replace(/-1$/, "");
     const build = evaluateBuild(k, { title: title(scheme_), rule: `LEGO ${set} (${m.name}), ${scheme_}`, size, seed: t.id, recipe: `paint-${m.id}-${t.id}` }, bricks, inventory);
     update(t.id, { status: "done", build, from: `LEGO ${set} ${m.name}, in ${scheme_}`, label: "" });
@@ -189,17 +191,24 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
    * (Formula 1 Racer, 429). 392 (1970s, studs everywhere) is left out.
    */
   async function fillRacer(t: Tile, models: CorpusModel[]) {
-    const m = models.find((x) => x.id === (level === "junior" ? "30190-1" : "5540-1-55401"));
-    if (!m) return update(t.id, { status: "failed", label: "No F1 design to start from" });
-    await repainted(t, "racer", m, t.id % LIVERY_SCHEMES, (n) => `F1 car · ${n}`);
+    // Each level its own open-wheel cars from the corpus, taken in turn across a
+    // batch. Advanced and up have only 5540 in the corpus (Expert and Master too).
+    const ids = level === "junior" ? ["30190-1", "7452-1", "8123-1-2", "8123-1-3"] : level === "creator" ? ["4939-1-formula1", "6604-1"] : ["5540-1-55401"];
+    const pool = ids.map((id) => models.find((x) => x.id === id)).filter((x): x is CorpusModel => !!x);
+    if (!pool.length) return update(t.id, { status: "failed", label: "No F1 design to start from" });
+    await repainted(t, "racer", pool[t.id % pool.length], t.id % LIVERY_SCHEMES, (n) => `F1 car · ${n}`);
   }
 
-  /** City cars: the real cars of the size asked for, repainted (not stretched). */
-  async function fillCar(t: Tile, models: CorpusModel[]) {
-    const pool = inBand(models, "car", size);
-    if (!pool.length) return update(t.id, { status: "failed", label: "No cars of this size" });
-    const m = pool[(t.id * 7) % pool.length]; // different cars across a batch
-    await repainted(t, "car", m, Math.floor(Math.random() * SCHEME_COUNT), () => m.name);
+  /**
+   * City cars and robots: the real ones of the size asked for, repainted. Not
+   * stretched (cars lost wheels) and not articulated (robots came apart into
+   * floating arms and legs).
+   */
+  async function fillReal(t: Tile, k: Kind, models: CorpusModel[]) {
+    const pool = inBand(models, k, size);
+    if (!pool.length) return update(t.id, { status: "failed", label: `No ${kindLabel(k).toLowerCase()} designs of this size` });
+    const m = pool[(t.id * 7) % pool.length]; // different ones across a batch
+    await repainted(t, k, m, Math.floor(Math.random() * SCHEME_COUNT), () => m.name);
   }
 
   async function fillSet(t: Tile, k: Kind, models: CorpusModel[]) {
