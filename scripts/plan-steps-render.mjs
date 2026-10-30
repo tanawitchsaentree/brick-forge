@@ -22,7 +22,7 @@ const read = (p) => {
   }
 };
 const lib = makeLibrary(read, "public/ldraw", process.env.CONNECTORS === "shadow" ? "booklets/shadow" : null);
-const text = fs.readFileSync(path.join(ROOT, "public/corpus", `${id}.mpd`), "latin1");
+const text = fs.readFileSync(fs.existsSync(id) ? id : path.join(ROOT, "public/corpus", `${id}.mpd`), "latin1");
 const plan = buildPlan(text, lib);
 await vite.close();
 const nodes = flatten(text, lib).nodes;

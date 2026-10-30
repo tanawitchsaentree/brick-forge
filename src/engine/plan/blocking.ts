@@ -121,6 +121,8 @@ export interface Blocking {
   blockers(i: number, k: number): number[];
   /** Ways out for a whole group moved along d (sub-assemblies). */
   groupWays(group: number[], d: Vec3): number[][];
+  /** Each part's lowest point (world y; LDraw, so the largest y is the table). */
+  bottoms: number[];
   /** Does edge e let `moving` (one of its ends) leave the other end along d? */
   permits(e: Edge, moving: number, d: Vec3): boolean;
 }
@@ -326,6 +328,7 @@ export function blocking(lib: Library, nodes: Node[], edges: Edge[], shrink = 2.
   return {
     dirs,
     permits,
+    bottoms: aabb.map((b) => b.hi[1]),
     ways(i, k) {
       const key = `${i}:${k}`;
       let b = cache.get(key);

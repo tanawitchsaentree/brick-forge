@@ -26,6 +26,7 @@ export interface PlanWeights {
   leaf: number; // take off parts held by few joints first
   split?: number; // cost of a step that joins two separate pieces
   carry?: number; // build first what many units rest on (the base before the garden)
+  hang?: number; // cost of leaving a piece of the build in the air
   official?: number; // (diagnostic) the file's own order
 }
 const MAX_RING_UNITS = 4, MAX_RING_PARTS = 24;
@@ -61,7 +62,7 @@ interface Unit {
   sub?: string; // sub-model instance it stands for
 }
 
-export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: { beam?: number; weights?: PlanWeights; validators?: Validator[]; checkEvery?: number; hierarchy?: boolean; clusters?: boolean; maxLoose?: number } = {}): Plan {
+export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: { beam?: number; weights?: PlanWeights; validators?: Validator[]; checkEvery?: number; hierarchy?: boolean; clusters?: boolean; maxLoose?: number; bottoms?: number[] } = {}): Plan {
   const t0 = performance.now();
   const W = opts.weights ?? DEFAULT_WEIGHTS;
   const beamWidth = opts.beam ?? 4;
@@ -117,7 +118,13 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
     return c.map((v) => v / Math.max(ps.length, 1)) as Vec3;
   };
   const dot = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  // Part bottoms (world y, LDraw: larger is lower) for "on the table"; given by the caller.
+  const bottoms = opts.bottoms ?? blk.bottoms;
+  const floorY = bottoms.reduce((m, v) => Math.max(m, v), -Infinity);
 
+  // The build that stands on the table: the main model, or the one sub-model a file wraps it in.
+  let rootScope = "";
+  while (scopeOf(rootScope).parts.length === 0 && scopeOf(rootScope).children.size === 1) rootScope = [...scopeOf(rootScope).children][0];
   /** Plan one scope: its loose parts and child sub-assemblies, as units. Returns steps in build order. */
   const planScope = (scope: string): PlanStep[] => {
     const units: Unit[] = [...scopeOf(scope).parts.map((p) => ({ parts: [p] })), ...[...scopeOf(scope).children].map((c) => ({ parts: partsUnder(c), sub: c }))];
@@ -135,6 +142,39 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
         }
     });
     const ucentre = units.map((u) => centre(u.parts));
+    // On the table: units with a part at the model's lowest level. The main build stands on the
+    // table, so every piece of it must reach one; a sub-assembly is held in the hand instead.
+    const onTable = units.map((u) => scope === rootScope && u.parts.some((p) => (bottoms[p] ?? -Infinity) >= floorY - 4));
+    const needGround = scope === rootScope && onTable.some(Boolean);
+    /** Without unit k, does every piece of what's left still stand on the table? */
+    const staysGrounded = (k: number, present: Uint8Array, left: number) => {
+      if (!needGround || left <= 1) return true;
+      let any = false;
+      for (let q = 0; q < units.length; q++) if (q !== k && present[q] && onTable[q]) any = true;
+      if (!any) return false; // k is the last unit on the table: it has to be the first one placed
+      for (const n0 of uadj[k].keys()) {
+        if (!present[n0] || onTable[n0]) continue;
+        const seen = new Uint8Array(units.length);
+        seen[k] = 1;
+        seen[n0] = 1;
+        const q = [n0];
+        let found = false;
+        while (q.length && !found) {
+          const x = q.pop()!;
+          for (const y of uadj[x].keys()) {
+            if (!present[y] || seen[y]) continue;
+            if (onTable[y]) {
+              found = true;
+              break;
+            }
+            seen[y] = 1;
+            q.push(y);
+          }
+        }
+        if (!found) return false;
+      }
+      return true;
+    };
     const all = centre(units.flatMap((u) => u.parts));
     const ys = ucentre.map((c) => c[1]);
     const ySpan = Math.max(1, Math.max(...ys) - Math.min(...ys));
@@ -321,12 +361,16 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
           if (used.has(c.k)) continue;
           // Splitting what's left into pieces is allowed (two halves on the table, joined by
           // the part put on next) but costs: a designer keeps the build in one piece.
+          // The first unit placed (the last one off) stands on the table; a piece left hanging in the
+          // air costs a lot (with every joint read right it couldn't happen; a missed joint can make it look so).
+          if (needGround && s.left > 1 && onTable[c.k] && !units.some((_, q) => q !== c.k && s.present[q] && onTable[q])) continue;
+          const hangs = !staysGrounded(c.k, s.present, s.left);
           const split = !staysConnected(c.k, s.present, s.left);
           used.add(c.k);
           taken++;
           const present = s.present.slice();
           present[c.k] = 0;
-          next.push({ present, h: (s.h ^ zob[c.k]) >>> 0, left: s.left - 1, seq: [...s.seq, { k: c.k, d: c.d, split }], cost: s.cost - c.v + (split ? W.split ?? 2 : 0), last: c.k, lastDir: c.d });
+          next.push({ present, h: (s.h ^ zob[c.k]) >>> 0, left: s.left - 1, seq: [...s.seq, { k: c.k, d: c.d, split }], cost: s.cost - c.v + (split ? W.split ?? 2 : 0) + (hangs ? W.hang ?? 6 : 0), last: c.k, lastDir: c.d });
         }
         if (!taken && s === beam[0] && !next.length) {
           // Stuck: units that block one another in a ring along some direction come off together
@@ -388,5 +432,6 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
     return out;
   };
   const steps = planScope("");
+  void 0;
   return { steps, violations, clusters: clustered, ms: performance.now() - t0 };
 }
