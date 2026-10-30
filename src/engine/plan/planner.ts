@@ -28,11 +28,12 @@ export interface PlanWeights {
   carry?: number; // build first what many units rest on (the base before the garden)
   hang?: number; // cost of leaving a piece of the build in the air
   layer?: number; // finish a layer before the next: take off what's at the build's current top
+  landscape?: number; // low parts outside the main structure's footprint (garden, path, pond) go on last
   official?: number; // (diagnostic) the file's own order
 }
 const MAX_RING_UNITS = 4, MAX_RING_PARTS = 24;
 // Chosen on 17 corpus booklets and checked on 7 held out (scripts/plan-tune.mjs VARIANTS): ρ 0.513 → 0.568 / 0.561 → 0.635.
-export const DEFAULT_WEIGHTS: PlanWeights = { height: 2, outward: 1, sameDir: 0.6, near: 0.1, leaf: 0.2 };
+export const DEFAULT_WEIGHTS: PlanWeights = { height: 2, outward: 1, sameDir: 0.6, near: 0.1, leaf: 0.2, landscape: 3 }; // landscape: held-out ρ unchanged (0.604), garden last by eye
 
 export interface Validator {
   name: string;
@@ -147,6 +148,22 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
     // table, so every piece of it must reach one; a sub-assembly is held in the hand instead.
     const onTable = units.map((u) => scope === rootScope && u.parts.some((p) => (bottoms[p] ?? -Infinity) >= floorY - 4));
     const needGround = scope === rootScope && onTable.some(Boolean);
+    // Landscape: units no higher than 2 plates above the table and outside the footprint of the
+    // tall structure (parts reaching 2 bricks up) — a designer builds the house, then the garden.
+    const core = { lo: [Infinity, Infinity], hi: [-Infinity, -Infinity] };
+    for (const u of units) for (const p of u.parts) {
+      const b = blk.boxes[p];
+      if (floorY - b.lo[1] < 48) continue;
+      core.lo[0] = Math.min(core.lo[0], b.lo[0]), core.lo[1] = Math.min(core.lo[1], b.lo[2]);
+      core.hi[0] = Math.max(core.hi[0], b.hi[0]), core.hi[1] = Math.max(core.hi[1], b.hi[2]);
+    }
+    const landscape = units.map((u) => {
+      if (scope !== rootScope || !Number.isFinite(core.lo[0])) return false;
+      const top = Math.min(...u.parts.map((p) => blk.boxes[p].lo[1]));
+      if (floorY - top > 16) return false;
+      const c = ucentre[units.indexOf(u)];
+      return c[0] < core.lo[0] || c[0] > core.hi[0] || c[2] < core.lo[1] || c[2] > core.hi[1];
+    });
     /** Without unit k, does every piece of what's left still stand on the table? */
     const staysGrounded = (k: number, present: Uint8Array, left: number) => {
       if (!needGround || left <= 1) return true;
@@ -269,6 +286,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
       v += W.leaf * (1 / (1 + deg));
       v += (W.carry ?? 0) * (1 - carried[k] / maxCarried); // carries little → came on late → comes off early
       if (W.layer) v += W.layer * (c[1] - s.top <= 24 ? 1 : 0); // within a brick of the top of what's left
+      if (W.landscape && landscape[k]) v += W.landscape;
       return v;
     };
     // What rests on each unit: the units above it reachable through joints going up.

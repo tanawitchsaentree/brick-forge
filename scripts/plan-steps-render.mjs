@@ -13,6 +13,7 @@ const [id, out, fr = "0.15,0.35,0.6,0.85"] = process.argv.slice(2);
 const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
 const { makeLibrary } = await vite.ssrLoadModule("/src/engine/plan/library.ts");
 const { buildPlan } = await vite.ssrLoadModule("/src/engine/plan/build.ts");
+const { DEFAULT_WEIGHTS } = await vite.ssrLoadModule("/src/engine/plan/planner.ts");
 const { flatten } = await vite.ssrLoadModule("/src/engine/plan/ldraw.ts");
 const read = (p) => {
   try {
@@ -23,7 +24,8 @@ const read = (p) => {
 };
 const lib = makeLibrary(read, "public/ldraw", process.env.CONNECTORS === "shadow" ? "booklets/shadow" : null);
 const text = fs.readFileSync(fs.existsSync(id) ? id : path.join(ROOT, "public/corpus", `${id}.mpd`), "latin1");
-const plan = buildPlan(text, lib);
+// W='{"outward":2}' overrides planner weights for a look.
+const plan = buildPlan(text, lib, { weights: process.env.W ? { ...DEFAULT_WEIGHTS, ...JSON.parse(process.env.W) } : undefined });
 await vite.close();
 const nodes = flatten(text, lib).nodes;
 // Orders: the booklet's (STEP, then file order) and ours (first time each part goes on).
@@ -37,6 +39,10 @@ const line = (i) => {
 };
 const fracs = fr.split(",").map(Number);
 const sheets = { booklet: [], planner: [] };
+// A third row: another step order written as LDraw STEP lines (e.g. the app's default steps).
+const other = process.env.DEFAULT ? flatten(fs.readFileSync(process.env.DEFAULT, "latin1"), lib).nodes : null;
+if (other) sheets.default = [];
+const otherLine = (n) => `1 ${n.color} ${n.xf.t.join(" ")} ${n.xf.R.join(" ")} ${n.id}.dat`;
 const heads = [];
 if (process.env.STEPS) {
   // After booklet step k vs after our step k (cumulative), each with its own part count.
@@ -46,7 +52,14 @@ if (process.env.STEPS) {
     const ok = [...new Set(plan.steps.slice(0, k).flatMap((s) => s.parts))];
     sheets.booklet.push(bk.map(line).join("\n"));
     sheets.planner.push(ok.map(line).join("\n"));
-    heads.push(`after step ${k} (booklet ${bk.length} / ours ${ok.length} parts)`);
+    let extra = "";
+    if (other) {
+      const oSteps = [...new Set(other.map((n) => n.step))].sort((a, b) => a - b);
+      const oc = other.filter((n) => n.step <= oSteps[Math.min(k, oSteps.length) - 1]);
+      sheets.default.push(oc.map(otherLine).join("\n"));
+      extra = ` / default ${oc.length}`;
+    }
+    heads.push(`after step ${k} (booklet ${bk.length} / ours ${ok.length}${extra} parts)`);
   }
 } else
   for (const f of fracs) {
