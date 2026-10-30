@@ -60,6 +60,7 @@ try {
   const { parityOf } = await load("/src/engine/parity.ts");
   const { interiorFill } = await load("/src/engine/shell.ts");
   const { unitsOf, placeUnits } = await load("/src/engine/featureUnits.ts");
+  const { roofFill } = await load("/src/engine/roof.ts");
   const { rolesOf } = await load("/src/engine/roles.ts");
   const ruleTable = opts.FEATURES ? JSON.parse(fs.readFileSync(path.join(ROOT, "data/rules/adjacency.json"), "utf8")) : null;
   const shapes = JSON.parse(fs.readFileSync(path.join(ROOT, "public/shapes.json"), "utf8"));
@@ -112,9 +113,12 @@ try {
         }
       }
     }
-    const fixed = [...(inside ? inside.fixed : []), ...featFixed];
+    // ROOF (the DNA experiment): the roof from its grammar (src/engine/roof.ts), the sculptor below it.
+    const roof = opts.ROOF && corpus.find((m) => m.id === id).kind === "house" ? roofFill(target) : null; // houses only
+    const fixed = [...(inside ? inside.fixed : []), ...featFixed, ...(roof ? roof.fixed : [])];
     const r = opts.ARTICULATE ? sculptArticulated(target, { forms, ...opts }) : sculpt(target, { forms, ...opts, ...(fixed.length ? { fixed } : {}) });
     if (opts.FEATURES) Object.assign(r.phase ?? (r.phase = {}), { featureParts: featFixed.length });
+    if (roof) Object.assign(r.phase ?? (r.phase = {}), { roofParts: roof.fixed.length, roofBands: roof.bands, roofAxis: roof.axis });
     let pruned = 0;
     if (opts.PRUNE) {
       const n = prune(r.bricks, target);
@@ -178,6 +182,7 @@ try {
     row.wallMs = Math.round(performance.now() - w0);
     if (r.phase?.merges !== undefined) Object.assign(row, { merges: r.phase.merges, mergeRefused: r.phase.refused });
     if (r.phase?.featureParts !== undefined) row.featureParts = r.phase.featureParts;
+    if (r.phase?.roofParts !== undefined) Object.assign(row, { roofParts: r.phase.roofParts, roofBands: r.phase.roofBands, roofAxis: r.phase.roofAxis });
     // The build itself, hashed: a refactor that should change nothing must give the same hash (phase regression tests).
     const canon = r.bricks.map((b) => [b.partId, b.color, b.rot, b.x, b.y, b.z, b.place ? b.place.map((v) => +v.toFixed(4)) : null]);
     row.outHash = crypto.createHash("sha1").update(JSON.stringify(canon)).digest("hex").slice(0, 16);

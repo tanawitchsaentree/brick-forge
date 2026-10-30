@@ -77,3 +77,36 @@ It isn't the vocabulary: all 38 of 31009's roof slopes are among the 1,500 forms
 What happens: the greedy lays slopes but not the next row over each one's studded top strip, which is how designers stack a roof (rows stepping up, each covering the one below, double slopes on the ridge). The studs left showing are then capped by capStuds one at a time with 1×1 corner tiles, which is the scattered look.
 
 A roof has a grammar: rows of slopes stepping up, a ridge, gable ends. A part-at-a-time fill doesn't know it. This is where the DNA idea applies most directly. Next: a roof generator from rules mined from these 35 houses, under the sculptor's walls, measured on held-out houses (roof slope share, pieces, PARITY_v2, pictures).
+
+## Step 5: a roof from its grammar (`src/engine/roof.ts`, bench `ROOF`, houses only)
+
+Method:
+- **Eaves:** the widest layer across in the upper half. A roof is often a hollow shell, so area misleads; its width narrows steadily, and the eaves overhang the walls.
+- **Ridge:** along the axis that shrinks least, from the eaves to halfway up (the very top is often a chimney).
+- **Bands of 3 plates:** a side stepping in 1 stud gets 45° slopes, which are 2 deep, and the next band stands on their studded strip; a side stepping in 2 gets 33° slopes, 3 deep. Under the next band go plain bricks. A band 2 wide is the ridge, in double slopes.
+- **Pose:** the slopes' low side faces out, read from each part's scanned cells.
+
+Three bugs on the way, found by printing the cottage's layers:
+1. "85 % of the widest layer" took the baseplate and garden as the widest.
+2. Going down from the top, "where the footprint stops growing" found the chimney.
+3. The ridge axis taken from the top layer was the chimney's.
+
+31009 (cottage), sculpted with the bench's settings:
+
+| | pieces | IoU | PARITY_v2 | roof slopes / tiles |
+|---|---|---|---|---|
+| baseline | 546 | 0.890 | 0.484 | 11.4 % / 38.6 % |
+| features first | 520 | 0.911 | 0.546 | 19.1 % / 33.8 % |
+| roof grammar | 510 | 0.895 | 0.506 | 25.7 % / 33.0 % |
+| features + roof | **474** | 0.910 | **0.576** | 28.0 % / 32.3 % |
+| designers (35 houses) | 260 | — | 1 | 68.4 % / 7.2 % |
+
+Picture (`/tmp/prev/roof-compare.png`): the roof's long faces are rows of navy slopes, no longer scattered caps. Still wrong:
+- the gable ends are stepped bricks (only the slopes across the ridge are laid);
+- red parts on the roof: colour votes in units the roof shares with the walls;
+- the designer's cross-gable dormer isn't in the grammar.
+
+Next:
+1. Hip and gable ends.
+2. One roof colour, the roof's majority.
+3. All corpus houses, leave-one-out: only one house has been tried, which proves nothing general.
