@@ -111,7 +111,7 @@ function analyse(name, text, opts = {}) {
   const present = new Uint8Array(nodes.length).fill(1);
   const byPart = nodes.map(() => []);
   for (const e of edges) if (e.type !== "gear") byPart[e.a].push(e), byPart[e.b].push(e);
-  let offFail = 0, offBlocked = 0, offNoDir = 0;
+  let offFail = 0, offBlocked = 0, offNoDir = 0, offTogether = 0;
   // A booklet step adds its parts in any order: take off whichever of the step's parts are free,
   // again and again; what never comes free is a false alarm of ours (or a joint we read wrong).
   const free = (i) => {
@@ -133,6 +133,17 @@ function analyse(name, text, opts = {}) {
       for (const i of left) (free(i) === "ok" ? (present[i] = 0) : still.push(i));
       if (still.length === left.length) break;
       left = still;
+    }
+    // What's left of a step may go on as one group (parts on one axle pushed in together).
+    if (left.length > 1 && left.length <= 8) {
+      const AX = [[0, -1, 0], [0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
+      const inL = new Set(left);
+      const ok = AX.some((d) => left.every((i) => byPart[i].every((e) => inL.has(e.a === i ? e.b : e.a) || !present[e.a === i ? e.b : e.a] || blk.permits(e, i, d))) && blk.groupWays(left, d).some((w) => w.every((j) => inL.has(j) || !present[j])));
+      if (ok) {
+        offTogether += left.length;
+        for (const i of left) present[i] = 0;
+        left = [];
+      }
     }
     for (const i of left) {
       const why = free(i);
@@ -164,7 +175,7 @@ function analyse(name, text, opts = {}) {
     validity: forced === 0, collisionFree: +(1 - plan.violations.blocked / Math.max(1, plan.steps.length)).toFixed(4),
     reorientations: reorient, stability: { sampled: samples, unstable, unstableAt, minMargin: +minMargin.toFixed(3), ms: Math.round(stabMs) },
     spearmanVsOfficial: +spearman(placedAt, official).toFixed(3), fileOrderVsOfficial: +spearman(fileOrder, official).toFixed(3),
-    officialFlaggedInfeasible: { all: offFail, blocked: offBlocked, noDirection: offNoDir, rate: +(offFail / Math.max(1, nodes.length)).toFixed(4) },
+    officialFlaggedInfeasible: { all: offFail, blocked: offBlocked, noDirection: offNoDir, asGroup: offTogether, rate: +(offFail / Math.max(1, nodes.length)).toFixed(4) },
     ms: { flatten: Math.round(tFlat), graph: Math.round(tGraph), blocking: Math.round(tBlock), plan: Math.round(plan.ms) },
     heapMB: Math.round((process.memoryUsage().heapUsed - heap0) / 1e6),
   };
