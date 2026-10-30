@@ -78,7 +78,7 @@ export const DINO_TUNING = {
   claws: "curved" as "curved" | "plate", // a big curved claw per toe, or a 1×2 plate with 3 small claws
   ends: "cheese" as "cheese" | "square", // cheese slopes round a head's crown and snout ends
   cheeks: true, // side studs left showing on the cheeks
-  statue: true, // from size 4 up, one bonded statue on the grid instead of sections on joints
+  statue: false, // from size 4 up, one bonded statue on the grid (off: a statue is bulk, not detail)
   pairedJoints: true, // a double ball joint for a heavy head on a wide body
 };
 
@@ -628,7 +628,10 @@ export interface DinoDesign {
 export function dinosaur(species: Species, pool: Pool, size: number, detail: number, r: () => number, learned?: Plan): DinoDesign {
   const plan = learned ?? PLANS[species];
   // Sizes 3–4 are the Expert and Master scales (more sections' worth of bricks, same plan).
-  const k = [0.72, 1, 1.4, 1.9, 2.5, 3.3, 4.3, 5.4][Math.max(0, Math.min(7, size))] * (0.94 + r() * 0.12);
+  // A higher level is more detail, not more volume: past ×1.4 a body only gains bulk (Expert L
+  // was 662 pieces with a joint over its hold, a Master statue 1,131–4,883 plates), so sizes 3–7
+  // stay at the largest scale the joints carry.
+  const k = [0.72, 1, 1.4, 1.4, 1.4, 1.4, 1.4, 1.4][Math.max(0, Math.min(7, size))] * (0.94 + r() * 0.12);
   // The species' signature colour more often than not, else one of the others.
   const pick = (xs: number[]) => (r() < 0.55 ? xs[0] : xs[1 + Math.floor(r() * (xs.length - 1))] ?? xs[0]);
   const main = pick(plan.colors.main);
