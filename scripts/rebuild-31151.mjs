@@ -1,3 +1,4 @@
+// After a rebuild, seat the hand-placed parts: node scripts/seat-ldr.mjs data/golden/31151-rex.ldr
 // Reference rebuild of the T-rex of LEGO 31151 "T. rex" (Creator 3-in-1, 2024; booklet 6520924,
 // steps 1–236; the nest accessory 237–243 is left out), from the instructions read page by page
 // (see docs/engine/dna-31151.md). Same method as scripts/rebuild-31058.mjs: every module is built in

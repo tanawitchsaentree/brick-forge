@@ -1,5 +1,5 @@
 0 FILE 31151-rex.ldr
-0 LEGO 31151 T. rex — T. rex build (reference rebuild)
+0 LEGO 31151 T. rex Ã¢ÂÂ T. rex build (reference rebuild)
 0 Name: 31151-rex.ldr
 0 Author: scripts/rebuild-31151.mjs
 
@@ -38,10 +38,10 @@
 1 72 130 -32 20 0 0 -1 0 1 0 1 0 0 99207.dat
 0 // rear cap plate
 1 72 152 -44 0 0 -1 0 1 0 0 0 0 1 3022.dat
-1 330 156.5 -34 0 0 -1 0 1 0 0 0 0 1 11477.dat
-1 330 156.5 -54 0 0 -1 0 1 0 0 0 0 1 11477.dat
-1 330 148.5 -44 -30 0 -1 0 0 0 1 -1 0 0 11477.dat
-1 330 148.5 -44 30 0 -1 0 0 0 1 -1 0 0 11477.dat
+1 330 154.500 -34.000 0.000 0 -1 0 1 0 0 0 0 1 11477.dat
+1 330 154.500 -54.000 0.000 0 -1 0 1 0 0 0 0 1 11477.dat
+1 330 146.500 -44.000 -30.000 0 -1 0 0 0 1 -1 0 0 11477.dat
+1 330 146.500 -44.000 30.000 0 -1 0 0 0 1 -1 0 0 11477.dat
 1 0 30 -24 0 0 0 1 0 1 0 -1 0 0 52107.dat
 1 330 30 -32 0 0 0 1 0 1 0 -1 0 0 3710.dat
 0 // front keel
@@ -660,7 +660,7 @@
 0 FILE tail-4.ldr
 0 tail-4
 0 Name: tail-4.ldr
-0 // inverted 33° 3x1, deep end forward
+0 // inverted 33ÃÂ° 3x1, deep end forward
 1 19 20 4 0 0 0 -1 0 1 0 1 0 0 4287c.dat
 0 // plug: end socket on tail 3's ball
 1 71 30 -4 0 -1 0 0 0 1 0 0 0 -1 14418.dat
@@ -675,12 +675,12 @@
 1 330 10 4 50 1 0 0 0 1 0 0 0 1 26601.dat
 0 // elbow socket (end +X)
 1 71 30 -4 60 1 0 0 0 1 0 0 0 1 14418.dat
-0 // shoulder socket (end −Z)
+0 // shoulder socket (end Ã¢ÂÂZ)
 1 71 0 -4 30 0 0 1 0 1 0 -1 0 0 14418.dat
 0 // upper arm, top
 1 330 10 -12 50 1 0 0 0 1 0 0 0 1 26601.dat
 0 // upper arm curve
-1 330 0 -20 50 1 0 0 0 1 0 0 0 1 11477.dat
+1 330 0.000 -14.500 50.000 1 0 0 0 1 0 0 0 1 11477.dat
 0 // claw clips, forward
 1 0 80 4 60 0 0 -1 0 1 0 1 0 0 60470b.dat
 0 // wrist ball, back into the elbow
@@ -703,12 +703,12 @@
 1 330 10 4 -50 0 0 -1 0 1 0 1 0 0 26601.dat
 0 // elbow socket (end +X)
 1 71 30 -4 -60 1 0 0 0 1 0 0 0 1 14418.dat
-0 // shoulder socket (end −Z)
+0 // shoulder socket (end Ã¢ÂÂZ)
 1 71 0 -4 -30 0 0 -1 0 1 0 1 0 0 14418.dat
 0 // upper arm, top
 1 330 10 -12 -50 0 0 -1 0 1 0 1 0 0 26601.dat
 0 // upper arm curve
-1 330 0 -20 -50 -1 0 0 0 1 0 0 0 -1 11477.dat
+1 330 0.000 -14.500 -50.000 -1 0 0 0 1 0 0 0 -1 11477.dat
 0 // claw clips, forward
 1 0 80 4 -60 0 0 -1 0 1 0 1 0 0 60470b.dat
 0 // wrist ball, back into the elbow
@@ -727,17 +727,17 @@
 0 FILE thigh-l.ldr
 0 thigh-l
 0 Name: thigh-l.ldr
-0 // ankle socket 1, cup → −x
+0 // ankle socket 1, cup Ã¢ÂÂ Ã¢ÂÂx
 1 72 120.293 231.365 24 0.996 0 -0.087 0.087 0 0.996 0 -1 0 67696.dat
-0 // bracket: 2x3 on socket 1, 2x2 flange one brick lower toward −z (j −1..0)
+0 // bracket: 2x3 on socket 1, 2x2 flange one brick lower toward Ã¢ÂÂz (j Ã¢ÂÂ1..0)
 1 0 122.908 201.479 32 0.996 0 -0.087 0.087 0 0.996 0 -1 0 79180.dat
-0 // stack on the flange (96–97)
+0 // stack on the flange (96Ã¢ÂÂ97)
 1 330 135.484 172.465 16 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 3023.dat
-0 // stack on the flange (96–97)
+0 // stack on the flange (96Ã¢ÂÂ97)
 1 330 135.484 172.465 24 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 3023.dat
-0 // stack on the flange (96–97)
+0 // stack on the flange (96Ã¢ÂÂ97)
 1 330 135.484 172.465 32 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 3023.dat
-0 // 8x3 wedge: tip on the flange (i0 j0), straight edge j0, wide end (3) at i6–7
+0 // 8x3 wedge: tip on the flange (i0 j0), straight edge j0, wide end (3) at i6Ã¢ÂÂ7
 1 330 48.441 134.735 16 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 50304.dat
 1 330 106.47 159.888 40 0.996 0 -0.087 0.087 0 0.996 0 -1 0 3004.dat
 0 // 4x2 wedge brick, studs j0, 2 wide at i2 tapering to 1 at i5
@@ -747,31 +747,31 @@
 0 // 4x2 wedge brick, studs i5 j1..4, 1 wide at j1, 2 wide (i4) at j4
 1 330 31.132 103.106 40 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 41767.dat
 0 // 4x2 wedge brick, studs i8 j1..4, widening to i9 at j4
-1 330 -48.563 96.133 40 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 41768.dat
+1 330 -48.563 96.133 43.000 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 41768.dat
 0 // under the wedge's wide end
 1 330 -10.459 119.543 8 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 26601.dat
 0 // under the wedge's wide end
 1 330 -13.073 149.429 8 0.996 0 -0.087 0.087 0 0.996 0 -1 0 3023.dat
-0 // 1x5 on the bracket and the stack (i−1, j−4..0)
+0 // 1x5 on the bracket and the stack (iÃ¢ÂÂ1, jÃ¢ÂÂ4..0)
 1 72 132.87 202.35 40 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 78329.dat
-0 // 3x2 wedge plate: studs i0 j−4..−2, wing over i1
+0 // 3x2 wedge plate: studs i0 jÃ¢ÂÂ4..Ã¢ÂÂ2, wing over i1
 1 72 101.241 219.66 40 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 43723.dat
 1 0 123.779 191.517 48 0.996 0 -0.087 0.087 0 0.996 0 -1 0 3022.dat
-0 // top 8x3 wedge: tip i−1, straight edge j0, wide end at i5–6
+0 // top 8x3 wedge: tip iÃ¢ÂÂ1, straight edge j0, wide end at i5Ã¢ÂÂ6
 1 330 68.365 136.478 48 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 50304.dat
 0 // across the knee (i7, j0..3)
 1 330 -20.421 118.672 48 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 3710.dat
-0 // i5–6, j3
+0 // i5Ã¢ÂÂ6, j3
 1 330 12.08 91.401 48 0.996 0 -0.087 0.087 0 0.996 0 -1 0 3023.dat
-0 // on the far wedge brick (i8–9, j1–2)
-1 330 -50.306 116.057 48 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 26601.dat
+0 // on the far wedge brick (i8Ã¢ÂÂ9, j1Ã¢ÂÂ2)
+1 330 -50.306 116.057 53.500 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 26601.dat
 0 // on the black 2x2, beside socket 2
 1 330 122.908 201.479 56 0.996 0 -0.087 0.087 0 0.996 0 -1 0 3023.dat
 0 // ankle socket 2 on the 1x5 / 3x2 wedge
 1 72 120.293 231.365 64 0.996 0 -0.087 0.087 0 0.996 0 -1 0 67696.dat
-0 // bracket on socket 2, 2x2 face → +z
+0 // bracket on socket 2, 2x2 face Ã¢ÂÂ +z
 1 0 119.421 241.327 72 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 44728.dat
-0 // inverted bracket under socket 1, 2x2 face → +z
+0 // inverted bracket under socket 1, 2x2 face Ã¢ÂÂ +z
 1 72 119.421 241.327 0 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 99207.dat
 1 72 117.504 263.243 42 -0.996 0.087 0 -0.087 -0.996 0 0 0 1 11458.dat
 1 330 107.542 262.371 42 0 0.087 0.996 0 -0.996 0.087 1 0 0 11477.dat
@@ -800,7 +800,7 @@
 1 1 -36.362 -43.334 22 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 42924.dat
 1 72 25.153 -58.029 22 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 89678.dat
 1 72 -14.695 -61.515 22 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 89678.dat
-0 // on the half pins, studs → −z
+0 // on the half pins, studs Ã¢ÂÂ Ã¢ÂÂz
 1 288 6.275 -71.726 22 0.996 -0.087 0 0.087 0.996 0 0 0 1 3710.dat
 1 288 36.161 -69.111 32 -0.996 -0.087 0 -0.087 0.996 0 0 0 -1 29120.dat
 1 288 6.275 -71.726 22 -0.996 -0.087 0 -0.087 0.996 0 0 0 -1 85984.dat
@@ -819,7 +819,7 @@
 1 288 0 0 48 -0.996 0 0.087 -0.087 0 -0.996 0 -1 0 18646.dat
 0 // under the slab-cap joint (118): wedge underside j1..2 to the inner ring
 1 288 -6.972 79.696 0 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 3020.dat
-0 // from the knee's top plates (i6–7, j2..3) onto the outer ring (j5)
+0 // from the knee's top plates (i6Ã¢ÂÂ7, j2..3) onto the outer ring (j5)
 1 19 -6.972 79.696 56 -0.087 0 -0.996 0.996 0 -0.087 0 -1 0 3020.dat
 1 72 -5.229 59.772 64 0.996 0 -0.087 0.087 0 0.996 0 -1 0 3022.dat
 0 // on the outer ring
@@ -833,17 +833,17 @@
 0 FILE thigh-r.ldr
 0 thigh-r
 0 Name: thigh-r.ldr
-0 // ankle socket 1, cup → −x
+0 // ankle socket 1, cup Ã¢ÂÂ Ã¢ÂÂx
 1 72 120.293 231.365 -24 0.996 0 0.087 0.087 0 -0.996 0 1 0 67696.dat
-0 // bracket: 2x3 on socket 1, 2x2 flange one brick lower toward −z (j −1..0)
+0 // bracket: 2x3 on socket 1, 2x2 flange one brick lower toward Ã¢ÂÂz (j Ã¢ÂÂ1..0)
 1 0 122.908 201.479 -32 -0.996 0 -0.087 -0.087 0 0.996 0 1 0 79180.dat
-0 // stack on the flange (96–97)
+0 // stack on the flange (96Ã¢ÂÂ97)
 1 330 135.484 172.465 -16 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 3023.dat
-0 // stack on the flange (96–97)
+0 // stack on the flange (96Ã¢ÂÂ97)
 1 330 135.484 172.465 -24 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 3023.dat
-0 // stack on the flange (96–97)
+0 // stack on the flange (96Ã¢ÂÂ97)
 1 330 135.484 172.465 -32 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 3023.dat
-0 // 8x3 wedge: tip on the flange (i0 j0), straight edge j0, wide end (3) at i6–7
+0 // 8x3 wedge: tip on the flange (i0 j0), straight edge j0, wide end (3) at i6Ã¢ÂÂ7
 1 330 48.441 134.735 -16 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 50305.dat
 1 330 106.47 159.888 -40 -0.996 0 -0.087 -0.087 0 0.996 0 1 0 3004.dat
 0 // 4x2 wedge brick, studs j0, 2 wide at i2 tapering to 1 at i5
@@ -853,31 +853,31 @@
 0 // 4x2 wedge brick, studs i5 j1..4, 1 wide at j1, 2 wide (i4) at j4
 1 330 31.132 103.106 -40 0.996 0 0.087 0.087 0 -0.996 0 1 0 41768.dat
 0 // 4x2 wedge brick, studs i8 j1..4, widening to i9 at j4
-1 330 -48.563 96.133 -40 0.996 0 0.087 0.087 0 -0.996 0 1 0 41767.dat
+1 330 -48.563 96.133 -43.500 0.996 0 0.087 0.087 0 -0.996 0 1 0 41767.dat
 0 // under the wedge's wide end
 1 330 -10.459 119.543 -8 0.996 0 0.087 0.087 0 -0.996 0 1 0 26601.dat
 0 // under the wedge's wide end
 1 330 -13.073 149.429 -8 -0.996 0 -0.087 -0.087 0 0.996 0 1 0 3023.dat
-0 // 1x5 on the bracket and the stack (i−1, j−4..0)
+0 // 1x5 on the bracket and the stack (iÃ¢ÂÂ1, jÃ¢ÂÂ4..0)
 1 72 132.87 202.35 -40 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 78329.dat
-0 // 3x2 wedge plate: studs i0 j−4..−2, wing over i1
+0 // 3x2 wedge plate: studs i0 jÃ¢ÂÂ4..Ã¢ÂÂ2, wing over i1
 1 72 101.241 219.66 -40 0.996 0 0.087 0.087 0 -0.996 0 1 0 43722.dat
 1 0 123.779 191.517 -48 -0.996 0 -0.087 -0.087 0 0.996 0 1 0 3022.dat
-0 // top 8x3 wedge: tip i−1, straight edge j0, wide end at i5–6
+0 // top 8x3 wedge: tip iÃ¢ÂÂ1, straight edge j0, wide end at i5Ã¢ÂÂ6
 1 330 68.365 136.478 -48 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 50305.dat
 0 // across the knee (i7, j0..3)
 1 330 -20.421 118.672 -48 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 3710.dat
-0 // i5–6, j3
+0 // i5Ã¢ÂÂ6, j3
 1 330 12.08 91.401 -48 -0.996 0 -0.087 -0.087 0 0.996 0 1 0 3023.dat
-0 // on the far wedge brick (i8–9, j1–2)
-1 330 -50.306 116.057 -48 -0.087 0 0.996 0.996 0 0.087 0 1 0 26601.dat
+0 // on the far wedge brick (i8Ã¢ÂÂ9, j1Ã¢ÂÂ2)
+1 330 -50.306 116.057 -54.000 -0.087 0 0.996 0.996 0 0.087 0 1 0 26601.dat
 0 // on the black 2x2, beside socket 2
 1 330 122.908 201.479 -56 -0.996 0 -0.087 -0.087 0 0.996 0 1 0 3023.dat
 0 // ankle socket 2 on the 1x5 / 3x2 wedge
 1 72 120.293 231.365 -64 0.996 0 0.087 0.087 0 -0.996 0 1 0 67696.dat
-0 // bracket on socket 2, 2x2 face → +z
+0 // bracket on socket 2, 2x2 face Ã¢ÂÂ +z
 1 0 119.421 241.327 -72 0.996 0 0.087 0.087 0 -0.996 0 1 0 44728.dat
-0 // inverted bracket under socket 1, 2x2 face → +z
+0 // inverted bracket under socket 1, 2x2 face Ã¢ÂÂ +z
 1 72 119.421 241.327 0 0.996 0 0.087 0.087 0 -0.996 0 1 0 99207.dat
 1 72 117.504 263.243 -42 0.996 0.087 0 0.087 -0.996 0 0 0 -1 11458.dat
 1 330 107.542 262.371 -42 0 0.087 0.996 0 -0.996 0.087 1 0 0 11477.dat
@@ -906,7 +906,7 @@
 1 1 -36.362 -43.334 -22 -0.087 0 0.996 0.996 0 0.087 0 1 0 42924.dat
 1 72 25.153 -58.029 -22 -0.087 0 0.996 0.996 0 0.087 0 1 0 89678.dat
 1 72 -14.695 -61.515 -22 -0.087 0 0.996 0.996 0 0.087 0 1 0 89678.dat
-0 // on the half pins, studs → −z
+0 // on the half pins, studs Ã¢ÂÂ Ã¢ÂÂz
 1 288 6.275 -71.726 -22 -0.996 -0.087 0 -0.087 0.996 0 0 0 -1 3710.dat
 1 288 36.161 -69.111 -32 0.996 -0.087 0 0.087 0.996 0 0 0 1 29119.dat
 1 288 6.275 -71.726 -22 0.996 -0.087 0 0.087 0.996 0 0 0 1 85984.dat
@@ -925,7 +925,7 @@
 1 288 0 0 -48 0.996 0 0.087 0.087 0 -0.996 0 1 0 18646.dat
 0 // under the slab-cap joint (118): wedge underside j1..2 to the inner ring
 1 288 -6.972 79.696 0 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 3020.dat
-0 // from the knee's top plates (i6–7, j2..3) onto the outer ring (j5)
+0 // from the knee's top plates (i6Ã¢ÂÂ7, j2..3) onto the outer ring (j5)
 1 19 -6.972 79.696 -56 0.087 0 -0.996 -0.996 0 -0.087 0 1 0 3020.dat
 1 72 -5.229 59.772 -64 -0.996 0 -0.087 -0.087 0 0.996 0 1 0 3022.dat
 0 // on the outer ring
@@ -968,7 +968,7 @@
 0 // claw
 1 0 -110 28 0 0 1 0 0 0 1 1 0 0 87747.dat
 1 72 -20 38 0 -1 0 0 0 1 0 0 0 -1 4032a.dat
-0 // axle hole → X
+0 // axle hole Ã¢ÂÂ X
 1 0 -30 14 0 0 0 1 0 1 0 -1 0 0 32064a.dat
 0 // red axle into the middle toe
 1 4 -50 24 0 1 0 0 0 1 0 0 0 1 32062.dat
@@ -1023,7 +1023,7 @@
 0 // claw
 1 0 -110 28 0 0 1 0 0 0 1 1 0 0 87747.dat
 1 72 -20 38 0 1 0 0 0 1 0 0 0 1 4032a.dat
-0 // axle hole → X
+0 // axle hole Ã¢ÂÂ X
 1 0 -30 14 0 0 0 1 0 1 0 -1 0 0 32064a.dat
 0 // red axle into the middle toe
 1 4 -50 24 0 1 0 0 0 1 0 0 0 1 32062.dat
