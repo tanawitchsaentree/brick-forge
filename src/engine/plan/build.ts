@@ -44,7 +44,9 @@ export function groupSteps(plan: Plan, nodes: Node[], size = 5, reach = 80): Bui
     }
     const last = out[out.length - 1];
     const same = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2] > 0.999;
-    const near = last && last.kind === "parts" && Math.hypot(...([0, 1, 2].map((k) => nodes[fresh[0]].xf.t[k] - nodes[last.parts[0]].xf.t[k]) as Vec3)) <= reach;
+    // One area, or one layer: a booklet step lays a course of bricks right round a wall.
+    const d = last ? ([0, 1, 2].map((k) => nodes[fresh[0]].xf.t[k] - nodes[last.parts[0]].xf.t[k]) as Vec3) : [0, 0, 0];
+    const near = last && last.kind === "parts" && (Math.hypot(...d) <= reach || Math.abs(d[1]) <= 8);
     // Booklet steps mix directions (a plate on top, a tile on the side) as long as it's one area.
     if (last && last.kind === "parts" && last.scope === s.scope && near && last.parts.length + fresh.length <= size && !s.forced && !last.note?.startsWith("relaxed")) {
       if (!same(last.dir, s.dir) || last.partDirs) last.partDirs ??= last.parts.map(() => last.dir);
@@ -68,7 +70,7 @@ export function buildPlan(text: string, lib: Library, opts: { weights?: PlanWeig
   const plan = planAssembly(nodes, edges, blk, { weights: opts.weights, beam: opts.beam });
   // Booklets put more parts in a step the bigger the model (the corpus: about 3 for 30–260 parts,
   // about 10 for 1,300): size ≈ 2 + parts / 170, reach about 2 studs a part.
-  const size = opts.stepSize ?? Math.min(12, Math.max(3, Math.round(2 + nodes.length / 170)));
+  const size = opts.stepSize ?? Math.min(12, Math.max(3, Math.round(3 + nodes.length / 120)));
   const steps = groupSteps(plan, nodes, size, 80 * size);
   return {
     nodes: nodes.map((n) => ({ id: n.id, color: n.color, matrix: [...n.xf.R, ...n.xf.t], path: n.path, src: n.src })),
