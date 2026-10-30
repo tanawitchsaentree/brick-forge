@@ -501,7 +501,7 @@ export const PLANS: Record<Species, Plan> = {
     // curling up 10°/30°/60°, the neck rising 30°+ so the snout is over the shoulders.
     torso: { L: 8, hw: 2, H: 10, pitch: 4 },
     head: { L: 9, hw: 2, H: 6, snout: 3, bend: 25, jawOpen: 45, teeth: true },
-    tail: { n: 3, L: 5, hw: 2, H: 6, taper: 0.66, bend: [8, 14, 20] },
+    tail: { n: 3, L: 5, hw: 1, H: 4, taper: 0.7, bend: [8, 14, 20] },
     // A big green thigh, a thin grey shin (31058's hinge-and-Technic legs).
     hind: { thigh: [4, 11], shin: [1, 11], foot: 4, claws: true, stride: 3 },
     arms: { len: 5, reach: 40 },
