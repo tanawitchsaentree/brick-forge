@@ -414,7 +414,7 @@ export interface SculptOptions {
    * an anchor even when its score was negative: 53.5 % of unconnected parts sat on
    * or under a part with no stud between them.
    */
-  NO_FLOAT?: boolean;
+  NO_FLOAT?: boolean | "onSmooth";
   /** Fewest target cells a part must fill to be worth a piece. */
   MIN_COVER?: number;
   /** Per stud left showing: bonus where the target shows studs, penalty on its smooth surfaces. */
@@ -456,7 +456,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   const t0 = performance.now();
   const phase: Record<string, number> = {};
   // Defaults tuned on the reconstruction benchmark (docs/engine.md).
-  const MIN_FILL = opts.MIN_FILL ?? 0, NO_FLOAT = !!opts.NO_FLOAT;
+  const MIN_FILL = opts.MIN_FILL ?? 0, NO_FLOAT = opts.NO_FLOAT ?? false;
   const AIR = opts.AIR ?? 3, PIECE = opts.PIECE ?? 60, HOLD = opts.HOLD ?? 2, FLOAT = opts.FLOAT ?? 300, PRIOR = opts.PRIOR ?? 3, GAMMA = opts.GAMMA ?? 0.7, MIN_COVER = opts.MIN_COVER ?? 16, STUD_OK = opts.STUD_OK ?? 0, STUD_BAD = opts.STUD_BAD ?? 40, REPEAT = opts.REPEAT ?? 25;
   const studs = target.studs;
   const want = new Map<number, number>();
@@ -529,8 +529,8 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   // The raw terms of a placement (no gates, no weights), or null if it overlaps a
   // placed part. Written into one scratch object (evaluate runs millions of times;
   // a new object each time cost 45 % of the sculptor's time): copy it to keep it.
-  type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean; shared: number; x: number; y: number; z: number };
-  const scratch: Terms = { cover: 0, air: 0, ok: 0, bad: 0, engaged: 0, repeat: false, grounded: false, shared: 0, x: 0, y: 0, z: 0 };
+  type Terms = { cover: number; air: number; ok: number; bad: number; engaged: number; repeat: boolean; grounded: boolean; shared: number; below: number; x: number; y: number; z: number };
+  const scratch: Terms = { cover: 0, air: 0, ok: 0, bad: 0, engaged: 0, repeat: false, grounded: false, shared: 0, below: 0, x: 0, y: 0, z: 0 };
   // `full`: all terms even where a gate drops it (the replay); otherwise it stops
   // at the gate, before the stud loop, as the sculptor always did (that loop is
   // most of the time of a placement that would be dropped anyway).
@@ -539,7 +539,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   // stud, neighbours that touch can share a few cells).
   const terms = (fi: number, ox: number, oy: number, oz: number, full = false, shareOk = false): Terms | null => {
     const f = forms[fi];
-    let engaged = 0, cover = 0, air = 0, same = 0, bottom = 0, shared = 0;
+    let engaged = 0, cover = 0, air = 0, same = 0, bottom = 0, shared = 0, below = 0;
     for (const u of f.units) {
       const x = ox + u.dx, y = oy + u.dy, z = oz + u.dz;
       const t = wantG.get(x, y, z), have = taken.get(x, y, z);
@@ -552,6 +552,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
       engaged += popcount(u.mask & probed.get(x, y, z)); // placed studs into it
       if (u.dy === 0) {
         bottom++;
+        if (taken.get(x, oy - 1, z)) below++; // something right under it
         const o = owner.get(ukey(ox + u.dx, oy - 1, oz + u.dz));
         const p = o === undefined ? null : placedAt[o];
         if (p && forms[p.fi].partId === f.partId && p.x === ox && p.z === oz && forms[p.fi].units.length === f.units.length) same++;
@@ -575,6 +576,7 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
     scratch.repeat = bottom > 0 && same === bottom;
     scratch.grounded = oy === y0;
     scratch.shared = shared;
+    scratch.below = below;
     scratch.x = ox;
     scratch.y = oy;
     scratch.z = oz;
@@ -605,7 +607,9 @@ export function sculpt(target: Voxels, opts: SculptOptions): SculptResult {
   /** The score of a placement from its terms: the hand-tuned one, or weighted features. Null if a gate drops it. */
   const score = (fi: number, t: Terms) => {
     const f = forms[fi];
-    if (NO_FLOAT && !t.engaged && !t.grounded) return null; // S8: nothing holds it
+    // S8: nothing holds it. "onSmooth": only when it rests on parts with no stud into it
+    // (on a tile); one hanging over open space may still be held from above later.
+    if (NO_FLOAT && !t.engaged && !t.grounded && (NO_FLOAT !== "onSmooth" || t.below > 0)) return null;
     if (!W) {
       const fit = t.cover - AIR * t.air;
       if (fit <= 0 || t.cover < MIN_COVER) return null;
