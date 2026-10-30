@@ -37,11 +37,24 @@ const line = (i) => {
 };
 const fracs = fr.split(",").map(Number);
 const sheets = { booklet: [], planner: [] };
-for (const f of fracs) {
-  const k = Math.max(1, Math.round(f * nodes.length));
-  sheets.booklet.push(booklet.slice(0, k).map(line).join("\n"));
-  sheets.planner.push(ours.slice(0, k).map(line).join("\n"));
-}
+const heads = [];
+if (process.env.STEPS) {
+  // After booklet step k vs after our step k (cumulative), each with its own part count.
+  const bSteps = [...new Set(nodes.map((n) => n.step))].sort((a, b) => a - b);
+  for (const k of process.env.STEPS.split(",").map(Number)) {
+    const bk = nodes.filter((n) => n.step <= bSteps[Math.min(k, bSteps.length) - 1]).map((n) => n.i);
+    const ok = [...new Set(plan.steps.slice(0, k).flatMap((s) => s.parts))];
+    sheets.booklet.push(bk.map(line).join("\n"));
+    sheets.planner.push(ok.map(line).join("\n"));
+    heads.push(`after step ${k} (booklet ${bk.length} / ours ${ok.length} parts)`);
+  }
+} else
+  for (const f of fracs) {
+    const k = Math.max(1, Math.round(f * nodes.length));
+    sheets.booklet.push(booklet.slice(0, k).map(line).join("\n"));
+    sheets.planner.push(ours.slice(0, k).map(line).join("\n"));
+    heads.push(`${Math.round(f * 100)}% (${k} parts)`);
+  }
 const b = await chromium.launch({ args: ["--use-angle=metal", "--enable-gpu", "--ignore-gpu-blocklist"] });
 const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
 await p.goto("http://localhost:5174/");
@@ -61,7 +74,7 @@ const imgs = await p.evaluate(async ({ sheets }) => {
   return res;
 }, { sheets });
 const html = `<body style="margin:0;font:13px system-ui;background:#fff"><table style="border-collapse:collapse">
-<tr><th></th>${fracs.map((f) => `<th>${Math.round(f * 100)}% (${Math.round(f * nodes.length)} parts)</th>`).join("")}</tr>
+<tr><th></th>${heads.map((h) => `<th style="font-weight:500">${h}</th>`).join("")}</tr>
 ${Object.entries(imgs).map(([k, list]) => `<tr><td style="padding:4px;writing-mode:vertical-rl">${k}</td>${list.map((u) => `<td><img src="${u}" width="260"></td>`).join("")}</tr>`).join("")}
 </table></body>`;
 const q = await b.newPage();
