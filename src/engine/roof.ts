@@ -91,25 +91,32 @@ export function roofFill(target: Voxels): { fixed: PlacedBrick[]; eave: number |
   const fixed: PlacedBrick[] = [];
   const taken = new Set<number>();
   const colorAt = (x: number, y: number, z: number) => [...(votes.get(vkey(x, y, z)) ?? new Map())].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 71;
+  // One colour for the roof's slopes: the most common above the eaves (unit votes
+  // mixed the walls' colour into slopes that share a unit with them).
+  const roofVotes = new Map<number, number>();
+  for (const [u, v] of votes) if (unkey(u)[1] > eave) for (const [c, n] of v) roofVotes.set(c, (roofVotes.get(c) ?? 0) + n);
+  const roofColor = [...roofVotes].sort((a, b) => b[1] - a[1])[0]?.[0] ?? 71;
   /** Put a part if all its units are roof units not yet taken. */
-  const put = (id: string | undefined, x: number, y: number, z: number, rot: Rot) => {
+  const put = (id: string | undefined, x: number, y: number, z: number, rot: Rot, color?: number) => {
     if (!id || !PARTS[id]) return false;
     const cells: number[] = [];
     partCells({ uid: "", partId: id, x, y, z, rot, color: 0 }, (cx, cy, cz) => cells.push(vkey(Math.floor(cx / RES), Math.floor(cy / RES_Y), Math.floor(cz / RES))));
     const units = [...new Set(cells)];
     if (units.some((u) => taken.has(u) || !fill.has(u) || unkey(u)[1] <= eave)) return false;
     units.forEach((u) => taken.add(u));
-    fixed.push({ uid: `r${fixed.length}`, partId: id, x, y, z, rot, color: colorAt(x, y, z), why: { role: "structure", cover: 0, air: 0, finish: 0, engaged: 0, prior: 0, repeat: false, rank: 0, margin: Infinity, motif: "roof: a row of slopes on the row below (roof grammar)" } });
+    fixed.push({ uid: `r${fixed.length}`, partId: id, x, y, z, rot, color: color ?? colorAt(x, y, z), why: { role: "structure", cover: 0, air: 0, finish: 0, engaged: 0, prior: 0, repeat: false, rank: 0, margin: Infinity, motif: "roof: a row of slopes on the row below (roof grammar)" } });
     return true;
   };
   // Lay a run of parts along the ridge axis, longest first.
   // A turn that lays a part's length along the ridge (bricks, double slopes), or faces a slope's low side out.
-  const along = (id: string): Rot => {
+  const along = (id: string, ax: "x" | "z"): Rot => {
     const p = PARTS[id];
     const len0 = p.w; // x-extent at rot 0
-    return (axis === "x" ? (len0 >= p.d ? 0 : 1) : len0 >= p.d ? 1 : 0) as Rot;
+    return (ax === "x" ? (len0 >= p.d ? 0 : 1) : len0 >= p.d ? 1 : 0) as Rot;
   };
-  const run = (pick: (n: number) => string | undefined, lens: number[], a0: number, a1: number, cross: number, y: number, dir: Dir | "along") => {
+  // A run of parts along `ax` (the ridge, or across it at a hip end), longest first;
+  // `cross` is the other coordinate. Slopes take the roof colour.
+  const run = (pick: (n: number) => string | undefined, lens: number[], a0: number, a1: number, cross: number, y: number, dir: Dir | "along", ax: "x" | "z" = axis, color?: number) => {
     let a = a0;
     while (a <= a1) {
       let placed = false;
@@ -117,9 +124,9 @@ export function roofFill(target: Voxels): { fixed: PlacedBrick[]; eave: number |
         if (a + n - 1 > a1) continue;
         const id = pick(n);
         if (!id) continue;
-        const rot = dir === "along" ? along(id) : turnFor(id, dir);
-        const [x, z] = axis === "x" ? [a, cross] : [cross, a];
-        if (put(id, x, y, z, rot)) {
+        const rot = dir === "along" ? along(id, ax) : turnFor(id, dir);
+        const [x, z] = ax === "x" ? [a, cross] : [cross, a];
+        if (put(id, x, y, z, rot, color)) {
           a += n;
           placed = true;
           break;
@@ -139,7 +146,7 @@ export function roofFill(target: Voxels): { fixed: PlacedBrick[]; eave: number |
     const [plus, minus]: [Dir, Dir] = axis === "x" ? ["+z", "-z"] : ["+x", "-x"];
     if (!nextHas || nhi < nlo || width <= 2) {
       // The ridge: double slopes across a band 2 wide (or single slopes facing out on 1).
-      if (width === 2) run(double45, [4, 3, 2, 1], a0, a1, lo, y, "along");
+      if (width === 2) run(double45, [4, 3, 2, 1], a0, a1, lo, y, "along", axis, roofColor);
       bands++;
       break;
     }
@@ -147,10 +154,17 @@ export function roofFill(target: Voxels): { fixed: PlacedBrick[]; eave: number |
     const lens45 = [8, 6, 4, 3, 2, 1], lens33 = [6, 4, 3, 2, 1];
     // A 45° slope is 2 deep: a stud of slope and a stud of studded strip, which the
     // next band, stepped in 1, stands on. A 33° slope is 3 deep, the next band 2 in.
-    if (left === 1) run(slope45, lens45, a0, a1, lo, y, minus);
-    else if (left === 2) run(slope33, lens33, a0, a1, lo, y, minus);
-    if (right === 1) run(slope45, lens45, a0, a1, hi - 1, y, plus);
-    else if (right === 2) run(slope33, lens33, a0, a1, hi - 2, y, plus);
+    // Hip ends first, where the band also steps in along the ridge: slopes across
+    // it at each end, low side out (a gable end, which doesn't step in, is wall).
+    const cross: "x" | "z" = axis === "x" ? "z" : "x";
+    const [na0, na1] = axis === "x" ? [next.x0, next.x1] : [next.z0, next.z1];
+    const [endMinus, endPlus]: [Dir, Dir] = axis === "x" ? ["-x", "+x"] : ["-z", "+z"];
+    if (na0 - a0 === 1) run(slope45, lens45, lo, hi, a0, y, endMinus, cross, roofColor);
+    if (a1 - na1 === 1) run(slope45, lens45, lo, hi, a1 - 1, y, endPlus, cross, roofColor);
+    if (left === 1) run(slope45, lens45, a0, a1, lo, y, minus, axis, roofColor);
+    else if (left === 2) run(slope33, lens33, a0, a1, lo, y, minus, axis, roofColor);
+    if (right === 1) run(slope45, lens45, a0, a1, hi - 1, y, plus, axis, roofColor);
+    else if (right === 2) run(slope33, lens33, a0, a1, hi - 2, y, plus, axis, roofColor);
     // Under the next band: bricks across its width, so it has studs to stand on.
     for (let c = nlo; c <= nhi; c += 2) {
       const w = Math.min(2, nhi - c + 1);
