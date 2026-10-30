@@ -46,3 +46,11 @@ Difference from the measurement: the worker prunes (`necessity.prune`) before sc
 1. Run the variants in parallel across workers, so the UI waits about as long as one build.
 2. A larger pool with a better selector: learn the score weights on the tuning set, validate on held-out.
 3. Add a bench option `BEST_OF` so the measurement is end to end, not offline.
+
+## In the app's setting (af's test + scripts/c5-studio-bestofk.mjs)
+
+- **Junior–Advanced with donor parts kept** (Studio longer/shorter/wider): in the real app the default won 6/6 (af, Playwright). The variants only fill small gaps between donor parts, so they hardly differ. No gain, so it stays off.
+- **Expert, core8 ×1.5, no donors** (bench/results/c5-studio-expert.json):
+  - The selector picked a non-default variant 2 of 8 times (75870 → minfill85, 4917 → shell).
+  - Time: about 3.0 s per default build and about 11.6 s for all 4 (31009 takes about 10 s per variant).
+  - Pictures (`render-compare`): 75870 a little fuller with fewer holes; 4917 a fuller torso but more pieces (205 → 238). Neither looks worse. The other 6 are identical to the default. The gain is small; the bigger problem is the build quality underneath (noisy compared with the designer), which best-of-K doesn't fix.
