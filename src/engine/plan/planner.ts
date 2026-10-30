@@ -27,6 +27,7 @@ export interface PlanWeights {
   split?: number; // cost of a step that joins two separate pieces
   carry?: number; // build first what many units rest on (the base before the garden)
   hang?: number; // cost of leaving a piece of the build in the air
+  layer?: number; // finish a layer before the next: take off what's at the build's current top
   official?: number; // (diagnostic) the file's own order
 }
 const MAX_RING_UNITS = 4, MAX_RING_PARTS = 24;
@@ -252,10 +253,10 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
     }
     void comps; // (a scope in several pieces still can't split a piece further)
 
-    interface State { present: Uint8Array; h: number; left: number; seq: { k: number; d: Vec3; forced?: string; split?: boolean; group?: number[] }[]; cost: number; last: number; lastDir: Vec3 | null }
+    interface State { present: Uint8Array; h: number; top: number; left: number; seq: { k: number; d: Vec3; forced?: string; split?: boolean; group?: number[] }[]; cost: number; last: number; lastDir: Vec3 | null }
     // Zobrist keys: the set of units taken off, as an XOR of a random word per unit.
     const zob = units.map((_, k) => (Math.imul(k + 1, 2654435761) ^ Math.imul(k + 7, 40503)) >>> 0);
-    let beam: State[] = [{ present: full.slice(), h: 0, left: units.length, seq: [], cost: 0, last: -1, lastDir: null }];
+    let beam: State[] = [{ present: full.slice(), h: 0, top: Math.min(...ucentre.map((c) => c[1])), left: units.length, seq: [], cost: 0, last: -1, lastDir: null }];
     const score = (s: State, k: number, d: Vec3) => {
       const c = ucentre[k];
       let v = 0;
@@ -267,6 +268,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
       for (const q of uadj[k].keys()) if (s.present[q]) deg++;
       v += W.leaf * (1 / (1 + deg));
       v += (W.carry ?? 0) * (1 - carried[k] / maxCarried); // carries little → came on late → comes off early
+      if (W.layer) v += W.layer * (c[1] - s.top <= 24 ? 1 : 0); // within a brick of the top of what's left
       return v;
     };
     // What rests on each unit: the units above it reachable through joints going up.
@@ -338,6 +340,11 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
       }
       return best;
     };
+    const topOf = (present: Uint8Array) => {
+      let t = Infinity;
+      for (let q = 0; q < units.length; q++) if (present[q] && ucentre[q][1] < t) t = ucentre[q][1];
+      return t;
+    };
     let steps = 0;
     while (beam[0].left > 0) {
       steps++;
@@ -370,7 +377,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
           taken++;
           const present = s.present.slice();
           present[c.k] = 0;
-          next.push({ present, h: (s.h ^ zob[c.k]) >>> 0, left: s.left - 1, seq: [...s.seq, { k: c.k, d: c.d, split }], cost: s.cost - c.v + (split ? W.split ?? 2 : 0) + (hangs ? W.hang ?? 6 : 0), last: c.k, lastDir: c.d });
+          next.push({ present, h: (s.h ^ zob[c.k]) >>> 0, top: W.layer ? topOf(present) : 0, left: s.left - 1, seq: [...s.seq, { k: c.k, d: c.d, split }], cost: s.cost - c.v + (split ? W.split ?? 2 : 0) + (hangs ? W.hang ?? 6 : 0), last: c.k, lastDir: c.d });
         }
         if (!taken && s === beam[0] && !next.length) {
           // Stuck: units that block one another in a ring along some direction come off together
@@ -381,7 +388,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
             const present = s.present.slice();
             let h = s.h;
             for (const k of group.ks) (present[k] = 0), (h = (h ^ zob[k]) >>> 0);
-            next.push({ present, h, left: s.left - group.ks.length, seq: [...s.seq, { k: group.ks[0], d: group.d, group: group.ks }], cost: s.cost + 1, last: group.ks[0], lastDir: group.d });
+            next.push({ present, h, top: W.layer ? topOf(present) : 0, left: s.left - group.ks.length, seq: [...s.seq, { k: group.ks[0], d: group.d, group: group.ks }], cost: s.cost + 1, last: group.ks[0], lastDir: group.d });
             continue;
           }
           // Else relax: the least-blocked unit comes off anyway, noted.
@@ -398,7 +405,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
           else violations.disconnected++;
           const present = s.present.slice();
           present[best] = 0;
-          next.push({ present, h: (s.h ^ zob[best]) >>> 0, left: s.left - 1, seq: [...s.seq, { k: best, d: bestD, forced: why }], cost: s.cost + 10, last: best, lastDir: bestD });
+          next.push({ present, h: (s.h ^ zob[best]) >>> 0, top: W.layer ? topOf(present) : 0, left: s.left - 1, seq: [...s.seq, { k: best, d: bestD, forced: why }], cost: s.cost + 10, last: best, lastDir: bestD });
         }
       }
       // Validators on the partial builds every few removals.

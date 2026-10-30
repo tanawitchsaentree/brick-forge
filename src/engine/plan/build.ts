@@ -10,7 +10,9 @@ import { planAssembly, type Plan, type PlanWeights } from "./planner";
 
 export interface BuildStep {
   parts: number[]; // node indices put on in this step
-  dir: Vec3; // insertion direction (LDraw axes, −y up)
+  dir: Vec3; // insertion direction (LDraw axes, −y up); the first part's when they differ
+  /** Each part's own insertion direction, when a step mixes them (parallel to `parts`). */
+  partDirs?: Vec3[];
   scope: string; // sub-model instance being built ("" = the main model)
   /** "subassembly": puts on a sub-assembly built in the steps before. */
   kind: "parts" | "subassembly";
@@ -43,8 +45,12 @@ export function groupSteps(plan: Plan, nodes: Node[], size = 5, reach = 80): Bui
     const last = out[out.length - 1];
     const same = (a: Vec3, b: Vec3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2] > 0.999;
     const near = last && last.kind === "parts" && Math.hypot(...([0, 1, 2].map((k) => nodes[fresh[0]].xf.t[k] - nodes[last.parts[0]].xf.t[k]) as Vec3)) <= reach;
-    if (last && last.kind === "parts" && last.scope === s.scope && same(last.dir, s.dir) && near && last.parts.length + fresh.length <= size && !note && !last.note) last.parts.push(...fresh);
-    else out.push({ parts: fresh, dir: s.dir, scope: s.scope, kind: "parts", note });
+    // Booklet steps mix directions (a plate on top, a tile on the side) as long as it's one area.
+    if (last && last.kind === "parts" && last.scope === s.scope && near && last.parts.length + fresh.length <= size && !s.forced && !last.note?.startsWith("relaxed")) {
+      if (!same(last.dir, s.dir) || last.partDirs) last.partDirs ??= last.parts.map(() => last.dir);
+      last.parts.push(...fresh);
+      if (last.partDirs) last.partDirs.push(...fresh.map(() => s.dir));
+    } else out.push({ parts: fresh, dir: s.dir, scope: s.scope, kind: "parts", note });
   }
   return out;
 }
@@ -60,7 +66,10 @@ export function buildPlan(text: string, lib: Library, opts: { weights?: PlanWeig
   const inferred = interlocks(nodes, blk);
   if (inferred.length) edges.push(...inferred), (blk = blocking(lib, nodes, edges));
   const plan = planAssembly(nodes, edges, blk, { weights: opts.weights, beam: opts.beam });
-  const steps = groupSteps(plan, nodes, opts.stepSize);
+  // Booklets put more parts in a step the bigger the model (the corpus: about 3 for 30–260 parts,
+  // about 10 for 1,300): size ≈ 2 + parts / 170, reach about 2 studs a part.
+  const size = opts.stepSize ?? Math.min(12, Math.max(3, Math.round(2 + nodes.length / 170)));
+  const steps = groupSteps(plan, nodes, size, 80 * size);
   return {
     nodes: nodes.map((n) => ({ id: n.id, color: n.color, matrix: [...n.xf.R, ...n.xf.t], path: n.path, src: n.src })),
     steps,
