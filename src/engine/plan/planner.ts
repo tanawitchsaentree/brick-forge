@@ -27,6 +27,7 @@ export interface PlanWeights {
   split?: number; // cost of a step that joins two separate pieces
   official?: number; // (diagnostic) the file's own order
 }
+const MAX_RING_UNITS = 4, MAX_RING_PARTS = 24;
 export const DEFAULT_WEIGHTS: PlanWeights = { height: 1, outward: 0.3, sameDir: 0.6, near: 0.4, leaf: 0.2 };
 
 export interface Validator {
@@ -42,6 +43,8 @@ export interface PlanStep {
   forced?: string; // a constraint that had to be relaxed to go on
   /** It joins two pieces of the build standing apart (allowed, at a cost). */
   joins?: boolean;
+  /** Units that block one another and go on together (a pin pushed in as its panel goes on). */
+  together?: number;
 }
 export interface Plan {
   steps: PlanStep[];
@@ -207,7 +210,7 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
     }
     void comps; // (a scope in several pieces still can't split a piece further)
 
-    interface State { present: Uint8Array; h: number; left: number; seq: { k: number; d: Vec3; forced?: string; split?: boolean }[]; cost: number; last: number; lastDir: Vec3 | null }
+    interface State { present: Uint8Array; h: number; left: number; seq: { k: number; d: Vec3; forced?: string; split?: boolean; group?: number[] }[]; cost: number; last: number; lastDir: Vec3 | null }
     // Zobrist keys: the set of units taken off, as an XOR of a random word per unit.
     const zob = units.map((_, k) => (Math.imul(k + 1, 2654435761) ^ Math.imul(k + 7, 40503)) >>> 0);
     let beam: State[] = [{ present: full.slice(), h: 0, left: units.length, seq: [], cost: 0, last: -1, lastDir: null }];
@@ -222,6 +225,65 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
       for (const q of uadj[k].keys()) if (s.present[q]) deg++;
       v += W.leaf * (1 / (1 + deg));
       return v;
+    };
+    const AX: Vec3[] = [[0, -1, 0], [0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
+    /** A ring of units blocking one another along d that can leave together (smallest found). */
+    const compoundMove = (present: Uint8Array): { ks: number[]; d: Vec3 } | null => {
+      let best: { ks: number[]; d: Vec3 } | null = null;
+      for (const d of AX) {
+        // Blocking graph along d among present units whose joints let them move along d.
+        const movable = new Map<number, number[]>();
+        for (let k = 0; k < units.length; k++) {
+          if (!present[k]) continue;
+          const di = udirs[k].findIndex((x) => dot(x, d) > 0.999);
+          if (di < 0) continue;
+          const ways = unitWays(k, di);
+          const w = ways.reduce((a, b) => (b.filter((q) => present[q]).length < a.filter((q) => present[q]).length ? b : a), ways[0] ?? []);
+          movable.set(k, w.filter((q) => present[q]));
+        }
+        // Tarjan's strongly connected components.
+        let index = 0;
+        const idx = new Map<number, number>(), low = new Map<number, number>(), on = new Set<number>(), stack: number[] = [];
+        const sccs: number[][] = [];
+        const visit = (v: number) => {
+          idx.set(v, index), low.set(v, index++), stack.push(v), on.add(v);
+          for (const w of movable.get(v) ?? []) {
+            if (!movable.has(w)) continue;
+            if (!idx.has(w)) visit(w), low.set(v, Math.min(low.get(v)!, low.get(w)!));
+            else if (on.has(w)) low.set(v, Math.min(low.get(v)!, idx.get(w)!));
+          }
+          if (low.get(v) === idx.get(v)) {
+            const c: number[] = [];
+            let w: number;
+            do (w = stack.pop()!), on.delete(w), c.push(w);
+            while (w !== v);
+            if (c.length > 1) sccs.push(c);
+          }
+        };
+        for (const v of movable.keys()) if (!idx.has(v)) visit(v);
+        for (const c of sccs) {
+          // Small rings only (ORASP caps loose pieces the same way): a big one means our blocking
+          // is wrong somewhere, and taking it off whole would hide that — it stays a relaxation.
+          if (c.length > MAX_RING_UNITS || c.reduce((n, k) => n + units[k].parts.length, 0) > MAX_RING_PARTS) continue;
+          if (best && c.length >= best.ks.length) continue;
+          const inC = new Set(c);
+          // Nothing outside the ring in the way, and every joint to the rest lets the ring go along d.
+          if (c.some((k) => movable.get(k)!.some((q) => !inC.has(q)))) continue;
+          let ok = true;
+          for (const k of c) {
+            for (const [q, es] of uadj[k]) {
+              if (!present[q] || inC.has(q)) continue;
+              if (es.some((e) => !blk.permits(e, unitOf.get(e.a) === k ? e.a : e.b, d))) ok = false;
+            }
+            if (!ok) break;
+          }
+          if (!ok) continue;
+          const parts = c.flatMap((k) => units[k].parts);
+          const ways = blk.groupWays(parts, d).map((w) => w.filter((p) => inScope(p) && !inC.has(unitOf.get(p)!) && present[unitOf.get(p)!]));
+          if (ways.some((w) => !w.length)) best = { ks: c, d };
+        }
+      }
+      return best;
     };
     let steps = 0;
     while (beam[0].left > 0) {
@@ -254,7 +316,18 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
           next.push({ present, h: (s.h ^ zob[c.k]) >>> 0, left: s.left - 1, seq: [...s.seq, { k: c.k, d: c.d, split }], cost: s.cost - c.v + (split ? W.split ?? 2 : 0), last: c.k, lastDir: c.d });
         }
         if (!taken && s === beam[0] && !next.length) {
-          // Stuck: relax — the least-blocked unit comes off anyway, noted.
+          // Stuck: units that block one another in a ring along some direction come off together
+          // (Wilson & Latombe: a strongly connected component of the blocking graph with nothing
+          // outside it in the way is a removable sub-assembly) — a pin pushed in as its panel goes on.
+          const group = compoundMove(s.present);
+          if (group) {
+            const present = s.present.slice();
+            let h = s.h;
+            for (const k of group.ks) (present[k] = 0), (h = (h ^ zob[k]) >>> 0);
+            next.push({ present, h, left: s.left - group.ks.length, seq: [...s.seq, { k: group.ks[0], d: group.d, group: group.ks }], cost: s.cost + 1, last: group.ks[0], lastDir: group.d });
+            continue;
+          }
+          // Else relax: the least-blocked unit comes off anyway, noted.
           let best = -1, bestN = Infinity, bestD: Vec3 = [0, -1, 0], why = "";
           for (let k = 0; k < units.length; k++) {
             if (!s.present[k]) continue;
@@ -293,11 +366,11 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
     }
     const best = beam[0];
     const out: PlanStep[] = [];
-    for (const { k, d, forced, split } of [...best.seq].reverse()) {
-      const u = units[k];
+    for (const { k, d, forced, split, group } of [...best.seq].reverse()) {
       const ins: Vec3 = [-d[0], -d[1], -d[2]];
-      if (u.sub) out.push(...planScope(u.sub)); // build the sub-assembly first, then put it on
-      out.push({ unit: u.parts, dir: ins, scope, forced, joins: split || undefined });
+      const ks = group ?? [k];
+      for (const q of ks) if (units[q].sub) out.push(...planScope(units[q].sub!)); // sub-assemblies first, then put on
+      out.push({ unit: ks.flatMap((q) => units[q].parts), dir: ins, scope, forced, joins: split || undefined, together: group ? group.length : undefined });
     }
     return out;
   };

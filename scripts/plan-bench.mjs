@@ -160,7 +160,7 @@ function analyse(name, text, opts = {}) {
   }
   const res = {
     name, parts: nodes.length, flexLeftOut: Object.values(flat.flex).reduce((s, v) => s + v, 0), unknown: Object.values(flat.unknown).reduce((s, v) => s + v, 0),
-    edges: edges.length, types, inferredJoints: inferred.length, steps: plan.steps.length, clusters: plan.clusters, forced, joinsPieces: plan.steps.filter((s) => s.joins).length, violations: plan.violations,
+    edges: edges.length, types, inferredJoints: inferred.length, steps: plan.steps.length, clusters: plan.clusters, forced, joinsPieces: plan.steps.filter((s) => s.joins).length, together: { steps: plan.steps.filter((s) => s.together).length, maxUnits: Math.max(0, ...plan.steps.map((s) => s.together ?? 0)), maxParts: Math.max(0, ...plan.steps.filter((s) => s.together).map((s) => s.unit.length)) }, violations: plan.violations,
     validity: forced === 0, collisionFree: +(1 - plan.violations.blocked / Math.max(1, plan.steps.length)).toFixed(4),
     reorientations: reorient, stability: { sampled: samples, unstable, unstableAt, minMargin: +minMargin.toFixed(3), ms: Math.round(stabMs) },
     spearmanVsOfficial: +spearman(placedAt, official).toFixed(3), fileOrderVsOfficial: +spearman(fileOrder, official).toFixed(3),
