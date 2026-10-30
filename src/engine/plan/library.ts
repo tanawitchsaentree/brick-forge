@@ -293,7 +293,7 @@ export function makeLibrary(read: (path: string) => string | null, ldraw: string
       let name = text ? (text.split(/\r?\n/)[0] ?? "").replace(/^0\s*/, "").trim() : "";
       const moved = name.match(/^~Moved to\s+(\S+)/i);
       if (moved) name = this.part(moved[1])?.name ?? name; // a stub: the name of what it moved to
-      const snaps = text && box ? (shadow === null ? partSnapsFromPrimitives(snapsOf(n), box, name) : snapsOf(n)) : [];
+      const snaps = text && box ? (shadow === null ? partSnapsFromPrimitives(snapsOf(n), box, name, trisOf(n)) : snapsOf(n)) : [];
       const info = text && box ? { id: n.replace(/\.dat$/, ""), name, box, snaps, flex: FLEX.test(name) } : null;
       partCache.set(n, info);
       return info;
@@ -367,10 +367,11 @@ function primitiveSnaps(n: string): Snap[] {
 }
 
 const BAR = /^~?(Bar|Antenna|Minifig Lightsaber|Lightsaber|Equipment|Minifig Tool|Weapon)|with Bar|Bar Holder|Handle|Hose Nozzle|Telescope/i;
-const SYSTEM = /^(Brick|Plate|Tile|Slope|Wedge|Technic Brick|Technic Plate|Bracket|Panel|Hinge|Door|Window|Cone|Dish|Arch|Round|Cylinder|Car|Vehicle|Train|Boat|Baseplate|Support|Fence|Bar|Turntable|Container|Box|Roof)/i;
+const SYSTEM = /^(Brick|Plate|Tile|Slope|Wedge|Wing|Technic Brick|Technic Plate|Bracket|Panel|Hinge|Door|Window|Cone|Dish|Arch|Round|Cylinder|Car|Vehicle|Train|Boat|Baseplate|Support|Fence|Bar|Turntable|Container|Box|Roof)/i;
 
 /** A part's connectors from its inherited primitive snaps: axles told from holes, segments merged, undersides added. */
-function partSnapsFromPrimitives(raw: Snap[], box: [Vec3, Vec3], name: string): Snap[] {
+function partSnapsFromPrimitives(raw: Snap[], box: [Vec3, Vec3], name: string, tris: number[] = []): Snap[] {
+  name = name.replace(/^[~=_|]+/, ""); // aliases (=…), moved and obsolete parts (~…) read as what they are
   const isAxle = raw.some((s) => s.group === AXLE_END);
   const bar = BAR.test(name), socket = /Socket|Cup/i.test(name), balls = /Ball|Towball|Joint/i.test(name);
   const snaps = raw
@@ -406,12 +407,60 @@ function partSnapsFromPrimitives(raw: Snap[], box: [Vec3, Vec3], name: string): 
     out.push({ ...s, pos: [s.pos[0] + s.axis[0] * lo, s.pos[1] + s.axis[1] * lo, s.pos[2] + s.axis[2] * lo], length: hi - lo });
   });
   // The underside: anti-studs on the stud grid over the footprint (System parts with a flat bottom).
-  if (SYSTEM.test(name.replace(/^~/, ""))) {
-    const [lo, hi] = box;
-    const nx = Math.round((hi[0] - lo[0]) / 20), nz = Math.round((hi[2] - lo[2]) / 20);
-    if (nx >= 1 && nz >= 1 && nx * nz <= 256) {
-      const x0 = (lo[0] + hi[0]) / 2 - ((nx - 1) * 20) / 2, z0 = (lo[2] + hi[2]) / 2 - ((nz - 1) * 20) / 2;
-      for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) out.push({ kind: "cyl", gender: "F", shape: "S", radius: 6, length: 4, caps: "one", pos: [x0 + i * 20, hi[1], z0 + k * 20], axis: [0, -1, 0], center: false });
+  // Balls and sockets drawn without a sphere primitive (in subparts): from the name and the box.
+  // A socket brick's cup sticks out of its footprint on one side; a Technic ball is its box.
+  const [blo, bhi] = box;
+  if (/Ball Socket/i.test(name) && !out.some((q) => q.kind === "ball" && q.gender === "F")) {
+    const off = [0, 1, 2].map((a) => blo[a] + bhi[a]);
+    const a = [0, 2].reduce((m, q) => (Math.abs(off[q]) > Math.abs(off[m]) ? q : m), 0);
+    if (Math.abs(off[a]) > 10) {
+      const c: Vec3 = [(blo[0] + bhi[0]) / 2, (blo[1] + bhi[1]) / 2, (blo[2] + bhi[2]) / 2];
+      c[a] = off[a] > 0 ? bhi[a] - 12.75 : blo[a] + 12.75;
+      out.push({ kind: "ball", gender: "F", shape: "R", radius: 12.75, length: 0, caps: "none", pos: c, axis: [0, -1, 0], center: true, group: "inferred" });
+    }
+  }
+  if (/Technic Ball Joint|Ball Joint with/i.test(name) && !/Socket/i.test(name) && !out.some((q) => q.kind === "ball")) {
+    const r = Math.min(bhi[0] - blo[0], bhi[2] - blo[2]) / 2;
+    out.push({ kind: "ball", gender: "M", shape: "R", radius: r, length: 0, caps: "none", pos: [(blo[0] + bhi[0]) / 2, (blo[1] + bhi[1]) / 2, (blo[2] + bhi[2]) / 2], axis: [0, -1, 0], center: true, group: "inferred" });
+  }
+  if (SYSTEM.test(name)) {
+    // The underside: the lowest horizontal face of real size (a pin, a ball or a clip hanging
+    // below doesn't count), and its extent; anti-studs on the part's own stud grid over it.
+    const levels = new Map<number, { area: number; lo: [number, number]; hi: [number, number] }>();
+    for (let k = 0; k + 8 < tris.length; k += 9) {
+      const y0 = tris[k + 1], y1 = tris[k + 4], y2 = tris[k + 7];
+      if (Math.abs(y0 - y1) > 0.01 || Math.abs(y0 - y2) > 0.01 || y0 < 4) continue;
+      const ax = tris[k + 3] - tris[k], az = tris[k + 5] - tris[k + 2], bx = tris[k + 6] - tris[k], bz = tris[k + 8] - tris[k + 2];
+      const area = Math.abs(ax * bz - az * bx) / 2;
+      const y = Math.round(y0 * 2) / 2;
+      const L = levels.get(y) ?? { area: 0, lo: [Infinity, Infinity], hi: [-Infinity, -Infinity] };
+      L.area += area;
+      for (const q of [0, 3, 6]) (L.lo[0] = Math.min(L.lo[0], tris[k + q])), (L.lo[1] = Math.min(L.lo[1], tris[k + q + 2])), (L.hi[0] = Math.max(L.hi[0], tris[k + q])), (L.hi[1] = Math.max(L.hi[1], tris[k + q + 2]));
+      levels.set(y, L);
+    }
+    const foot = (box[1][0] - box[0][0]) * (box[1][2] - box[0][2]);
+    const cand = [...levels].filter(([, L]) => L.area >= 0.06 * foot).sort((a, b) => b[0] - a[0]);
+    const bottom = cand[0];
+    // Its height from the faces; its extent from the whole box (a curved slope's underside is
+    // drawn in pieces at slightly different heights, and the footprint of one piece is too short).
+    const by = bottom ? bottom[0] : box[1][1];
+    const F = { lo: [box[0][0], box[0][2]] as [number, number], hi: [box[1][0], box[1][2]] as [number, number] };
+    // The grid: where the part's own top studs are (mod 20), else centred on its origin.
+    const studs = out.filter((q) => q.kind === "cyl" && q.gender === "M" && q.shape === "R" && Math.abs(q.radius - 6) < 0.6 && q.length <= 4 && q.axis[1] < -0.99);
+    const mode = (v: number[]) => {
+      const c = new Map<number, number>();
+      for (const x of v) c.set(((Math.round(x) % 20) + 20) % 20, (c.get(((Math.round(x) % 20) + 20) % 20) ?? 0) + 1);
+      return [...c].sort((a, b) => b[1] - a[1])[0]?.[0];
+    };
+    const n = [Math.round((F.hi[0] - F.lo[0]) / 20), Math.round((F.hi[1] - F.lo[1]) / 20)];
+    const res = [mode(studs.map((q) => q.pos[0])) ?? (n[0] % 2 ? 0 : 10), mode(studs.map((q) => q.pos[2])) ?? (n[1] % 2 ? 0 : 10)];
+    if (n[0] >= 1 && n[1] >= 1 && n[0] * n[1] <= 256) {
+      const at = (a: number) => {
+        const out2: number[] = [];
+        for (let x = Math.ceil((F.lo[a] + 8 - res[a]) / 20) * 20 + res[a]; x <= F.hi[a] - 8 + 1e-6; x += 20) out2.push(x);
+        return out2;
+      };
+      for (const x of at(0)) for (const z of at(1)) out.push({ kind: "cyl", gender: "F", shape: "S", radius: 6, length: 4, caps: "one", pos: [x, by, z], axis: [0, -1, 0], center: false });
     }
   }
   return out;

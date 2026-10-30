@@ -168,8 +168,10 @@ export function connectionGraph(lib: Library, nodes: Node[]): Edge[] {
   const balls = snaps.filter((s) => s.kind === "ball");
   for (const p of balls)
     for (const q of near(p.mid, 20)) {
-      if (q.kind !== "ball" || q.part === p.part || p.gender !== "M" || q.gender !== "F" || Math.abs(q.radius - p.radius) > 1) continue;
-      if (Math.hypot(...sub(p.pos, q.pos)) > 2) continue;
+      // Inferred from a name and a box (no sphere primitive): a looser fit.
+      const loose = p.group === "inferred" || q.group === "inferred";
+      if (q.kind !== "ball" || q.part === p.part || p.gender !== "M" || q.gender !== "F" || Math.abs(q.radius - p.radius) > (loose ? 2 : 1)) continue;
+      if (Math.hypot(...sub(p.pos, q.pos)) > (loose ? 7 : 2)) continue;
       addEdge(p.part, q.part, "ball", p.axis, "any", p.pos, { rot: true, slide: false }, true);
     }
   // Gears in mesh: parallel axes, one plane, centres (z₁ + z₂) · 1.25 LDU apart (Technic module: 8 + 24 teeth = 2 studs).
