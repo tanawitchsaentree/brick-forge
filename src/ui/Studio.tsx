@@ -4,8 +4,8 @@ import { SPECIES, evaluateBuild, kindLabel, type Build } from "../engine/assembl
 import { totalPieces, type Inventory } from "../engine/inventory";
 import type { PlacedBrick } from "../engine/grid";
 import { TIERS, tierLabel, type Tier } from "../engine/style";
-import { corpusIndex, inBand, loadDesign, recolor, LIVERY_SCHEMES, SCHEME_COUNT, type CorpusModel } from "../scene/corpus";
-import { describe, engineDesign, parallel, rigBuild, type Variation } from "../scene/engine";
+import { corpusIndex, inBand, inTier, loadDesign, loadDesignText, recolor, LIVERY_SCHEMES, SCHEME_COUNT, type CorpusModel } from "../scene/corpus";
+import { describe, engineDesign, parallel, rigBuild, type EngineDesign, type Variation } from "../scene/engine";
 import { renderModelImageLDraw } from "../scene/thumbnails";
 import { colorOf } from "../engine/colors";
 import { PARTS } from "../engine/parts";
@@ -22,6 +22,16 @@ import { ModelPreview } from "./ModelPreview";
 const LEVELS: Tier[] = ["junior", "creator", "advanced", "expert", "master"];
 const SIZES = ["S", "M", "L"];
 const BATCH = 6;
+const generatedOn = () => typeof localStorage !== "undefined" && localStorage.getItem("lego-builder:generated") === "1";
+
+// Tile pictures one at a time, each in its own task after a yield: drawing one blocks the
+// page for 50–300 ms, and several landing together froze it for half a second or more.
+let drawing: Promise<unknown> = Promise.resolve();
+function draw<T>(f: () => Promise<T>): Promise<T> {
+  const next = drawing.then(() => new Promise((r) => setTimeout(r))).then(f);
+  drawing = next.catch(() => {});
+  return next;
+}
 
 interface Tile {
   id: number;
@@ -68,8 +78,11 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [open, setOpen] = useState<number | null>(null);
   const [viewing, setViewing] = useState<number | null>(null); // the tile shown in 3D
+  const viewingRef = useRef<number | null>(null);
+  viewingRef.current = viewing;
   const [working, setWorking] = useState(false);
   const run = useRef(0);
+  const later = useRef<(() => Promise<void>)[]>([]); // best-of-K refinements waiting for the batch to finish
   const nextId = useRef(1);
   const level: Tier = technic ? "technic" : tier;
 
@@ -110,9 +123,32 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     };
     await Promise.all(Array.from({ length: mode === "sets" ? 2 : parallel() }, lane));
     if (run.current === token) setWorking(false);
+    // Best-of-K, after the batch: each tile switches once, when all its builds are back.
+    const jobs = later.current.splice(0);
+    const refineLane = async () => {
+      for (let j = jobs.shift(); j && run.current === token; j = jobs.shift()) await j().catch(() => {});
+    };
+    await Promise.all(Array.from({ length: parallel() }, refineLane));
+  }
+
+  function stop() {
+    run.current++;
+    later.current = [];
+    setWorking(false);
+    setTiles((ts) => ts.filter((t) => t.status !== "pending"));
   }
 
   async function fillNew(t: Tile, k: Kind, models: CorpusModel[], token: number) {
+    // Only LEGO's own builds pass the user's eye ("Creator M is very OK, why are the
+    // others terrible?"): every tile is a real design, rebuilt or from the corpus, in a
+    // new paint job at most. The generators (sculptor variations, the dinosaur rig) stay
+    // reachable for engine work with localStorage "lego-builder:generated" = "1".
+    if (!generatedOn()) {
+      if (level === "technic") return fillTechnic(t, models);
+      if (k === "dino") return fillRex(t);
+      if (k === "racer") return fillRacer(t, models);
+      return fillReal(t, k, models);
+    }
     if (k === "dino" && level !== "technic") return fillDino(t);
     if (k === "racer" && level !== "technic") return fillRacer(t, models);
     if ((k === "car" || k === "robot") && level !== "technic") return fillReal(t, k, models);
@@ -123,22 +159,35 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     update(t.id, { label: `${base.name}…` });
     const d = await engineDesign(base, v, level, k === "dino" || k === "robot");
     if (run.current !== token) return;
-    let bricks = d.bricks;
-    let scheme = "";
-    // Half the time, a new paint job too.
-    if (Math.random() < 0.5) {
-      const r = recolor(bricks, Math.floor(Math.random() * SCHEME_COUNT));
-      if (r) ({ bricks, name: scheme } = r);
+    // Half the time, a new paint job too (the same one if a better build replaces this one).
+    const paint = Math.random() < 0.5 ? Math.floor(Math.random() * SCHEME_COUNT) : -1;
+    const show = async (d: EngineDesign, best?: boolean) => {
+      let bricks = d.bricks;
+      let scheme = "";
+      if (paint >= 0) {
+        const r = recolor(bricks, paint);
+        if (r) ({ bricks, name: scheme } = r);
+      }
+      const build = evaluateBuild(
+        k,
+        { title: technic ? "Technic model" : kindLabel(k), rule: `${tierLabel(level)} · shape fit ${pct(d.fit)}${d.made ? ` · ${d.made} made to measure` : ""}${best ? " · best of 4 builds" : ""}`, size, seed: t.id, recipe: `studio-${t.id}` },
+        bricks.map((b) => ({ ...b, group: "Build" })),
+        inventory,
+      );
+      const from = `From ${base.name}, ${describe(v)}${scheme ? `, in ${scheme}` : ""}`;
+      update(t.id, { status: "done", build: { ...build, held: d.held }, from, label: "" });
+      update(t.id, { img: await draw(() => renderModelImageLDraw(bricks, 360)) });
+    };
+    await show(d);
+    // The other ways to build it run once the batch is in, so the first designs come as fast as before.
+    if (d.refine) {
+      const refine = d.refine;
+      later.current.push(async () => {
+        const better = await refine();
+        // Not under the user's eyes: a tile open in 3D keeps the build they're looking at.
+        if (better && run.current === token && viewingRef.current !== t.id) await show(better, true);
+      });
     }
-    const build = evaluateBuild(
-      k,
-      { title: technic ? "Technic model" : kindLabel(k), rule: `${tierLabel(level)} · shape fit ${pct(d.fit)}${d.made ? ` · ${d.made} made to measure` : ""}`, size, seed: t.id, recipe: `studio-${t.id}` },
-      bricks.map((b) => ({ ...b, group: "Build" })),
-      inventory,
-    );
-    const from = `From ${base.name}, ${describe(v)}${scheme ? `, in ${scheme}` : ""}`;
-    update(t.id, { status: "done", build: { ...build, held: d.held }, from, label: "" });
-    update(t.id, { img: await renderModelImageLDraw(bricks, 360) });
   }
 
   /**
@@ -150,16 +199,34 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
    * Master, the scale.
    */
   async function fillDino(t: Tile) {
+    // The T. rex at Junior and Creator, S and M, is LEGO 31058's (the user's target):
+    // our rebuild from its booklet (data/golden/31058-rex.ldr, scripts/rebuild-31058.mjs),
+    // in its own colours, until the rig's T. rex looks as much like it.
+    if ((level === "junior" || level === "creator") && size < 2) return fillRex(t);
     const sp = pick(SPECIES);
+    // A T. rex at any other level or size too: a higher level should mean more detail,
+    // not the same rex made bigger (a 148-stud plate statue). 31151 comes for Expert.
+    if (sp.id === "rex") return fillRex(t);
     update(t.id, { label: `${sp.label}…` });
     await new Promise((r) => setTimeout(r)); // let the tile show before the build runs
     const detail = level === "junior" ? 0 : level === "creator" ? 1 : 2;
-    // Expert goes a scale up (still posable, ×1.9 at most); Master is a statue on the
-    // grid: about 1,000 / 3,400 / 5,000+ pieces for S / M / L (engine/assembly/dino.ts).
-    const scale = level === "master" ? [4, 6, 7][size] : Math.min(3, size + (level === "expert" ? 1 : 0));
+    // Expert and Master a size up; the rig caps the scale at ×1.4 and builds no statues
+    // (engine/assembly/dino.ts), so a higher level is not just more pieces.
+    const scale = Math.min(3, size + (level === "expert" || level === "master" ? 1 : 0));
     const build = await rigBuild("dino", { size: scale, level: detail, seed: (Math.random() * 1e9) | 0, mode: "any", inv: inventory, species: sp.id });
     update(t.id, { status: "done", build, from: `${sp.latin}, from its body plan · ${tierLabel(level)}`, label: "" });
-    update(t.id, { img: await renderModelImageLDraw(build.bricks, 360) });
+    update(t.id, { img: await draw(() => renderModelImageLDraw(build.bricks, 360)) });
+  }
+
+  /** The T. rex as LEGO builds it: 31058 (161 pieces) up to Advanced, 31151 (603, far more detail) at Expert and Master. */
+  async function fillRex(t: Tile) {
+    update(t.id, { label: "T. rex…" });
+    const big = level === "expert" || level === "master";
+    const set = big ? { id: "31151", name: "T. rex", load: () => import("../../data/golden/31151-rex.ldr?raw") } : { id: "31058", name: "Mighty Dinosaurs", load: () => import("../../data/golden/31058-rex.ldr?raw") };
+    const bricks = await loadDesignText(`${set.id}-rex`, () => set.load().then((m) => m.default));
+    const build = evaluateBuild("dino", { title: "T. rex", rule: `LEGO ${set.id} ${set.name}, rebuilt from its booklet`, size, seed: t.id, recipe: `rex-${set.id}` }, bricks, inventory);
+    update(t.id, { status: "done", build, from: `Tyrannosaurus rex, as LEGO ${set.id} builds it`, label: "" });
+    update(t.id, { img: await draw(() => renderModelImageLDraw(bricks, 360)) });
   }
 
   /**
@@ -181,7 +248,7 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     const set = m.set.replace(/-1$/, "");
     const build = evaluateBuild(k, { title: title(scheme_), rule: `LEGO ${set} (${m.name}), ${scheme_}`, size, seed: t.id, recipe: `paint-${m.id}-${t.id}` }, bricks, inventory);
     update(t.id, { status: "done", build, from: `LEGO ${set} ${m.name}, in ${scheme_}`, label: "" });
-    update(t.id, { img: await renderModelImageLDraw(bricks, 360) });
+    update(t.id, { img: await draw(() => renderModelImageLDraw(bricks, 360)) });
   }
 
   /**
@@ -205,10 +272,23 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
    * floating arms and legs).
    */
   async function fillReal(t: Tile, k: Kind, models: CorpusModel[]) {
-    const pool = inBand(models, k, size);
+    const pool = inTier(models, k, level, size);
     if (!pool.length) return update(t.id, { status: "failed", label: `No ${kindLabel(k).toLowerCase()} designs of this size` });
     const m = pool[(t.id * 7) % pool.length]; // different ones across a batch
     await repainted(t, k, m, Math.floor(Math.random() * SCHEME_COUNT), () => m.name);
+  }
+
+  /** A Technic set from the corpus, in its own colours (the band by size, like the other kinds). */
+  async function fillTechnic(t: Tile, models: CorpusModel[]) {
+    const all = models.filter((m) => m.tier === "technic").sort((a, b) => a.parts - b.parts);
+    const pool = all.slice(Math.floor((all.length * size) / 3), Math.max(1, Math.floor((all.length * (size + 1)) / 3)));
+    if (!pool.length) return update(t.id, { status: "failed", label: "No Technic sets of this size" });
+    const m = pool[(t.id * 7) % pool.length];
+    update(t.id, { label: `${m.name}…` });
+    const bricks = await loadDesign(m.id);
+    const build = evaluateBuild("car", { title: m.name, rule: `LEGO ${m.set.replace(/-1$/, "")} (${m.name})`, size, seed: t.id, recipe: `technic-${m.id}-${t.id}` }, bricks, inventory);
+    update(t.id, { status: "done", build: { ...build, real: { set: m.set, scheme: "" } }, from: `LEGO ${m.set.replace(/-1$/, "")} ${m.name}`, label: "" });
+    update(t.id, { img: await draw(() => renderModelImageLDraw(bricks, 360)) });
   }
 
   async function fillSet(t: Tile, k: Kind, models: CorpusModel[]) {
@@ -220,7 +300,7 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
     const title = `${m.name}${m.model && !m.name.includes(m.model) ? ` · ${m.model}` : ""}`;
     const build = evaluateBuild(k, { title, rule: `LEGO ${m.set.replace(/-1$/, "")}${m.year ? ` (${m.year})` : ""}`, size, seed: t.id, recipe: `set-${m.id}-${t.id}` }, bricks, inventory);
     update(t.id, { status: "done", build: { ...build, real: { set: m.set, scheme: "" } }, from: `LEGO ${m.set.replace(/-1$/, "")} · ${m.theme}`, label: "" });
-    update(t.id, { img: await renderModelImageLDraw(bricks, 360) });
+    update(t.id, { img: await draw(() => renderModelImageLDraw(bricks, 360)) });
   }
 
   // A new brief starts a new gallery.
@@ -238,9 +318,16 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
       <div className="studio-bar">
         <Choice label="What to build" value={kind} onChange={(v) => setKind(v as Kind | "all")} options={[{ value: "all", label: "All" }, ...KINDS.map((k) => ({ value: k.id, label: k.label }))]} />
         <span className="spacer" />
-        <Button variant="accent" onClick={() => generate(false)} disabled={working}>
-          {working ? "Designing…" : mode === "new" ? "Generate" : "More sets"}
-        </Button>
+        {working ? (
+          // Stop: designs not started yet are dropped (one already building finishes in its worker).
+          <Button variant="glass" onClick={stop} title="Stop designing more">
+            Stop
+          </Button>
+        ) : (
+          <Button variant="accent" onClick={() => generate(false)}>
+            {mode === "new" ? "Generate" : "More sets"}
+          </Button>
+        )}
       </div>
 
       <div className="studio-bar refine">
@@ -296,8 +383,8 @@ export function Studio({ start, inventory, onBuild, onInstructions }: Props) {
                       {mine && <Badge tone={buy === 0 ? "positive" : "neutral"}>{buy ? `${buy} to buy` : "you have all"}</Badge>}
                     </div>
                     <div className="tile-actions">
-                      {/* The main action: onto the baseplate, to change it there. Steps and the 3D look are one click too. */}
-                      <Button variant="accent" size="sm" onClick={() => onBuild(b.bricks)} title="Put it on the baseplate to change it">
+                      {/* The main action: onto the table, to change it there. Steps and the 3D look are one click too. */}
+                      <Button variant="accent" size="sm" onClick={() => onBuild(b.bricks)} title="Put it on the table to change it">
                         Place
                       </Button>
                       <Button variant="glass" size="sm" onClick={() => onInstructions(b.bricks, b.title)} title="Step-by-step instructions">

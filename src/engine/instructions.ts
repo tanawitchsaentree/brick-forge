@@ -70,7 +70,8 @@ function componentsOf(partId: string, color: number) {
   });
 }
 
-export function planInstructions(bricks: PlacedBrick[]): Instructions {
+/** `groups`: the order to build in (brick indices a step), e.g. from the assembly planner (scene/planSteps.ts). */
+export function planInstructions(bricks: PlacedBrick[], groups?: number[][]): Instructions {
   const n = bricks.length;
   const per = n < 40 ? 2 : n < 120 ? 3 : STEP_MAX;
 
@@ -147,7 +148,8 @@ export function planInstructions(bricks: PlacedBrick[]): Instructions {
   // An imported model with its designer's steps (LDraw STEP lines) is built
   // in exactly those steps, as in the booklet.
   let official: number[][] | null = null;
-  if (n > 0 && bricks.every((b) => b.step !== undefined)) {
+  if (groups) official = groups; // already booklet-sized by the planner (a layer or an area, up to 12)
+  else if (n > 0 && bricks.every((b) => b.step !== undefined)) {
     const by = new Map<number, number[]>();
     for (const i of all) by.set(bricks[i].step!, [...(by.get(bricks[i].step!) ?? []), i]);
     // A designer's step can add 20 parts at once; a booklet shows a handful.

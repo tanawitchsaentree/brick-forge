@@ -1,4 +1,4 @@
-import { BASE_SIZE, MAX_HEIGHT, PLATE_H } from "./units";
+import { MAX_HEIGHT, PLATE_H } from "./units";
 import { worldBox } from "./pose";
 import { PARTS, footprint, rotateCell, type PartDef, type Rot } from "./parts";
 
@@ -106,8 +106,8 @@ export function canPlace(
   occ: Occupancy, part: PartDef, rot: Rot, x: number, y: number, z: number,
 ): PlaceResult {
   const { w, d } = footprint(part, rot);
-  if (x < 0 || z < 0 || x + w > BASE_SIZE || z + d > BASE_SIZE || y < 0 || y + part.h > MAX_HEIGHT)
-    return { ok: false, reason: OUTSIDE };
+  // No baseplate edge: the table goes on in every direction. Only the height is bounded.
+  if (y < 0 || y + part.h > MAX_HEIGHT) return { ok: false, reason: OUTSIDE };
 
   for (const [cx, cy, cz] of cells(part, rot, x, y, z))
     if (occ.has(key(cx, cy, cz))) return { ok: false, reason: "Overlaps another part" };

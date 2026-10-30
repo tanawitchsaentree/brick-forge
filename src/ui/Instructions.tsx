@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Brick } from "../scene/Brick";
-import { Baseplate } from "../scene/Scene";
+import { Table } from "../scene/Table";
 import { Controls } from "../scene/Controls";
 import { Label } from "../scene/Label";
 import { PARTS } from "../engine/parts";
@@ -10,6 +10,7 @@ import { colorOf } from "../engine/colors";
 import { BASE_SIZE, PLATE_H } from "../engine/units";
 import { invKey, type Inventory } from "../engine/inventory";
 import { planInstructions, type Instructions as Plan, type Step } from "../engine/instructions";
+import { needsPlan, plannerOn, planSteps } from "../scene/planSteps";
 import { renderPlacement, type PlacedBrick } from "../engine/grid";
 import { apply, partMatrix, worldBox } from "../engine/pose";
 import { renderModelImageLDraw } from "../scene/thumbnails";
@@ -49,7 +50,7 @@ function topOf(b: PlacedBrick): [number, number, number] {
 function placeText(b: PlacedBrick) {
   const { lo, hi } = worldBox(b);
   const up = lo[1] / PLATE_H;
-  return `x${Math.round((lo[0] + hi[0]) / 2)} · z${Math.round((lo[2] + hi[2]) / 2)} · ${up < 0.5 ? "on the baseplate" : `${(up * 3.2).toFixed(1)} mm up`}`;
+  return `x${Math.round((lo[0] + hi[0]) / 2)} · z${Math.round((lo[2] + hi[2]) / 2)} · ${up < 0.5 ? "on the table" : `${(up * 3.2).toFixed(1)} mm up`}`;
 }
 
 const mmss = (s: number) => (s < 60 ? `${Math.round(s)} s` : `${Math.round(s / 60)} min`);
@@ -77,7 +78,10 @@ function loadProgress(key: string): Progress | null {
 
 export function Instructions({ bricks, title, inventory, onClose }: Props) {
   const look = SCENE[useTheme()];
-  const plan = useMemo(() => planInstructions(bricks), [bricks]);
+  // A model without a designer's steps can get its order from the assembly planner (in a worker,
+  // a few seconds); the default steps show meanwhile and are swapped only if building hasn't started.
+  const [planned, setPlanned] = useState<number[][] | null>(null);
+  const plan = useMemo(() => planInstructions(bricks, planned ?? undefined), [bricks, planned]);
   const N = plan.steps.length;
   // Build progress is saved per model: where you were, and which steps are done.
   const key = useMemo(() => modelKey(bricks), [bricks]);
@@ -94,6 +98,17 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
     const t = window.setTimeout(() => setResumed(false), 3500);
     return () => clearTimeout(t);
   }, [resumed]);
+  const started = useRef(false);
+  started.current = step > 0 || doneSteps.size > 0;
+  useEffect(() => {
+    setPlanned(null);
+    if (!plannerOn() || !needsPlan(bricks)) return;
+    let live = true;
+    planSteps(bricks).then((g) => live && g && !started.current && setPlanned(g));
+    return () => {
+      live = false;
+    };
+  }, [bricks]);
   /** Mark this step built and go on (or just go on if it already was). */
   const finishStep = () => {
     setDoneSteps((d) => new Set(d).add(step));
@@ -162,7 +177,7 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
         <color attach="background" args={[look.background]} />
         <hemisphereLight args={[look.sky, look.ground, 1.15]} />
         <directionalLight position={[BASE_SIZE / 2 + 18, 40, BASE_SIZE / 2 + 12]} intensity={1.6} castShadow shadow-mapSize={[1536, 1536]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} />
-        <Baseplate />
+        <Table />
         {[...done].map((i) => {
           const b = bricks[i];
           return (
@@ -349,7 +364,7 @@ export function Instructions({ bricks, title, inventory, onClose }: Props) {
             return (
               // Why the engine chose the part is there on hover, not in the builder's way.
               <span key={p.index} title={b.why ? `${PARTS[b.partId]?.name}: ${whyText(b.why)}` : undefined}>
-                <b>{n + 1}</b> {b.pose ? `on the ${current.chapter.toLowerCase()}` : b.place ? placeText(b) : <>x{b.x} · z{b.z} · {b.y === 0 ? "on the baseplate" : `${(b.y * 3.2).toFixed(1)} mm up`}</>}
+                <b>{n + 1}</b> {b.pose ? `on the ${current.chapter.toLowerCase()}` : b.place ? placeText(b) : <>x{b.x} · z{b.z} · {b.y === 0 ? "on the table" : `${(b.y * 3.2).toFixed(1)} mm up`}</>}
               </span>
             );
           })}

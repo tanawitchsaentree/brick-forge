@@ -44,19 +44,46 @@ const designs = new Map<string, Promise<ImportResult["bricks"]>>();
 
 /** A design's parts, placed on the baseplate (parts the catalog lacks are made first). */
 export function loadDesign(id: string): Promise<ImportResult["bricks"]> {
+  return loadDesignText(id, () => fetch(`/corpus/${id}.mpd`).then((r) => r.text()));
+}
+
+/** The same for LDraw text the app carries itself (a reference rebuild, data/golden). */
+export function loadDesignText(id: string, text: () => Promise<string>): Promise<ImportResult["bricks"]> {
   let d = designs.get(id);
   if (!d) {
-    d = fetch(`/corpus/${id}.mpd`)
-      .then((r) => r.text())
-      .then(async (text) => {
-        await makeParts(partsToMake(text));
-        // Module names without the set number ("8123 - Front wing" → "Front wing").
-        return importLDraw(text, id).bricks.map((b) => ({ ...b, group: b.group === "Model" ? "Main" : b.group.replace(/^\d+(-\d+)?\s*-\s*/, "") }));
-      });
+    d = text().then(async (text) => {
+      await makeParts(partsToMake(text));
+      // Module names without the set number ("8123 - Front wing" → "Front wing").
+      return importLDraw(text, id).bricks.map((b) => ({ ...b, group: b.group === "Model" ? "Main" : b.group.replace(/^\d+(-\d+)?\s*-\s*/, "") }));
+    });
     d.catch(() => designs.delete(id));
     designs.set(id, d);
   }
   return d;
+}
+
+/** Piece bands by level: a higher level is a more complex real set, not a bigger copy. */
+const TIER_BANDS: [string, number, number][] = [
+  ["junior", 0, 150],
+  ["creator", 150, 400],
+  ["advanced", 400, 800],
+  ["expert", 800, 1500],
+  ["master", 1500, Infinity],
+];
+
+/**
+ * Real designs of a kind for a level and size: the level's piece band (the nearest band
+ * below when it has none, e.g. no 1,500-piece robot), then S/M/L as its lower, middle
+ * and upper third (the whole band when a third is empty).
+ */
+export function inTier(models: CorpusModel[], kind: Kind, tier: string, band: number): CorpusModel[] {
+  const all = models.filter((m) => m.kind === kind).sort((a, b) => a.parts - b.parts);
+  let k = Math.max(0, TIER_BANDS.findIndex(([t]) => t === tier));
+  let pool: CorpusModel[] = [];
+  for (; k >= 0 && !pool.length; k--) pool = all.filter((m) => m.parts >= TIER_BANDS[k][1] && m.parts < TIER_BANDS[k][2]);
+  if (!pool.length) return all.slice(0, 1);
+  const third = pool.slice(Math.floor((pool.length * band) / 3), Math.floor((pool.length * (band + 1)) / 3));
+  return third.length ? third : pool;
 }
 
 /**

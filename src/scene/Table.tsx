@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useFrame, useThree } from "@react-three/fiber";
-import { BASE_SIZE, PLATE_H } from "../engine/units";
+import { BASE_SIZE } from "../engine/units";
 import { SCENE, useTheme } from "../ui/theme";
 
-// The work table under the baseplate: a cutting-mat grid drawn analytically in
+// The work table the model stands on (there is no baseplate): a cutting-mat grid drawn analytically in
 // a shader, so lines stay crisp at any zoom.
 //
 //  • Spacing follows the bricks: minor line every stud (8 mm), major every
@@ -13,14 +13,14 @@ import { SCENE, useTheme } from "../ui/theme";
 //        line(p, s) = 1 − min(|fract(p/s − ½) − ½| / fwidth(p/s), 1)
 //    and fades out once cells shrink below a few pixels (no moiré far away):
 //        density(s) = 1 − smoothstep(0.15, 0.45, fwidth(p/s))
-//  • Ink falls off with a Gaussian from the baseplate, e^−(r/R)², so the
+//  • Ink falls off with a Gaussian from the middle, e^−(r/R)², so the
 //    table melts into the background instead of ending at a hard edge.
 //  • A Gaussian "lamp" under the cursor, e^−d²/2σ², lifts nearby lines; its
 //    position and strength are eased with 1 − e^−k·dt for a smooth follow.
 //  • A soft contact shadow, e^−λ·sd, using the signed distance to the plate.
 
-const TABLE_Y = -PLATE_H / 2 - 0.002; // just under the baseplate's bottom face
-const FADE_RADIUS = 58; // studs
+const TABLE_Y = -0.002; // the ground itself: parts at level 0 stand on it (no baseplate)
+const FADE_RADIUS = 90; // studs
 const LAMP_SIGMA = 5.5; // studs
 const noRaycast = () => null;
 
@@ -71,10 +71,10 @@ const fragmentShader = /* glsl */ `
     float ink = (minor * 0.045 + major * 0.09 + knot * 0.14) * fade
               + (minor * 0.11 + major * 0.14 + knot * 0.12) * lamp;
 
-    // Contact shadow around the baseplate (signed distance to its square).
+    // Contact shadow around a plate (signed distance to its square); none with uHalf 0.
     vec2 q = abs(p - uCenter) - vec2(uHalf);
     float sd = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
-    float shadow = sd > 0.0 ? 0.14 * exp(-sd * 0.55) : 0.0;
+    float shadow = uHalf > 0.0 && sd > 0.0 ? 0.14 * exp(-sd * 0.55) : 0.0;
 
     vec3 inkColor = mix(uInk, uAccent, clamp(lamp, 0.0, 1.0) * 0.55);
     float alpha = ink + shadow * (1.0 - ink);
@@ -101,7 +101,7 @@ export function Table() {
         depthWrite: false,
         uniforms: {
           uCenter: { value: new THREE.Vector2(BASE_SIZE / 2, BASE_SIZE / 2) },
-          uHalf: { value: BASE_SIZE / 2 },
+          uHalf: { value: 0 },
           uCursor: { value: new THREE.Vector2(BASE_SIZE / 2, BASE_SIZE / 2) },
           uLamp: { value: 0 },
           uInk: { value: new THREE.Color("#4a5566") },

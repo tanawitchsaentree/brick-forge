@@ -7,7 +7,7 @@ import { Controls } from "./Controls";
 import { Label } from "./Label";
 import { Table } from "./Table";
 import { SCENE, useTheme } from "../ui/theme";
-import { BASE_SIZE, PLATE_H, PLATE_MM, STUD_H, STUD_MM, STUD_R } from "../engine/units";
+import { BASE_SIZE, PLATE_H, PLATE_MM, STUD_H, STUD_MM } from "../engine/units";
 import { PARTS, footprint, type PartDef, type Rot } from "../engine/parts";
 import { colorOf } from "../engine/colors";
 import { OUTSIDE, bounds, canPlace, renderPlacement, type Occupancy, type PlacedBrick } from "../engine/grid";
@@ -48,6 +48,8 @@ interface Props {
   showDims: boolean;
   /** When set, parts are painted by how hard their joint is working (Stress view). */
   stress: Stability | null;
+  /** Changes when a whole model arrives: the camera frames it (there's no baseplate to size the view by). */
+  frame?: number;
   onPlace: (x: number, y: number, z: number) => void;
   onErase: (uid: string) => void;
 }
@@ -111,11 +113,11 @@ export function Scene(props: Props) {
 
       <Table />
       <Workspace {...props} />
-      <Rulers />
       {showDims && <DimensionBox bricks={bricks} />}
 
       {/* Trackpad: a two-finger tap rotates the part, so right-drag must not pan. */}
       <Controls target={[center, 0, center]} maxPolarAngle={Math.PI / 2.05} rightPan={nav === "mouse"} />
+      <FrameModel bricks={bricks} frame={props.frame ?? 0} />
       <TrackpadNav enabled={nav === "trackpad"} />
     </Canvas>
   );
@@ -233,9 +235,8 @@ function Workspace(props: Props) {
         onPointerOut={reaim}
         onClick={handleClick}
       >
-        <Baseplate />
         <BrickList bricks={bricks} eraseUid={hover?.eraseUid} stress={stress} />
-        {/* Invisible ground so the ghost keeps following the cursor off the baseplate. */}
+        {/* The ground: invisible (the table draws it), so parts go down anywhere on it. */}
         <mesh position={[BASE_SIZE / 2, -0.01, BASE_SIZE / 2]} rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[600, 600]} />
           <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
@@ -390,12 +391,12 @@ function PlacementGuides({ hover, part, rot }: { hover: Hover; part: PartDef; ro
       for (const [cx, cz] of [[x, z], [x + w, z], [x, z + d], [x + w, z + d]])
         cells.push(cx, gy, cz, cx, bottom, cz);
 
-    const edge = BASE_SIZE + 0.6;
+    // Short ticks out from the footprint to its coordinate labels (no baseplate edge to run to).
     const leaders = [
-      x, gy, z + d, x, gy, edge,
-      x + w, gy, z + d, x + w, gy, edge,
-      x, gy, z, -0.6, gy, z,
-      x, gy, z + d, -0.6, gy, z + d,
+      x, gy, z + d, x, gy, z + d + 0.8,
+      x + w, gy, z + d, x + w, gy, z + d + 0.8,
+      x, gy, z, x - 0.8, gy, z,
+      x, gy, z + d, x - 0.8, gy, z + d,
     ];
     const geo = (pts: number[]) =>
       new THREE.BufferGeometry().setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
@@ -425,8 +426,8 @@ function PlacementGuides({ hover, part, rot }: { hover: Hover; part: PartDef; ro
         <lineBasicMaterial color={col} transparent opacity={0.45} />
       </lineSegments>
 
-      <Label {...tag} text={`x ${x}→${x + w}`} position={[x + w / 2, 0.1, BASE_SIZE + 1.2]} />
-      <Label {...tag} text={`z ${z}→${z + d}`} position={[-1.6, 0.1, z + d / 2]} />
+      <Label {...tag} text={`x ${x}→${x + w}`} position={[x + w / 2, 0.1, z + d + 1.4]} />
+      <Label {...tag} text={`z ${z}→${z + d}`} position={[x - 1.8, 0.1, z + d / 2]} />
       <Label
         {...tag}
         text={ok ? `y ${y} · ${(y * PLATE_MM).toFixed(1)} mm` : (reason ?? "")}
@@ -508,59 +509,6 @@ function TrackpadNav({ enabled }: { enabled: boolean }) {
   return null;
 }
 
-/** 32x32 baseplate with instanced studs. Its top surface is y = 0. */
-export function Baseplate() {
-  const studs = useRef<THREE.InstancedMesh>(null);
-  const count = BASE_SIZE * BASE_SIZE;
-
-  useLayoutEffect(() => {
-    const m = new THREE.Matrix4();
-    let i = 0;
-    for (let x = 0; x < BASE_SIZE; x++)
-      for (let z = 0; z < BASE_SIZE; z++) {
-        m.setPosition(x + 0.5, STUD_H / 2, z + 0.5);
-        studs.current!.setMatrixAt(i++, m);
-      }
-    studs.current!.instanceMatrix.needsUpdate = true;
-    studs.current!.computeBoundingSphere();
-  }, []);
-
-  return (
-    <group>
-      <mesh position={[BASE_SIZE / 2, -PLATE_H / 4, BASE_SIZE / 2]} receiveShadow>
-        <boxGeometry args={[BASE_SIZE, PLATE_H / 2, BASE_SIZE]} />
-        <meshStandardMaterial color="#4b9b5b" roughness={0.6} />
-      </mesh>
-      {/* Studs don't take part in raycasting; the plate's top face does. 1024 instances per pointer move add up. */}
-      <instancedMesh ref={studs} args={[undefined, undefined, count]} receiveShadow raycast={noRaycast}>
-        <cylinderGeometry args={[STUD_R, STUD_R, STUD_H, 16]} />
-        <meshStandardMaterial color="#4b9b5b" roughness={0.6} />
-      </instancedMesh>
-    </group>
-  );
-}
-
-// Rulers are reference, not content: small and quiet.
-const RULER = { color: "#6b7685", size: 0.017, opacity: 0.45 };
-
-/** Stud-number labels along the x and z edges of the baseplate. */
-function Rulers() {
-  const marks = [];
-  for (let i = 0; i <= BASE_SIZE; i += 4) marks.push(i);
-  return (
-    <group>
-      {marks.map((i) => (
-        <Label key={`x${i}`} {...RULER} text={String(i)} position={[i, 0.1, BASE_SIZE + 1.2]} />
-      ))}
-      {marks.map((i) => (
-        <Label key={`z${i}`} {...RULER} text={String(i)} position={[-1.2, 0.1, i]} />
-      ))}
-      <Label {...RULER} opacity={0.32} text="X (studs)" position={[BASE_SIZE / 2 - 2, 0.1, BASE_SIZE + 3.6]} />
-      <Label {...RULER} opacity={0.32} text="Z (studs)" position={[-4.4, 0.1, BASE_SIZE / 2 - 2]} />
-    </group>
-  );
-}
-
 /** Bounding box of the model with its size in studs/plates and millimetres. */
 function DimensionBox({ bricks }: { bricks: PlacedBrick[] }) {
   const b = bounds(bricks);
@@ -590,4 +538,28 @@ function DimensionBox({ bricks }: { bricks: PlacedBrick[] }) {
       />
     </group>
   );
+}
+
+/** Point the camera at the whole model, from the direction it already looks, close enough to fill the view. */
+function FrameModel({ bricks, frame }: { bricks: PlacedBrick[]; frame: number }) {
+  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
+  const controls = useThree((s) => s.controls) as unknown as { target: THREE.Vector3; update(): void } | null;
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    if (!frame || !controls) return;
+    const b = bounds(bricks);
+    if (!b) return;
+    const lo = new THREE.Vector3(b.minX, b.minY * PLATE_H, b.minZ), hi = new THREE.Vector3(b.maxX, b.maxY * PLATE_H, b.maxZ);
+    const c = lo.clone().add(hi).multiplyScalar(0.5);
+    const r = Math.max(4, lo.distanceTo(hi) / 2);
+    const dir = camera.position.clone().sub(controls.target).normalize();
+    const dist = (r / Math.sin(((camera.fov ?? 45) * Math.PI) / 360)) * 1.05;
+    controls.target.copy(c);
+    camera.position.copy(c).addScaledVector(dir, dist);
+    controls.update();
+    invalidate();
+    // Only when a model arrives, not on every edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [frame, controls]);
+  return null;
 }

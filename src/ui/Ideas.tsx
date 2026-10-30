@@ -440,7 +440,7 @@ export function Ideas({ start, inventory, onBuild, onInstructions, onClose }: Pr
                     <Button variant="accent" size="sm" onClick={() => { lesson(idea, 1); onInstructions(idea.bricks, idea.title); }} title="Step-by-step instructions">
                       Build it
                     </Button>
-                    <Button variant="glass" size="sm" onClick={() => { lesson(idea, 0.5); onBuild(idea.bricks); }} title="Put it on the baseplate to change it">
+                    <Button variant="glass" size="sm" onClick={() => { lesson(idea, 0.5); onBuild(idea.bricks); }} title="Put it on the table to change it">
                       Edit
                     </Button>
                     {buy > 0 && (

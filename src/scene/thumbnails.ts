@@ -29,6 +29,12 @@ function setup() {
   sun.position.set(-2, 5, 3);
   scene.add(sun);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+  // A fill from the viewer, as a product shot has: without it faces turned from the sun
+  // (most of a side view) got only the sky and read far darker than the part's colour.
+  const fill = new THREE.DirectionalLight("#ffffff", 1.2);
+  fill.position.set(0, 0, 1);
+  camera.add(fill);
+  scene.add(camera);
   return { renderer, scene, camera };
 }
 

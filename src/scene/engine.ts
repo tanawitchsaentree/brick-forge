@@ -11,6 +11,7 @@ import { catalogData } from "../engine/catalog";
 import type { PlacedBrick } from "../engine/grid";
 import { loadDesign, type CorpusModel } from "./corpus";
 import { makeParts } from "./ldraw";
+import { VARIANTS, pickBest } from "../engine/select/bestOfK";
 
 // New designs from the learned engine: a target shape varied from real
 // designs (longer, shorter, a cross of two), built by the sculptor in a
@@ -63,7 +64,8 @@ function ensure() {
 }
 
 /** How many designs can be built at once. */
-export const parallel = () => Math.max(1, Math.min(4, (navigator.hardwareConcurrency || 2) - 1));
+// Two at most, so a batch doesn't take every core (fans, a laptop heating up) while the page is in use.
+export const parallel = () => Math.max(1, Math.min(2, (navigator.hardwareConcurrency || 2) - 1));
 
 export type Variation = { kind: "longer" | "shorter" | "wider"; studs: number } | { kind: "cross"; with: CorpusModel; t: number };
 
@@ -109,8 +111,12 @@ async function targetOf(base: CorpusModel, v: Variation, tier: Tier): Promise<{ 
   return { target: seat(shape), donors: donors.map((b) => moveCells(b, dx, dy, dz)) };
 }
 
-/** How much bigger each tier builds the same design (pieces grow with the cube). */
-export const SCALE: Record<Tier, number> = { junior: 1, creator: 1, advanced: 1, technic: 1, expert: 1.5, master: 2.5 };
+/**
+ * How much bigger each tier builds the same design (pieces and time grow with the cube).
+ * Kept small: at 1.5× / 2.5× a Master design took 68 s and thousands of pieces, and a
+ * higher level should mean more detail (its weights), not the same model blown up.
+ */
+export const SCALE: Record<Tier, number> = { junior: 1, creator: 1, advanced: 1, technic: 1, expert: 1, master: 1 };
 
 export interface EngineDesign {
   bricks: PlacedBrick[];
@@ -119,15 +125,31 @@ export interface EngineDesign {
   made: number;
   reused: number;
   ms: number;
+  /**
+   * Best-of-K (engine/select/bestOfK.ts): build the same target the other ways and
+   * keep the best by pickBest — the better design, or null when the first build
+   * already was. Only where the variants apply and the extra builds are affordable.
+   */
+  refine?: () => Promise<EngineDesign | null>;
 }
+
+/**
+ * Levels where best-of-K runs (Technic ignores the variants): none by default, since its
+ * three extra builds kept the machine busy after the tiles were in. Expert: no parent parts
+ * are kept at its scale, so the variants differ; on core8 the pick changed 2 of 8 and
+ * looked no worse in either (docs/engine/c5-best-of-k.md), ~3 s a variant. Junior to
+ * Advanced keep the parent's parts and the default won 6 of 6, so they don't pay for it.
+ * Override with localStorage "lego-builder:bestOf" (tiers, comma-separated; "none").
+ */
+const REFINE = (): Tier[] => ((typeof localStorage !== "undefined" && localStorage.getItem("lego-builder:bestOf")) || "").split(",").filter(Boolean) as Tier[];
 
 export async function engineDesign(base: CorpusModel, v: Variation, tier: Tier, articulate = false): Promise<EngineDesign> {
   await ensure();
   const { target, donors } = await targetOf(base, v, tier);
   const keys = Int32Array.from(target.cells.keys());
-  const req: BuildRequest = {
+  const request = (variant: number): BuildRequest => ({
     ticket: ++ticket,
-    cells: keys,
+    cells: keys.slice(),
     colors: Int32Array.from(keys, (k) => target.cells.get(k)!),
     studs: Int32Array.from(target.studs ?? []),
     name: `${base.id}-${v.kind}-${ticket}`,
@@ -136,19 +158,36 @@ export async function engineDesign(base: CorpusModel, v: Variation, tier: Tier, 
     donorShapes: [...new Set(donors.map((b) => b.partId))].filter((id) => PARTS[id]?.made).map((id) => [id, partShape(PARTS[id])]),
     tier,
     articulate,
-  };
-  const slot = workers.reduce((a, b) => (b.busy < a.busy ? b : a));
-  slot.busy++;
-  if (!slot.tiers.has(tier)) {
-    req.forms = await formsOf(tier);
-    slot.tiers.add(tier);
-  }
-  const reply = await new Promise<BuildReply>((resolve) => {
-    waiting.set(req.ticket, resolve);
-    slot.w.postMessage(req, [req.cells.buffer, req.colors.buffer, req.studs.buffer]);
+    variant,
   });
-  await makeParts(reply.made.map((def) => ({ id: def.id, name: def.name, ldraw: def.made!, inline: true, def })));
-  return { bricks: reply.bricks, fit: reply.fit, held: reply.held, made: reply.made.length, reused: reply.reused, ms: reply.ms };
+  const run = async (req: BuildRequest) => {
+    const slot = workers.reduce((a, b) => (b.busy < a.busy ? b : a));
+    slot.busy++;
+    if (!slot.tiers.has(tier)) {
+      req.forms = await formsOf(tier);
+      slot.tiers.add(tier);
+    }
+    return new Promise<BuildReply>((resolve) => {
+      waiting.set(req.ticket, resolve);
+      slot.w.postMessage(req, [req.cells.buffer, req.colors.buffer, req.studs.buffer]);
+    });
+  };
+  const design = async (reply: BuildReply): Promise<EngineDesign> => {
+    await makeParts(reply.made.map((def) => ({ id: def.id, name: def.name, ldraw: def.made!, inline: true, def })));
+    return { bricks: reply.bricks, fit: reply.fit, held: reply.held, made: reply.made.length, reused: reply.reused, ms: reply.ms };
+  };
+  const first = await run(request(0));
+  const out = await design(first);
+  if (REFINE().includes(tier))
+    out.refine = async () => {
+      // Every candidate goes to pickBest together, in VARIANTS order (its economy term is relative to the leanest).
+      const rest = await Promise.all(VARIANTS.slice(1).map((_, k) => run(request(k + 1))));
+      const cands = [first, ...rest].filter((r) => !r.skipped);
+      const best = cands[pickBest(cands)];
+      if (import.meta.env.DEV) console.debug(`[best-of-K] ${base.id}: ${VARIANTS[best === first ? 0 : rest.indexOf(best) + 1].name} of ${cands.length}`);
+      return best === first ? null : design(best);
+    };
+  return out;
 }
 
 /**

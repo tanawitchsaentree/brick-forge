@@ -67,8 +67,8 @@ export function ModelPreview({ title, from, bricks, facts, onInstructions, onEdi
             <Button variant="glass" onClick={onInstructions} title="Step-by-step instructions">
               Build it step by step
             </Button>
-            <Button variant="accent" onClick={onEdit} title="Put it on the baseplate to change it">
-              Place on baseplate
+            <Button variant="accent" onClick={onEdit} title="Put it on the table to change it">
+              Place on the table
             </Button>
           </div>
         </footer>

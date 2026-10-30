@@ -196,6 +196,8 @@ export default function App({ ldraw }: { ldraw: boolean }) {
     window.setTimeout(() => setBump((b) => (b === p.id ? null : b)), 500);
   };
 
+  // Bumped when a whole model arrives (a design placed, a file opened): the view frames it.
+  const [frame, setFrame] = useState(0);
   const commit = useCallback(
     (next: PlacedBrick[]) => {
       setHistory((h) => [...h.slice(-99), bricks]);
@@ -305,6 +307,7 @@ export default function App({ ldraw }: { ldraw: boolean }) {
           color={color}
           showDims={showDims}
           stress={stressView ? physics : null}
+          frame={frame}
           onPlace={place}
           onErase={erase}
         />
@@ -516,7 +519,7 @@ export default function App({ ldraw }: { ldraw: boolean }) {
         ) : (
           <div className="model-empty">
             <p className="model-count">Nothing built yet</p>
-            <p className="hint">Click the baseplate to place a part, or press ✦ Create for a design to build.</p>
+            <p className="hint">Click the table to place a part, or press ✦ Create for a design to build.</p>
             <button className="link" onClick={() => openFile.current?.click()} title="BrickLink Studio (.io) or LDraw (.ldr, .mpd)">
               Open a model file…
             </button>
@@ -543,6 +546,7 @@ export default function App({ ldraw }: { ldraw: boolean }) {
               const m = importLDraw(text, f.name);
               const left = Object.values(m.missing).reduce((a, b) => a + b, 0);
               commit(m.bricks);
+              setFrame((f) => f + 1);
               if (left) alert(`${m.bricks.length} parts loaded; ${left} not in the parts library were left out.`);
             } catch (err) {
               alert(`Couldn't open ${f.name}: ${(err as Error).message}`);
@@ -570,7 +574,7 @@ export default function App({ ldraw }: { ldraw: boolean }) {
                 localStorage.setItem(WELCOME_KEY, "1");
               }}
             >
-              I'll build freely on the baseplate
+              I'll build freely
             </button>
           </Card>
         </div>
@@ -592,6 +596,7 @@ export default function App({ ldraw }: { ldraw: boolean }) {
             onClose={() => setShowIdeas(false)}
             onBuild={(next) => {
               commit(next);
+              setFrame((f) => f + 1);
               setShowIdeas(false);
             }}
           />
@@ -717,7 +722,7 @@ function AimStatus() {
         x {hover.x} · y {hover.y} · z {hover.z}
       </span>
     );
-  if (hover.reason === OUTSIDE) return <span className="hint">Move onto the baseplate to place</span>;
+  if (hover.reason === OUTSIDE) return <span className="hint">Too high to place here</span>;
   return <span className="aim-bad">{hover.reason}</span>;
 }
 
