@@ -1,0 +1,237 @@
+0 FILE 31058-ptero.ldr
+0 LEGO 31058 Mighty Dinosaurs Ã¢ÂÂ Pterodactyl (reference rebuild, booklet 6437440)
+0 Name: 31058-ptero.ldr
+0 Author: scripts/rebuild-31058-ptero.mjs
+
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 body.ldr
+1 16 -150 -28 0 1 0 0 0 1 0 0 0 1 head.ldr
+1 16 50 -28 0 0.978 0.208 0 -0.208 0.978 0 0 0 1 tail.ldr
+1 16 -60 -14 40 0 0 -1 -0.174 0.985 0 0.985 0.174 0 wing-root-l.ldr
+1 16 -60 -14 -40 0 0 1 -0.174 0.985 0 -0.985 -0.174 0 wing-root-r.ldr
+1 16 -60 -26.964 125.041 0.256 0.036 -0.966 -0.303 0.952 -0.045 0.918 0.304 0.255 wing-mid-l.ldr
+1 16 -60 -26.964 -125.041 0.256 0.036 0.966 -0.303 0.952 0.045 -0.918 -0.304 0.255 wing-mid-r.ldr
+1 16 -33.929 -59.79 218.05 0.641 0.036 -0.767 -0.256 0.952 -0.169 0.724 0.304 0.619 wing-tip-l.ldr
+1 16 -33.929 -59.79 -218.05 0.641 0.036 0.767 -0.256 0.952 0.169 -0.724 -0.304 0.619 wing-tip-r.ldr
+1 16 40 -14 40 0.574 -0.819 0 0.819 0.574 0 0 0 1 foot-l.ldr
+1 16 40 -14 -40 0.574 -0.819 0 0.819 0.574 0 0 0 1 foot-r.ldr
+
+0 NOFILE
+0 FILE body.ldr
+0 body
+0 Name: body.ldr
+0 // belly plate 2x6, across
+1 19 0 0 0 0 0 1 0 1 0 -1 0 0 3795.dat
+0 // rear row, overhang back
+1 19 10 -24 0 0 0 -1 0 1 0 1 0 0 3660.dat
+1 2 -20 -24 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 2 -10 -24 -40 0 0 1 0 1 0 -1 0 0 3004.dat
+1 2 -10 -24 40 0 0 1 0 1 0 -1 0 0 3004.dat
+0 // leg holder, beams back
+1 72 10 -24 -40 0 0 -1 0 1 0 1 0 0 85943.dat
+1 4 40 -14 -40 0 0 -1 0 1 0 1 0 0 32062.dat
+0 // leg ball
+1 0 40 -14 -40 1 0 0 0 0 -1 0 1 0 53585.dat
+0 // leg holder, beams back
+1 72 10 -24 40 0 0 -1 0 1 0 1 0 0 85943.dat
+1 4 40 -14 40 0 0 -1 0 1 0 1 0 0 32062.dat
+0 // leg ball
+1 0 40 -14 40 1 0 0 0 0 -1 0 1 0 53585.dat
+0 // step 4, across
+1 2 0 -32 0 0 0 1 0 1 0 -1 0 0 3020.dat
+0 // tail ball, on the 3660 overhang
+1 72 30 -32 0 0 0 -1 0 1 0 1 0 0 14417.dat
+1 288 10 -40 -20 0 0 1 0 1 0 -1 0 0 43722.dat
+1 288 10 -40 20 0 0 1 0 1 0 -1 0 0 43723.dat
+0 // neck underside
+1 19 -60 0 0 1 0 0 0 1 0 0 0 1 3020.dat
+0 // wing balls
+1 72 -60 -24 0 0 0 1 0 1 0 -1 0 0 17114.dat
+0 // chest, overhang forward
+1 19 -90 -24 0 0 0 1 0 1 0 -1 0 0 3747b.dat
+1 288 -60 -48 -10 1 0 0 0 1 0 0 0 1 3010.dat
+1 288 -60 -48 10 1 0 0 0 1 0 0 0 1 3010.dat
+1 2 -110 -32 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // neck ball, forward
+1 72 -130 -32 0 0 0 1 0 1 0 -1 0 0 14417.dat
+0 // step 10
+1 288 -120 -40 0 1 0 0 0 1 0 0 0 1 4032a.dat
+1 320 -50 -56 0 0 0 1 0 1 0 -1 0 0 3023.dat
+1 320 -30 -56 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // curved 2x2, down to the front
+1 2 -80 -48 0 0 0 1 0 1 0 -1 0 0 15068.dat
+0 // back shell, studs at the front
+1 2 -40 -80 0 0 0 -1 0 1 0 1 0 0 43712.dat
+
+0 NOFILE
+0 FILE head.ldr
+0 head
+0 Name: head.ldr
+0 // jaw
+1 19 -50 4 0 1 0 0 0 1 0 0 0 1 3710.dat
+1 288 -70 -4 0 1 0 0 0 1 0 0 0 1 3023.dat
+0 // neck socket, back
+1 71 -30 -4 0 1 0 0 0 1 0 0 0 1 14418.dat
+1 28 -30 -28 0 1 0 0 0 1 0 0 0 1 52107.dat
+0 // eye
+1 57 -40 -18 18 1 0 0 0 0 1 0 -1 0 6141.dat
+0 // cheek
+1 2 -20 -18 10 0 0 -1 1 0 0 0 -1 0 54200.dat
+0 // eye
+1 57 -40 -18 -18 -1 0 0 0 0 1 0 1 0 6141.dat
+0 // cheek
+1 2 -20 -18 -10 0 0 -1 -1 0 0 0 1 0 54200.dat
+0 // beak underside
+1 19 -130 4 0 1 0 0 0 1 0 0 0 1 3710.dat
+1 288 -110 -4 0 1 0 0 0 1 0 0 0 1 3023.dat
+1 2 -90 -12 0 1 0 0 0 1 0 0 0 1 3023.dat
+1 2 -60 -12 0 1 0 0 0 1 0 0 0 1 3024.dat
+1 2 -70 -20 0 1 0 0 0 1 0 0 0 1 3023.dat
+0 // beak top, on the step-23 plate
+1 2 -130 -36 0 0 0 1 0 1 0 -1 0 0 11153.dat
+0 // on the skull brick
+1 2 -30 -36 0 1 0 0 0 1 0 0 0 1 3023.dat
+0 // crest
+1 2 -70 -60 0 0 0 1 0 1 0 -1 0 0 11153.dat
+0 // crest end
+1 2 -10 -36 0 0 0 -1 0 1 0 1 0 0 11477.dat
+
+0 NOFILE
+0 FILE tail.ldr
+0 tail
+0 Name: tail.ldr
+0 // socket
+1 71 30 -4 0 -1 0 0 0 1 0 0 0 -1 14418.dat
+1 2 20 -12 0 1 0 0 0 1 0 0 0 1 3024.dat
+0 // high end at the body
+1 2 50 -36 0 0 0 -1 0 1 0 1 0 0 11153.dat
+
+0 NOFILE
+0 FILE wing-root-l.ldr
+0 wing-root-l
+0 Name: wing-root-l.ldr
+0 // underside 2x3
+1 19 46 14 0 1 0 0 0 1 0 0 0 1 3021.dat
+1 288 66 6 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // socket for the mid wing
+1 71 66 -2 0 0 0 -1 0 1 0 1 0 0 14704.dat
+1 288 66 -10 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // socket on the wing ball
+1 288 36 -10 0 -1 0 0 0 1 0 0 0 -1 92013.dat
+0 // rounded at the outer end
+1 2 26 -18 10 1 0 0 0 1 0 0 0 1 30357.dat
+1 2 26 -18 -10 0 0 1 0 1 0 -1 0 0 30357.dat
+0 // tan stripe
+1 19 46 -26 0 0 0 1 0 1 0 -1 0 0 2431.dat
+
+0 NOFILE
+0 FILE wing-root-r.ldr
+0 wing-root-r
+0 Name: wing-root-r.ldr
+0 // underside 2x3
+1 19 46 14 0 -1 0 0 0 1 0 0 0 -1 3021.dat
+1 288 66 6 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // socket for the mid wing
+1 71 66 -2 0 0 0 -1 0 1 0 1 0 0 14704.dat
+1 288 66 -10 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // socket on the wing ball
+1 288 36 -10 0 -1 0 0 0 1 0 0 0 -1 92013.dat
+0 // rounded at the outer end
+1 2 26 -18 -10 0 0 1 0 1 0 -1 0 0 30357.dat
+1 2 26 -18 10 1 0 0 0 1 0 0 0 1 30357.dat
+0 // tan stripe
+1 19 46 -26 0 0 0 1 0 1 0 -1 0 0 2431.dat
+
+0 NOFILE
+0 FILE wing-mid-l.ldr
+0 wing-mid-l
+0 Name: wing-mid-l.ldr
+1 2 50 4 0 1 0 0 0 1 0 0 0 1 3020.dat
+0 // ball, inward
+1 72 20 -4 0 0 0 1 0 1 0 -1 0 0 14417.dat
+0 // teeth under the edge
+1 15 50 -4 10 -1 0 0 0 1 0 0 0 -1 15208.dat
+0 // teeth
+1 15 50 -4 -10 1 0 0 0 1 0 0 0 1 15208.dat
+0 // clip for the tip
+1 71 80 -4 0 0 0 -1 0 1 0 1 0 0 11476.dat
+1 2 50 -12 -20 0 0 -1 0 1 0 1 0 0 41769.dat
+1 2 50 -12 20 0 0 -1 0 1 0 1 0 0 41770.dat
+
+0 NOFILE
+0 FILE wing-mid-r.ldr
+0 wing-mid-r
+0 Name: wing-mid-r.ldr
+1 2 50 4 0 -1 0 0 0 1 0 0 0 -1 3020.dat
+0 // ball, inward
+1 72 20 -4 0 0 0 1 0 1 0 -1 0 0 14417.dat
+0 // teeth under the edge
+1 15 50 -4 -10 1 0 0 0 1 0 0 0 1 15208.dat
+0 // teeth
+1 15 50 -4 10 -1 0 0 0 1 0 0 0 -1 15208.dat
+0 // clip for the tip
+1 71 80 -4 0 0 0 -1 0 1 0 1 0 0 11476.dat
+1 2 50 -12 20 0 0 -1 0 1 0 1 0 0 41770.dat
+1 2 50 -12 -20 0 0 -1 0 1 0 1 0 0 41769.dat
+
+0 NOFILE
+0 FILE wing-tip-l.ldr
+0 wing-tip-l
+0 Name: wing-tip-l.ldr
+0 // handle inward
+1 288 30 -2 0 -1 0 0 0 1 0 0 0 -1 60478.dat
+1 2 50 -10 -10 0 0 -1 0 1 0 1 0 0 41769.dat
+
+0 NOFILE
+0 FILE wing-tip-r.ldr
+0 wing-tip-r
+0 Name: wing-tip-r.ldr
+0 // handle inward
+1 288 30 -2 0 -1 0 0 0 1 0 0 0 -1 60478.dat
+1 2 50 -10 10 0 0 -1 0 1 0 1 0 0 41770.dat
+
+0 NOFILE
+0 FILE foot-l.ldr
+0 foot-l
+0 Name: foot-l.ldr
+1 2 36 22 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 288 36 14 -10 1 0 0 0 1 0 0 0 1 3023.dat
+0 // claw ring
+1 0 46 14 10 -1 0 0 0 1 0 0 0 -1 4081b.dat
+0 // long claw, forward
+1 0 50 16 30 0 -1 0 0 0 1 -1 0 0 87747.dat
+0 // short claw, back
+1 0 42 16 30 0 0 -1 0 -1 0 -1 0 0 53451.dat
+0 // ankle socket
+1 288 36 -10 0 -1 0 0 0 1 0 0 0 -1 92013.dat
+0 // claw ring
+1 0 46 -18 10 -1 0 0 0 1 0 0 0 -1 4081b.dat
+0 // long claw, forward
+1 0 50 -16 30 0 -1 0 0 0 1 -1 0 0 87747.dat
+0 // short claw, back
+1 0 42 -16 30 0 0 -1 0 -1 0 -1 0 0 53451.dat
+0 // heel
+1 19 36 -18 10 0 0 -1 0 1 0 1 0 0 11477.dat
+
+0 NOFILE
+0 FILE foot-r.ldr
+0 foot-r
+0 Name: foot-r.ldr
+1 2 36 22 0 -1 0 0 0 1 0 0 0 -1 3022.dat
+1 288 36 14 10 -1 0 0 0 1 0 0 0 -1 3023.dat
+0 // claw ring
+1 0 46 14 -10 1 0 0 0 1 0 0 0 1 4081b.dat
+0 // long claw, forward
+1 0 50 16 -30 0 -1 0 0 0 1 -1 0 0 87747.dat
+0 // short claw, back
+1 0 42 16 -30 0 0 -1 0 -1 0 -1 0 0 53451.dat
+0 // ankle socket
+1 288 36 -10 0 -1 0 0 0 1 0 0 0 -1 92013.dat
+0 // claw ring
+1 0 46 -18 -10 1 0 0 0 1 0 0 0 1 4081b.dat
+0 // long claw, forward
+1 0 50 -16 -30 0 -1 0 0 0 1 -1 0 0 87747.dat
+0 // short claw, back
+1 0 42 -16 -30 0 0 -1 0 -1 0 -1 0 0 53451.dat
+0 // heel
+1 19 36 -18 -10 0 0 -1 0 1 0 1 0 0 11477.dat
+0 NOFILE

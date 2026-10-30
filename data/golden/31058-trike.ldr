@@ -1,0 +1,244 @@
+0 FILE 31058-trike.ldr
+0 LEGO 31058 Mighty Dinosaurs Ã¢ÂÂ Triceratops (reference rebuild, booklet 6437438)
+0 Name: 31058-trike.ldr
+0 Author: scripts/rebuild-31058-trike.mjs
+
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 body.ldr
+1 16 -90 -60 0 0.995 0.105 0 -0.105 0.995 0 0 0 1 head.ldr
+1 16 -111.563 -73.822 0 0.777 -0.629 0 0.629 0.777 0 0 0 1 frill.ldr
+1 16 90 -60 0 0.97 0.242 0 -0.242 0.97 0 0 0 1 tail-1.ldr
+1 16 190.9 -68.667 0 0.914 0.407 0 -0.407 0.914 0 0 0 1 tail-2.ldr
+1 16 -60 -46 40 0.999 -0.052 0 0.052 0.999 0 0 0 1 front-leg-l.ldr
+1 16 -60 -46 -40 0.999 -0.052 0 0.052 0.999 0 0 0 1 front-leg-r.ldr
+1 16 60 -46 40 0.966 0.259 0 -0.259 0.966 0 0 0 1 rear-leg-l.ldr
+1 16 60 -46 -40 0.966 0.259 0 -0.259 0.966 0 0 0 1 rear-leg-r.ldr
+
+0 NOFILE
+0 FILE body.ldr
+0 body
+0 Name: body.ldr
+0 // belly plate 2x4
+1 19 0 0 0 1 0 0 0 1 0 0 0 1 3020.dat
+0 // front, overhang forward
+1 2 -30 -24 0 0 0 1 0 1 0 -1 0 0 3660.dat
+0 // right side
+1 19 0 -24 -10 1 0 0 0 1 0 0 0 1 3660.dat
+0 // left side
+1 19 0 -24 10 -1 0 0 0 1 0 0 0 -1 3660.dat
+0 // rear, overhang back 2
+1 19 30 -24 0 0 0 -1 0 1 0 1 0 0 3747b.dat
+1 2 40 -32 0 1 0 0 0 1 0 0 0 1 3022.dat
+1 288 70 -32 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // left deck
+1 2 -30 -32 10 1 0 0 0 1 0 0 0 1 30357.dat
+0 // right deck
+1 2 -30 -32 -10 0 0 1 0 1 0 -1 0 0 30357.dat
+1 288 -50 -32 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // spine
+1 19 0 -56 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 // on the dark green 1x2, overhang forward
+1 2 -50 -56 0 0 0 1 0 1 0 -1 0 0 3660.dat
+0 // hip balls
+1 72 60 -56 0 0 0 1 0 1 0 -1 0 0 17114.dat
+1 2 -10 -56 30 -1 0 0 0 1 0 0 0 -1 3040b.dat
+1 2 -10 -56 -30 1 0 0 0 1 0 0 0 1 3040b.dat
+1 2 40 -64 10 1 0 0 0 1 0 0 0 1 3023.dat
+1 2 40 -64 -10 1 0 0 0 1 0 0 0 1 3023.dat
+0 // tail ball
+1 72 70 -64 0 0 0 -1 0 1 0 1 0 0 14417.dat
+0 // shoulder
+1 72 -30 -56 40 0 0 1 0 1 0 -1 0 0 85943.dat
+1 4 -60 -46 40 0 0 1 0 1 0 -1 0 0 32062.dat
+0 // shoulder ball
+1 0 -60 -46 40 1 0 0 0 0 -1 0 1 0 53585.dat
+0 // shoulder
+1 72 -30 -56 -40 0 0 1 0 1 0 -1 0 0 85943.dat
+1 4 -60 -46 -40 0 0 1 0 1 0 -1 0 0 32062.dat
+0 // shoulder ball
+1 0 -60 -46 -40 1 0 0 0 0 -1 0 1 0 53585.dat
+1 288 -20 -64 30 1 0 0 0 1 0 0 0 1 3023.dat
+1 288 -20 -64 -30 1 0 0 0 1 0 0 0 1 3023.dat
+1 2 -30 -56 50 -1 0 0 0 1 0 0 0 -1 54200.dat
+1 2 -30 -56 -50 1 0 0 0 1 0 0 0 1 54200.dat
+1 288 -20 -80 10 1 0 0 0 1 0 0 0 1 3010.dat
+1 288 -20 -80 -10 1 0 0 0 1 0 0 0 1 3010.dat
+0 // neck ball
+1 72 -70 -64 0 0 0 1 0 1 0 -1 0 0 14417.dat
+1 288 -70 -72 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // back shell: 2x2 studs at the front, curving down to the tail
+1 2 -40 -104 0 0 0 -1 0 1 0 1 0 0 43712.dat
+0 // over the neck, curving down forward
+1 2 -80 -72 0 0 0 1 0 1 0 -1 0 0 15068.dat
+
+0 NOFILE
+0 FILE head.ldr
+0 head
+0 Name: head.ldr
+0 // head base
+1 2 -50 20 0 1 0 0 0 1 0 0 0 1 3020.dat
+1 19 -70 28 10 1 0 0 0 1 0 0 0 1 3710.dat
+1 19 -70 28 -10 1 0 0 0 1 0 0 0 1 3710.dat
+0 // teeth under the back of the head
+1 15 -20 28 0 0 0 -1 0 1 0 1 0 0 15208.dat
+0 // handle for the frill
+1 288 -30 12 10 1 0 0 0 1 0 0 0 1 60478.dat
+0 // handle for the frill
+1 288 -30 12 -10 1 0 0 0 1 0 0 0 1 60478.dat
+1 2 -70 -4 0 1 0 0 0 1 0 0 0 1 3003.dat
+1 19 -20 4 -10 1 0 0 0 1 0 0 0 1 60897.dat
+1 19 -20 4 10 -1 0 0 0 1 0 0 0 -1 60897.dat
+0 // eye plate
+1 72 -40 4 -20 0 0 1 0 1 0 -1 0 0 11458.dat
+0 // eye plate
+1 72 -40 4 20 0 0 -1 0 1 0 1 0 0 11458.dat
+0 // snout
+1 19 -100 4 -10 0 0 1 0 1 0 -1 0 0 26604.dat
+0 // snout
+1 19 -100 4 10 -1 0 0 0 1 0 0 0 -1 26604.dat
+1 320 -40 -4 0 0 0 1 0 1 0 -1 0 0 3023.dat
+0 // neck socket, facing back
+1 71 -20 -4 0 0 0 -1 0 1 0 1 0 0 14704.dat
+1 71 -50 -2 -30 -1 0 0 0 1 0 0 0 -1 4274.dat
+0 // eye
+1 57 -54 -2 -30 0 1 0 -1 0 0 0 0 1 58176.dat
+1 71 -50 -2 30 -1 0 0 0 1 0 0 0 -1 4274.dat
+0 // eye
+1 57 -54 -2 30 0 1 0 -1 0 0 0 0 1 58176.dat
+1 320 -80 -12 0 0 0 1 0 1 0 -1 0 0 3023.dat
+1 57 -60 -12 10 1 0 0 0 1 0 0 0 1 6141.dat
+1 57 -60 -12 -10 1 0 0 0 1 0 0 0 1 6141.dat
+0 // frill hinge, finger at the back
+1 72 -30 -12 10 1 0 0 0 1 0 0 0 1 30383.dat
+0 // frill hinge
+1 72 -30 -12 -10 1 0 0 0 1 0 0 0 1 30383.dat
+0 // cheek
+1 2 -100 14 -20 0 0 1 1 0 0 0 1 0 54200.dat
+0 // cheek
+1 2 -100 14 20 0 0 1 -1 0 0 0 -1 0 54200.dat
+0 // brow arch: low end on the tan snout bricks, high end on the hinge plates
+1 288 -70 -20 0 0 0 1 0 1 0 -1 0 0 47755.dat
+0 // beak
+1 2 -118 14 0 0 1 0 0 0 1 1 0 0 3023.dat
+0 // beak
+1 2 -126 14 0 0 1 0 0 0 1 1 0 0 3023.dat
+0 // beak, curving back at the top
+1 2 -126 4 0 0 1 0 0 0 1 1 0 0 15068.dat
+1 288 -110 -12 0 1 0 0 0 1 0 0 0 1 4032a.dat
+0 // nose horn
+1 15 -110 -16 0 1 0 0 0 1 0 0 0 1 87747.dat
+1 2 -50 -20 0 0 0 -1 0 1 0 1 0 0 15068.dat
+
+0 NOFILE
+0 FILE frill.ldr
+0 frill
+0 Name: frill.ldr
+0 // frill core
+1 19 4 -30 0 0 1 0 0 0 1 1 0 0 3795.dat
+0 // hinge fingers on the head's 30383
+1 72 -4 -30 -10 0 1 0 1 0 0 0 0 -1 44302a.dat
+0 // hinge fingers
+1 72 -4 -30 10 0 1 0 1 0 0 0 0 -1 44302a.dat
+0 // horn clip
+1 19 -4 -20 -30 0 1 0 0 0 -1 -1 0 0 60897.dat
+0 // horn clip
+1 19 -4 -20 30 0 1 0 0 0 -1 -1 0 0 60897.dat
+0 // side wing
+1 2 -4 -30 -80 0 1 0 -1 0 0 0 0 1 41770.dat
+0 // side wing
+1 2 -4 -30 80 0 1 0 1 0 0 0 0 -1 41769.dat
+0 // rounded at the outer top corner
+1 2 -12 -20 -10 0 1 0 0 0 -1 -1 0 0 30357.dat
+1 2 -12 -20 10 0 1 0 -1 0 0 0 0 1 30357.dat
+0 // spikes on the rim
+1 15 -4 -60 -20 0 1 0 0 0 1 1 0 0 15208.dat
+0 // spikes on the rim
+1 15 -4 -60 20 0 1 0 0 0 1 1 0 0 15208.dat
+0 // spikes
+1 15 4 -30 -90 0 1 0 -1 0 0 0 0 1 15208.dat
+0 // spikes
+1 15 4 -30 90 0 1 0 1 0 0 0 0 -1 15208.dat
+0 // brow horn, curving toward the rim
+1 15 -4 0 -30 0 1 0 0 0 -1 -1 0 0 40379.dat
+0 // brow horn, curving toward the rim
+1 15 -4 0 30 0 1 0 0 0 -1 -1 0 0 40379.dat
+
+0 NOFILE
+0 FILE tail-1.ldr
+0 tail-1
+0 Name: tail-1.ldr
+0 // base
+1 2 50 20 0 1 0 0 0 1 0 0 0 1 3020.dat
+0 // ball for tail 2
+1 72 80 12 0 0 0 -1 0 1 0 1 0 0 14417.dat
+1 288 20 12 0 0 0 1 0 1 0 -1 0 0 3023.dat
+1 288 50 12 10 1 0 0 0 1 0 0 0 1 3023.dat
+1 288 50 12 -10 1 0 0 0 1 0 0 0 1 3023.dat
+1 2 30 4 0 1 0 0 0 1 0 0 0 1 3022.dat
+0 // socket, on the 2x2's front row
+1 71 20 -4 0 0 0 1 0 1 0 -1 0 0 14704.dat
+0 // high at the front
+1 2 50 -28 10 0 0 -1 0 1 0 1 0 0 11153.dat
+1 2 50 -28 -10 0 0 -1 0 1 0 1 0 0 11153.dat
+
+0 NOFILE
+0 FILE tail-2.ldr
+0 tail-2
+0 Name: tail-2.ldr
+0 // end socket at the front
+1 71 30 -4 0 -1 0 0 0 1 0 0 0 -1 14418.dat
+1 2 20 -12 0 1 0 0 0 1 0 0 0 1 3024.dat
+0 // tip, high at the front
+1 2 30 -12 0 0 0 -1 0 1 0 1 0 0 11477.dat
+
+0 NOFILE
+0 FILE front-leg-l.ldr
+0 front-leg-l
+0 Name: front-leg-l.ldr
+0 // inner wedge, wide end down
+1 2 0 56 -14 -1 0 0 0 0 -1 0 -1 0 41769.dat
+0 // foot end
+1 2 0 76 10 0 0 -1 1 0 0 0 -1 0 3003.dat
+0 // shoulder socket
+1 288 0 36 10 0 0 1 -1 0 0 0 -1 0 92013.dat
+0 // outer wedge
+1 2 0 56 18 -1 0 0 0 0 -1 0 -1 0 41769.dat
+
+0 NOFILE
+0 FILE front-leg-r.ldr
+0 front-leg-r
+0 Name: front-leg-r.ldr
+0 // inner wedge, wide end down
+1 2 0 56 14 1 0 0 0 0 -1 0 1 0 41770.dat
+0 // foot end
+1 2 0 76 -10 0 0 -1 -1 0 0 0 1 0 3003.dat
+0 // shoulder socket
+1 288 0 36 -10 0 0 -1 -1 0 0 0 1 0 92013.dat
+0 // outer wedge
+1 2 0 56 -18 1 0 0 0 0 -1 0 1 0 41770.dat
+
+0 NOFILE
+0 FILE rear-leg-l.ldr
+0 rear-leg-l
+0 Name: rear-leg-l.ldr
+0 // back of the leg
+1 19 0 46 -14 0 0 -1 1 0 0 0 -1 0 3021.dat
+0 // foot end
+1 2 0 66 10 1 0 0 0 0 1 0 -1 0 3004.dat
+0 // hip socket
+1 288 0 36 10 0 0 1 -1 0 0 0 -1 0 92013.dat
+0 // outer face, narrow end down
+1 288 0 46 18 -1 0 0 0 0 -1 0 -1 0 43722.dat
+
+0 NOFILE
+0 FILE rear-leg-r.ldr
+0 rear-leg-r
+0 Name: rear-leg-r.ldr
+0 // back of the leg
+1 19 0 46 14 0 0 -1 -1 0 0 0 1 0 3021.dat
+0 // foot end
+1 2 0 66 -10 -1 0 0 0 0 1 0 1 0 3004.dat
+0 // hip socket
+1 288 0 36 -10 0 0 -1 -1 0 0 0 1 0 92013.dat
+0 // outer face, narrow end down
+1 288 0 46 -18 1 0 0 0 0 -1 0 1 0 43723.dat
+0 NOFILE
