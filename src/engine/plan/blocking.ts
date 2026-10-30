@@ -234,24 +234,25 @@ export function blocking(lib: Library, nodes: Node[], edges: Edge[], shrink = 2.
   });
 
   /**
-   * The first leg of the way out along d: far enough to clear every joint. Studs let go after
-   * their height; a pin, axle or bar only once the part has slid its own length along the
-   * axis (a pin in two beams must leave both).
+   * The first leg of the way out along d: until the part is clear of every partner it is joined
+   * to along d — past the top of a stud, the far face of a beam a pin is in, the end of an axle
+   * a liftarm sits on. Measured on the boxes: the partner's far side minus the part's near side.
    */
+  const proj = (k: number, d: Vec3) => {
+    const o = obbs[k];
+    const c = dot(o.c, d), r = o.e[0] * Math.abs(dot(o.u[0], d)) + o.e[1] * Math.abs(dot(o.u[1], d)) + o.e[2] * Math.abs(dot(o.u[2], d)) + shrink;
+    return [c - r, c + r];
+  };
   const depthAlong = (group: number[], d: Vec3) => {
     const inG = new Set(group);
     let L = 0;
     for (const i of group)
       for (const e of byPart[i]) {
-        if (e.sense === "any" || inG.has(e.a === i ? e.b : e.a) || Math.abs(dot(e.axis, d)) < 0.99) continue;
-        if (e.type === "stud") L = Math.max(L, e.depth ?? 4);
-        else {
-          const o = obbs[i];
-          const along = 2 * (o.e[0] * Math.abs(dot(o.u[0], d)) + o.e[1] * Math.abs(dot(o.u[1], d)) + o.e[2] * Math.abs(dot(o.u[2], d))) + 2 * 2.5;
-          L = Math.max(L, along, e.depth ?? 20);
-        }
+        const j = e.a === i ? e.b : e.a;
+        if (e.sense === "any" || inG.has(j) || Math.abs(dot(e.axis, d)) < 0.99) continue;
+        L = Math.max(L, proj(j, d)[1] - proj(i, d)[0]);
       }
-    return L;
+    return L > 0 ? L : 0;
   };
 
   /**
