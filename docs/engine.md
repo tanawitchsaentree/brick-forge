@@ -36,7 +36,7 @@ follows by definition:
 Each level builds differently:
 
 - **Forms:** each level learns from designs at the levels it draws on (`npm run forms` writes `public/forms/<level>.json`). Junior stays upright.
-- **Scale:** Junior snaps the shape to whole units for plain bricks. Expert builds it 1.5× larger and Master 2.5× larger, smoothed, so there's room for detail.
+- **Scale:** Junior snaps the shape to whole units for plain bricks. Every tier builds at the same scale (1×) since 2026-10-30. A higher tier means its weights and detail, not a bigger model. At 1.5×/2.5× Expert and Master dropped the donor parts and built bulk from scratch: Master took up to 68 s and dinosaurs became plate statues of 1,131–4,883 pieces (user's complaint). Dinosaurs are capped at ×1.4; the T-rex uses LEGO's own 31058 (Junior–Advanced) and 31151 (Expert–Master) builds.
 - **Weights:** Junior pays most per piece. Master pays least per piece and most for wrong finish.
 
 ## 1c. Every part has a reason (`Why` in `src/engine/grid.ts`)
