@@ -148,6 +148,8 @@ Each way is the set of parts that must already be gone.
 
 **Inferred joints:** two parts that block each other along every direction are interlocked in a way no connector describes (a door in its frame, a bush on a hidden axle). They become "fit" joints. There were 80 on 42064.
 
+**Rings:** when the beam is stuck, the planner first looks for a small strongly connected component of the blocking graph along one of the six axes (Tarjan) that can leave as a group: nothing outside it in its way, every joint to the rest permitting the move. That is Wilson & Latombe's removable sub-assembly. It is capped at 4 units.
+
 **Search:**
 - A beam of partial plans (width 4); a removal's score combines height, outward, same direction, near the last, leaf-ness, and a cost for splitting the build into pieces.
 - Validators (stability, robot checks) are added every `checkEvery` removals.
@@ -242,19 +244,20 @@ Unit tests, all 8 passing:
 
 Ladder: 30190 (32 parts), 31009 cottage (260, System), 42021 (183, Technic, no steps), 42064 (1,316), 8258 (1,663), 42043 Arocs (2,752 rigid + 4,335 flexible), 42055 (3,826). The table is filled from `bench/results/plan-ladder.json`:
 
-| model | parts | typed edges | inferred | forced | official✗ | ρ (file order) | unstable / sampled | reorient | ms total |
-|---|---|---|---|---|---|---|---|---|---|
-| 30190-1 | 32 | 33 | 2 | 0 | 12.5% | 0.21 (0.987) | 0/1 | 4 | 92 |
-| 31009-1-310091 | 260 | 342 | 2 | 3 | 3.1% | 0.52 (1) | 1/1 | 12 | 524 |
-| 42021-1-420211 | 183 | 220 | 8 | 20 | 4.9% | None (None) | 12/12 | 35 | 904 |
-| 42064-1 | 1316 | 1655 | 80 | 81 | 19.2% | -0.122 (1) | 2/3 | 277 | 12465 |
-| 8258-1 | 1663 | 2271 | 82 | 124 | 24.8% | 0.245 (1) | 1/1 | 315 | 14507 |
-| 42043-1-420431 | 2752 | 3761 | 124 | 89 | 21.4% | 0.361 (1) | 12/12 | 489 | 33531 |
-| 42055-1 | 3826 | 5102 | 127 | 118 | 14.0% | 0.22 (1) | 2/2 | 584 | 57712 |
+| model | parts | typed edges | inferred | forced | together | official✗ | ρ (file order) | unstable / sampled | reorient | ms total |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 30190-1 | 32 | 33 | 2 | 0 | 0 | 12.5% | 0.238 (0.987) | 0/1 | 4 | 89 |
+| 31009-1-310091 | 260 | 342 | 2 | 3 | 0 | 3.1% | 0.544 (1) | 1/1 | 12 | 480 |
+| 42021-1-420211 | 183 | 220 | 8 | 14 | 3 | 4.9% | n/a (no STEP lines) (None) | 8/8 | 34 | 879 |
+| 42064-1 | 1316 | 1655 | 80 | 79 | 2 | 19.2% | -0.127 (1) | 2/3 | 269 | 11698 |
+| 8258-1 | 1663 | 2271 | 82 | 102 | 14 | 24.8% | 0.247 (1) | 1/1 | 320 | 16146 |
+| 42043-1-420431 | 2752 | 3761 | 124 | 77 | 9 | 21.4% | 0.361 (1) | 8/8 | 505 | 39337 |
+| 42055-1 | 3826 | 5102 | 127 | 93 | 16 | 14.0% | 0.22 (1) | 2/2 | 587 | 66515 |
 
 Stability: the sampled partial builds of the Technic models come out unstable almost everywhere. The pin/axle strengths are estimates, and missed joints leave parts unsupported. Until both are calibrated, the stability column isn't a trustworthy signal for Technic (fix 6 and the calibration row in §7). The System models' results are credible.
 
 Columns:
+- **together:** small rings of parts that block one another (strongly connected components of the blocking graph, at most 4 units, 24 parts) put on in one step, e.g. a pin pushed through a panel. Without the cap, 8258's biggest ring had 1,312 parts. A ring that big means false blocks, so bigger rings stay relaxations and are counted as forced.
 - **forced:** removals where a constraint had to be relaxed. These are the checker's own errors or missed joints.
 - **official✗:** the booklet's steps our checks call impossible (false alarms). A step's parts may go on in any order.
 - **ρ:** Spearman, our order vs the booklet's.
