@@ -29,29 +29,30 @@
   },
   "validity": true,
   "collisionFree": 1,
-  "reorientations": 4,
+  "reorientations": 1,
   "stability": {
    "sampled": 1,
    "unstable": 0,
    "unstableAt": [],
    "minMargin": 0.989,
-   "ms": 3
+   "ms": 4
   },
-  "spearmanVsOfficial": 0.238,
+  "spearmanVsOfficial": -0.047,
   "fileOrderVsOfficial": 0.987,
   "officialFlaggedInfeasible": {
-   "all": 4,
-   "blocked": 2,
+   "all": 2,
+   "blocked": 0,
    "noDirection": 2,
-   "rate": 0.125
+   "asGroup": 0,
+   "rate": 0.0625
   },
   "ms": {
    "flatten": 0,
-   "graph": 2,
-   "blocking": 56,
-   "plan": 31
+   "graph": 3,
+   "blocking": 41,
+   "plan": 22
   },
-  "heapMB": 12
+  "heapMB": -55
  },
  {
   "name": "31009-1-310091",
@@ -69,22 +70,22 @@
   "inferredJoints": 2,
   "steps": 272,
   "clusters": 1,
-  "forced": 3,
-  "joinsPieces": 2,
+  "forced": 4,
+  "joinsPieces": 3,
   "together": {
    "steps": 0,
    "maxUnits": 0,
    "maxParts": 0
   },
   "violations": {
-   "blocked": 1,
+   "blocked": 2,
    "disconnected": 0,
    "noDirection": 2,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9963,
-  "reorientations": 12,
+  "collisionFree": 0.9926,
+  "reorientations": 14,
   "stability": {
    "sampled": 1,
    "unstable": 1,
@@ -92,72 +93,73 @@
     "0:3899"
    ],
    "minMargin": 0.878,
-   "ms": 1656
+   "ms": 1921
   },
-  "spearmanVsOfficial": 0.544,
+  "spearmanVsOfficial": 0.54,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
-   "all": 8,
+   "all": 5,
    "blocked": 1,
-   "noDirection": 7,
-   "rate": 0.0308
+   "noDirection": 4,
+   "asGroup": 4,
+   "rate": 0.0192
   },
   "ms": {
-   "flatten": 37,
-   "graph": 41,
-   "blocking": 217,
-   "plan": 185
+   "flatten": 45,
+   "graph": 42,
+   "blocking": 236,
+   "plan": 224
   },
-  "heapMB": 31
+  "heapMB": 47
  },
  {
   "name": "42021-1-420211",
   "parts": 183,
   "flexLeftOut": 0,
   "unknown": 0,
-  "edges": 228,
+  "edges": 258,
   "types": {
    "axle": 64,
-   "axleFree": 27,
-   "pin": 81,
+   "axleFree": 30,
+   "pin": 108,
    "bar": 40,
    "ball": 8,
    "fit": 8
   },
   "inferredJoints": 8,
-  "steps": 194,
+  "steps": 190,
   "clusters": 0,
-  "forced": 14,
-  "joinsPieces": 5,
+  "forced": 10,
+  "joinsPieces": 3,
   "together": {
-   "steps": 3,
+   "steps": 5,
    "maxUnits": 3,
-   "maxParts": 24
+   "maxParts": 22
   },
   "violations": {
-   "blocked": 14,
+   "blocked": 10,
    "disconnected": 0,
    "noDirection": 0,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9278,
-  "reorientations": 34,
+  "collisionFree": 0.9474,
+  "reorientations": 25,
   "stability": {
    "sampled": 8,
    "unstable": 8,
    "unstableAt": [
-    "5:4519",
-    "10:4519",
-    "16:4519",
-    "21:4519",
-    "27:32556",
-    "32:32556",
-    "38:32062",
-    "43:32062"
+    "4:4519",
+    "9:4519",
+    "14:4519",
+    "19:4519",
+    "24:60483",
+    "29:32062",
+    "34:32062",
+    "39:32062"
    ],
    "minMargin": 1,
-   "ms": 695
+   "ms": 621
   },
   "spearmanVsOfficial": null,
   "fileOrderVsOfficial": null,
@@ -165,103 +167,105 @@
    "all": 9,
    "blocked": 1,
    "noDirection": 8,
+   "asGroup": 0,
    "rate": 0.0492
   },
   "ms": {
-   "flatten": 41,
-   "graph": 9,
-   "blocking": 397,
-   "plan": 432
+   "flatten": 73,
+   "graph": 20,
+   "blocking": 361,
+   "plan": 419
   },
-  "heapMB": -1
+  "heapMB": 14
  },
  {
   "name": "42064-1",
   "parts": 1316,
   "flexLeftOut": 6,
   "unknown": 208,
-  "edges": 1847,
+  "edges": 2343,
   "types": {
-   "pin": 999,
+   "pin": 1468,
    "axle": 423,
-   "axleFree": 180,
+   "axleFree": 209,
    "stud": 30,
    "bar": 20,
    "gear": 3,
-   "fit": 110,
-   "contact": 82
+   "fit": 116,
+   "contact": 74
   },
-  "inferredJoints": 80,
-  "steps": 1340,
+  "inferredJoints": 86,
+  "steps": 1339,
   "clusters": 3,
-  "forced": 79,
-  "joinsPieces": 142,
+  "forced": 71,
+  "joinsPieces": 64,
   "together": {
    "steps": 2,
    "maxUnits": 3,
    "maxParts": 3
   },
   "violations": {
-   "blocked": 72,
+   "blocked": 64,
    "disconnected": 0,
    "noDirection": 7,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9463,
-  "reorientations": 269,
+  "collisionFree": 0.9522,
+  "reorientations": 234,
   "stability": {
    "sampled": 3,
    "unstable": 2,
    "unstableAt": [
     "1:3705",
-    "2:3705"
+    "2:32054"
    ],
-   "minMargin": 0.996,
-   "ms": 32054
+   "minMargin": 0.995,
+   "ms": 34129
   },
-  "spearmanVsOfficial": -0.127,
+  "spearmanVsOfficial": -0.132,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
-   "all": 253,
-   "blocked": 158,
-   "noDirection": 95,
-   "rate": 0.1922
+   "all": 175,
+   "blocked": 105,
+   "noDirection": 70,
+   "asGroup": 19,
+   "rate": 0.133
   },
   "ms": {
    "flatten": 79,
-   "graph": 64,
-   "blocking": 4711,
-   "plan": 6844
+   "graph": 62,
+   "blocking": 5664,
+   "plan": 7448
   },
-  "heapMB": -119
+  "heapMB": -101
  },
  {
   "name": "8258-1",
   "parts": 1663,
   "flexLeftOut": 0,
   "unknown": 533,
-  "edges": 2404,
+  "edges": 3131,
   "types": {
-   "pin": 1250,
-   "axle": 589,
-   "axleFree": 322,
+   "pin": 1897,
+   "axle": 592,
+   "axleFree": 397,
    "stud": 73,
    "bar": 6,
    "ball": 8,
    "gear": 23,
-   "fit": 96,
-   "contact": 37
+   "fit": 103,
+   "contact": 32
   },
-  "inferredJoints": 82,
-  "steps": 1916,
+  "inferredJoints": 90,
+  "steps": 1935,
   "clusters": 2,
   "forced": 102,
-  "joinsPieces": 92,
+  "joinsPieces": 18,
   "together": {
-   "steps": 14,
-   "maxUnits": 3,
-   "maxParts": 23
+   "steps": 1,
+   "maxUnits": 2,
+   "maxParts": 16
   },
   "violations": {
    "blocked": 94,
@@ -270,137 +274,139 @@
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9509,
-  "reorientations": 320,
+  "collisionFree": 0.9514,
+  "reorientations": 249,
   "stability": {
    "sampled": 1,
    "unstable": 1,
    "unstableAt": [
-    "0:4519"
+    "0:6558"
    ],
-   "minMargin": 0.889,
-   "ms": 22951
+   "minMargin": 0.968,
+   "ms": 21688
   },
-  "spearmanVsOfficial": 0.247,
+  "spearmanVsOfficial": 0.23,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
-   "all": 412,
-   "blocked": 345,
-   "noDirection": 67,
-   "rate": 0.2477
+   "all": 231,
+   "blocked": 173,
+   "noDirection": 58,
+   "asGroup": 10,
+   "rate": 0.1389
   },
   "ms": {
-   "flatten": 70,
-   "graph": 137,
-   "blocking": 6258,
-   "plan": 9681
+   "flatten": 69,
+   "graph": 183,
+   "blocking": 6002,
+   "plan": 9453
   },
-  "heapMB": 59
+  "heapMB": 17
  },
  {
   "name": "42043-1-420431",
   "parts": 2752,
   "flexLeftOut": 4335,
   "unknown": 39,
-  "edges": 4170,
+  "edges": 5363,
   "types": {
-   "axleFree": 634,
-   "axle": 1024,
-   "pin": 1986,
+   "axleFree": 747,
+   "axle": 1038,
+   "pin": 3049,
    "bar": 41,
    "stud": 39,
    "ball": 24,
    "gear": 13,
    "contact": 217,
-   "fit": 192
+   "fit": 195
   },
-  "inferredJoints": 124,
+  "inferredJoints": 127,
   "steps": 2797,
-  "clusters": 4,
-  "forced": 77,
-  "joinsPieces": 282,
+  "clusters": 2,
+  "forced": 52,
+  "joinsPieces": 127,
   "together": {
-   "steps": 9,
+   "steps": 6,
    "maxUnits": 4,
-   "maxParts": 15
+   "maxParts": 4
   },
   "violations": {
-   "blocked": 64,
+   "blocked": 39,
    "disconnected": 0,
    "noDirection": 13,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9771,
-  "reorientations": 505,
+  "collisionFree": 0.9861,
+  "reorientations": 418,
   "stability": {
    "sampled": 8,
    "unstable": 8,
    "unstableAt": [
     "13:3713",
-    "28:2780",
-    "42:2780",
-    "57:2780",
-    "71:2780",
-    "85:44294",
-    "100:2780",
-    "114:2780"
+    "28:32316",
+    "42:32316",
+    "56:2780",
+    "70:2780",
+    "85:2780",
+    "99:2780",
+    "113:2780"
    ],
-   "minMargin": 0.896,
-   "ms": 413404
+   "minMargin": 0.902,
+   "ms": 329076
   },
-  "spearmanVsOfficial": 0.361,
+  "spearmanVsOfficial": 0.384,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
-   "all": 590,
-   "blocked": 440,
-   "noDirection": 150,
-   "rate": 0.2144
+   "all": 400,
+   "blocked": 271,
+   "noDirection": 129,
+   "asGroup": 38,
+   "rate": 0.1453
   },
   "ms": {
-   "flatten": 59,
-   "graph": 243,
-   "blocking": 13908,
-   "plan": 25127
+   "flatten": 73,
+   "graph": 219,
+   "blocking": 12430,
+   "plan": 21948
   },
-  "heapMB": 15
+  "heapMB": 8
  },
  {
   "name": "42055-1",
   "parts": 3826,
   "flexLeftOut": 0,
   "unknown": 103,
-  "edges": 6746,
+  "edges": 8656,
   "types": {
-   "pin": 3207,
-   "axleFree": 732,
-   "axle": 936,
-   "bar": 146,
+   "pin": 4983,
+   "axleFree": 847,
+   "axle": 938,
+   "bar": 148,
    "stud": 44,
    "ball": 5,
    "gear": 32,
-   "fit": 326,
+   "fit": 341,
    "contact": 1318
   },
-  "inferredJoints": 127,
-  "steps": 3878,
+  "inferredJoints": 142,
+  "steps": 3894,
   "clusters": 9,
-  "forced": 93,
-  "joinsPieces": 338,
+  "forced": 95,
+  "joinsPieces": 193,
   "together": {
-   "steps": 16,
-   "maxUnits": 4,
-   "maxParts": 24
+   "steps": 8,
+   "maxUnits": 3,
+   "maxParts": 23
   },
   "violations": {
-   "blocked": 70,
+   "blocked": 72,
    "disconnected": 0,
    "noDirection": 23,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9819,
-  "reorientations": 587,
+  "collisionFree": 0.9815,
+  "reorientations": 532,
   "stability": {
    "sampled": 2,
    "unstable": 2,
@@ -409,22 +415,23 @@
     "1:3713"
    ],
    "minMargin": 0.958,
-   "ms": 76983
+   "ms": 56657
   },
-  "spearmanVsOfficial": 0.22,
+  "spearmanVsOfficial": 0.196,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
-   "all": 535,
-   "blocked": 324,
-   "noDirection": 211,
-   "rate": 0.1398
+   "all": 350,
+   "blocked": 210,
+   "noDirection": 140,
+   "asGroup": 52,
+   "rate": 0.0915
   },
   "ms": {
-   "flatten": 37,
-   "graph": 295,
-   "blocking": 19056,
-   "plan": 47127
+   "flatten": 32,
+   "graph": 230,
+   "blocking": 16321,
+   "plan": 42292
   },
-  "heapMB": -59
+  "heapMB": 8
  }
 ]

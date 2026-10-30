@@ -246,13 +246,31 @@ Ladder: 30190 (32 parts), 31009 cottage (260, System), 42021 (183, Technic, no s
 
 | model | parts | typed edges | inferred | forced | together | official✗ | ρ (file order) | unstable / sampled | reorient | ms total |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 30190-1 | 32 | 33 | 2 | 0 | 0 | 12.5% | 0.238 (0.987) | 0/1 | 4 | 89 |
-| 31009-1-310091 | 260 | 342 | 2 | 3 | 0 | 3.1% | 0.544 (1) | 1/1 | 12 | 480 |
-| 42021-1-420211 | 183 | 220 | 8 | 14 | 3 | 4.9% | n/a (no STEP lines) (None) | 8/8 | 34 | 879 |
-| 42064-1 | 1316 | 1655 | 80 | 79 | 2 | 19.2% | -0.127 (1) | 2/3 | 269 | 11698 |
-| 8258-1 | 1663 | 2271 | 82 | 102 | 14 | 24.8% | 0.247 (1) | 1/1 | 320 | 16146 |
-| 42043-1-420431 | 2752 | 3761 | 124 | 77 | 9 | 21.4% | 0.361 (1) | 8/8 | 505 | 39337 |
-| 42055-1 | 3826 | 5102 | 127 | 93 | 16 | 14.0% | 0.22 (1) | 2/2 | 587 | 66515 |
+| 30190-1 | 32 | 33 | 2 | 0 | 0 | 6.2% | -0.047 (0.987) | 0/1 | 1 | 66 |
+| 31009-1-310091 | 260 | 342 | 2 | 4 | 0 | 1.9% | 0.54 (1) | 1/1 | 14 | 547 |
+| 42021-1-420211 | 183 | 250 | 8 | 10 | 5 | 4.9% | n/a (no STEP lines) (None) | 8/8 | 25 | 873 |
+| 42064-1 | 1316 | 2153 | 86 | 71 | 2 | 13.3% | -0.132 (1) | 2/3 | 234 | 13253 |
+| 8258-1 | 1663 | 2996 | 90 | 102 | 1 | 13.9% | 0.23 (1) | 1/1 | 249 | 15707 |
+| 42043-1-420431 | 2752 | 4951 | 127 | 52 | 6 | 14.5% | 0.384 (1) | 8/8 | 418 | 34670 |
+| 42055-1 | 3826 | 6997 | 142 | 95 | 8 | 9.2% | 0.196 (1) | 2/2 | 532 | 58875 |
+
+Typed edges include "touch" joints: a pin end flush with a hole, which carries no load but which it slides through.
+
+What lowered the false alarms (official✗):
+
+| change | 42064 | 8258 |
+|---|---|---|
+| boxes only | 25.5% | 22.5% |
+| + mesh narrow phase, interlock joints | 25.5% | — |
+| + two-leg ways out | 19.2% | 24.8% |
+| + first leg until clear of every partner (axle ends) | 15.0% | 14.6% |
+| + a step's stuck parts as one group, touch joints | **13.3%** | **13.9%** |
+
+On 8258, of the remaining false alarms:
+- 54 are beams, 36 pins, 21 axles and 16 gears blocked;
+- 18 are cross blocks with no free direction.
+
+Typical cases: gears enclosed in a gearbox frame (inserted into a gap while the axle slides in), and parts placed together in a booklet step with more than 8 leftovers.
 
 Stability: the sampled partial builds of the Technic models come out unstable almost everywhere. The pin/axle strengths are estimates, and missed joints leave parts unsupported. Until both are calibrated, the stability column isn't a trustworthy signal for Technic (fix 6 and the calibration row in §7). The System models' results are credible.
 
