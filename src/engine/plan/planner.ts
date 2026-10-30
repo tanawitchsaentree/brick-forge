@@ -64,7 +64,26 @@ interface Unit {
   sub?: string; // sub-model instance it stands for
 }
 
-export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: { beam?: number; weights?: PlanWeights; validators?: Validator[]; checkEvery?: number; hierarchy?: boolean; clusters?: boolean; maxLoose?: number; bottoms?: number[] } = {}): Plan {
+type PlanOpts = { beam?: number; weights?: PlanWeights; validators?: Validator[]; checkEvery?: number; hierarchy?: boolean; clusters?: boolean; maxLoose?: number; bottoms?: number[] };
+
+/**
+ * Plan, with Louvain sub-assemblies for big flat scopes or without: unless `clusters` is given,
+ * both are tried when some scope has more than `maxLoose` loose parts, and the plan that had to
+ * relax fewer constraints is kept (ties: without). Clusters help the biggest flat Technic models
+ * (42043, 42055) and hurt others (42064), and the count of relaxations tells them apart.
+ */
+export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: PlanOpts = {}): Plan {
+  if (opts.clusters !== undefined) return planOnce(nodes, edges, blk, opts);
+  const flat = planOnce(nodes, edges, blk, { ...opts, clusters: false });
+  const loose = new Map<string, number>();
+  for (const n of nodes) loose.set(n.path, (loose.get(n.path) ?? 0) + 1);
+  if (![...loose.values()].some((v) => v > (opts.maxLoose ?? 300))) return flat;
+  const grouped = planOnce(nodes, edges, blk, { ...opts, clusters: true });
+  const forced = (p: Plan) => p.steps.filter((s) => s.forced).length;
+  return forced(grouped) < forced(flat) ? grouped : flat;
+}
+
+function planOnce(nodes: Node[], edges: Edge[], blk: Blocking, opts: PlanOpts): Plan {
   const t0 = performance.now();
   const W = opts.weights ?? DEFAULT_WEIGHTS;
   const beamWidth = opts.beam ?? 4;
@@ -91,9 +110,11 @@ export function planAssembly(nodes: Node[], edges: Edge[], blk: Blocking, opts: 
   }
   // Scopes with too many loose parts get sub-assemblies from the joint graph (Layer B).
   let clustered = 0;
-  if (opts.clusters ?? false)
+  // Only for really big flat scopes: there they help (42043: ρ −0.20 → 0.42, fewer relaxations);
+  // on smaller ones a whole cluster often can't come off as one (42064, 31009: more relaxations).
+  if (opts.clusters)
     for (const [name, sc] of [...scopes]) {
-      if (sc.parts.length <= (opts.maxLoose ?? 150)) continue;
+      if (sc.parts.length <= (opts.maxLoose ?? 300)) continue;
       const groups = subassemblies(sc.parts, edges, blk);
       const taken = new Set<number>();
       groups.forEach((g, k) => {
