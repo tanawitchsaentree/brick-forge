@@ -31,6 +31,8 @@ import { connections, components } from "./connect";
 import { installShapeBits, iou, partCells, vkey, voxelize, type PartShape } from "./shape";
 import { PARTS, registerPart, type PartDef } from "./parts";
 import type { PlacedBrick, Why } from "./grid";
+import { interiorFill } from "./shell";
+import { VARIANTS, type Variant } from "./select/bestOfK";
 
 export interface BuildRequest {
   ticket: number;
@@ -48,6 +50,8 @@ export interface BuildRequest {
   articulate: boolean;
   /** The tier's forms, sent the first time this worker builds in it. */
   forms?: PackedForm[];
+  /** Which way to build (engine/select/bestOfK.ts VARIANTS); 0, the default, is the app's build. The page runs the others and keeps the best with pickBest. */
+  variant?: number;
 }
 
 export interface BuildReply {
@@ -59,7 +63,12 @@ export interface BuildReply {
   /** How close the build is to the target (IoU), and the share of parts held together. */
   fit: number;
   held: number;
+  /** The rest of what pickBest reads: share of repeated parts, and pieces (made parts count as 3). */
+  repeats: number;
+  pieces: number;
   ms: number;
+  /** The variant doesn't apply here (shell with donor parts kept: its fill would overlap them); no build. */
+  skipped?: boolean;
 }
 
 // Everything shared comes from the page in one init message (the page has
@@ -114,7 +123,7 @@ self.onmessage = async (e: MessageEvent<BuildRequest | InitMessage | RigRequest 
     return;
   }
   await ready;
-  const { ticket, cells, colors, studs, name, donors, donorDefs, donorShapes, tier, articulate, forms: packed } = e.data;
+  const { ticket, cells, colors, studs, name, donors, donorDefs, donorShapes, tier, articulate, forms: packed, variant = 0 } = e.data;
   if (packed) vocab.set(tier, unpackForms(packed));
   const forms = vocab.get(tier)!;
   const target = { cells: new Map<number, number>(), studs: new Set<number>(studs) };
@@ -138,24 +147,37 @@ self.onmessage = async (e: MessageEvent<BuildRequest | InitMessage | RigRequest 
     fixed.push({ ...d, uid: `k${fixed.length}`, why: KEPT });
   }
   const reused = fixed.length;
-  const t1 = performance.now();
-  const r = articulate ? sculptArticulated(target, { forms, fixed, ...TIER_WEIGHTS[tier] }) : sculpt(target, { forms, fixed, ...TIER_WEIGHTS[tier] });
-  // Every part must earn its place: shape only it fills, structure (Tarjan), or finish.
-  const t2 = performance.now();
-  r.bricks = prune(r.bricks, target).kept;
-  const t3 = performance.now();
-  const made: PartDef[] = [];
-  for (const blob of residualBlobs(target, r.bricks, 64)) {
-    const votes = new Map<number, number>();
-    for (const k of blob) votes.set(target.cells.get(k)!, (votes.get(target.cells.get(k)!) ?? 0) + 1);
-    const spec = makeBlobPart(blob, `made-${name}-${made.length}`, [...votes].sort((a, b) => b[1] - a[1])[0][0]);
-    made.push(spec.part);
-    r.bricks.push({ ...spec.brick, why: { ...KEPT, role: "made" } });
+  const build = (v: Variant) => {
+    const opts = { forms, fixed: v.shell ? [...fixed, ...interiorFill(target).fixed] : fixed, ...TIER_WEIGHTS[tier], ...(tier === "technic" ? {} : v.opts) };
+    const t1 = performance.now();
+    const r = articulate ? sculptArticulated(target, opts) : sculpt(target, opts);
+    // Every part must earn its place: shape only it fills, structure (Tarjan), or finish.
+    const t2 = performance.now();
+    r.bricks = prune(r.bricks, target).kept;
+    const t3 = performance.now();
+    const made: PartDef[] = [];
+    for (const blob of residualBlobs(target, r.bricks, 64)) {
+      const votes = new Map<number, number>();
+      for (const k of blob) votes.set(target.cells.get(k)!, (votes.get(target.cells.get(k)!) ?? 0) + 1);
+      const spec = makeBlobPart(blob, `made-${name}-${made.length}`, [...votes].sort((a, b) => b[1] - a[1])[0][0]);
+      made.push(spec.part);
+      r.bricks.push({ ...spec.brick, why: { ...KEPT, role: "made" } });
+    }
+    const t4 = performance.now();
+    const comps = components(r.bricks.length, connections(r.bricks));
+    const t5 = performance.now();
+    if (import.meta.env.DEV) console.debug(`[sculpt] ${name} (${v.name}): kept ${reused}, sculpt ${Math.round(t2 - t1)} ms, prune ${Math.round(t3 - t2)} ms, made ${Math.round(t4 - t3)} ms, check ${Math.round(t5 - t4)} ms`);
+    const held = (comps[0]?.length ?? 0) / Math.max(1, r.bricks.length);
+    const repeats = r.bricks.filter((b) => b.why?.repeat).length / Math.max(1, r.bricks.length);
+    return { r, made, fit: iou(voxelize(r.bricks), target), held, repeats, pieces: r.bricks.length + 2 * made.length };
+  };
+  const v = VARIANTS[variant];
+  if (v.shell && reused) {
+    const reply: BuildReply = { ticket, bricks: [], made: [], reused, fit: 0, held: 0, repeats: 0, pieces: 0, ms: 0, skipped: true };
+    (self as unknown as Worker).postMessage(reply);
+    return;
   }
-  const t4 = performance.now();
-  const comps = components(r.bricks.length, connections(r.bricks));
-  const t5 = performance.now();
-  if (import.meta.env.DEV) console.debug(`[sculpt] ${name}: kept ${reused}, sculpt ${Math.round(t2 - t1)} ms, prune ${Math.round(t3 - t2)} ms, made ${Math.round(t4 - t3)} ms, check ${Math.round(t5 - t4)} ms`);
-  const reply: BuildReply = { ticket, bricks: r.bricks, made, reused, fit: iou(voxelize(r.bricks), target), held: (comps[0]?.length ?? 0) / Math.max(1, r.bricks.length), ms: r.ms };
+  const { r, made, fit, held, repeats, pieces } = build(v);
+  const reply: BuildReply = { ticket, bricks: r.bricks, made, reused, fit, held, repeats, pieces, ms: r.ms };
   (self as unknown as Worker).postMessage(reply);
 };
