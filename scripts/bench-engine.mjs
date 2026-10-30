@@ -59,6 +59,9 @@ try {
   const M = await load("/src/engine/benchMetrics.ts");
   const { parityOf } = await load("/src/engine/parity.ts");
   const { interiorFill } = await load("/src/engine/shell.ts");
+  const { unitsOf, placeUnits } = await load("/src/engine/featureUnits.ts");
+  const { rolesOf } = await load("/src/engine/roles.ts");
+  const ruleTable = opts.FEATURES ? JSON.parse(fs.readFileSync(path.join(ROOT, "data/rules/adjacency.json"), "utf8")) : null;
   const shapes = JSON.parse(fs.readFileSync(path.join(ROOT, "public/shapes.json"), "utf8"));
   S.installShapes(shapes);
   const corpus = JSON.parse(fs.readFileSync(path.join(ROOT, "public/corpus/index.json"), "utf8")).models;
@@ -89,7 +92,29 @@ try {
     const target = S.voxelize(real);
     // SHELL (program v2 S3): the inside filled first with the biggest plain parts, the sculptor on the skin.
     const inside = opts.SHELL ? interiorFill(target) : null;
-    const r = opts.ARTICULATE ? sculptArticulated(target, { forms, ...opts }) : sculpt(target, { forms, ...opts, ...(inside ? { fixed: inside.fixed } : {}) });
+    // FEATURES (the DNA experiment, docs/engine/dna-rules.md): the designer's feature parts
+    // (windows, windscreens, doors, wheels) held where the designer put them, as an oracle DNA;
+    // "units" adds the partners the mined rules say come with them (this set left out).
+    let featFixed = [];
+    if (opts.FEATURES) {
+      const feats = real.filter((b) => ["window", "windscreen", "door", "wheel"].some((x) => rolesOf(b.partId).includes(x)));
+      featFixed = [...feats];
+      if (opts.FEATURES === "units") {
+        const taken = new Set();
+        for (const b of feats) S.partCells(b, (x, y, z) => taken.add(S.vkey(x, y, z)));
+        for (const p of placeUnits(feats, unitsOf(ruleTable, set), (rule) => rule.color ?? 71)) {
+          if (!PARTS[p.partId]) continue;
+          const cells = [];
+          S.partCells(p, (x, y, z) => cells.push(S.vkey(x, y, z)));
+          if (cells.some((c) => taken.has(c))) continue; // where a part already is
+          cells.forEach((c) => taken.add(c));
+          featFixed.push(p);
+        }
+      }
+    }
+    const fixed = [...(inside ? inside.fixed : []), ...featFixed];
+    const r = opts.ARTICULATE ? sculptArticulated(target, { forms, ...opts }) : sculpt(target, { forms, ...opts, ...(fixed.length ? { fixed } : {}) });
+    if (opts.FEATURES) Object.assign(r.phase ?? (r.phase = {}), { featureParts: featFixed.length });
     let pruned = 0;
     if (opts.PRUNE) {
       const n = prune(r.bricks, target);
@@ -152,6 +177,7 @@ try {
     Object.assign(row, M.visibleSmooth(ours, target));
     row.wallMs = Math.round(performance.now() - w0);
     if (r.phase?.merges !== undefined) Object.assign(row, { merges: r.phase.merges, mergeRefused: r.phase.refused });
+    if (r.phase?.featureParts !== undefined) row.featureParts = r.phase.featureParts;
     // The build itself, hashed: a refactor that should change nothing must give the same hash (phase regression tests).
     const canon = r.bricks.map((b) => [b.partId, b.color, b.rot, b.x, b.y, b.z, b.place ? b.place.map((v) => +v.toFixed(4)) : null]);
     row.outHash = crypto.createHash("sha1").update(JSON.stringify(canon)).digest("hex").slice(0, 16);

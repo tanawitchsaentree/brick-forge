@@ -35,7 +35,7 @@ try {
   const half = (v) => Math.round(v * 2) / 2;
   const turnSig = (m) => {
     const r = [0, 1, 2, 4, 5, 6, 8, 9, 10].map((i) => m[i]);
-    return r.every((v) => Math.abs(v - Math.round(v)) < 1e-3) ? r.map((v) => Math.round(v)).join("") : "angled";
+    return r.every((v) => Math.abs(v - Math.round(v)) < 1e-3) ? r.map((v) => Math.round(v) + 0).join(",") : "angled";
   };
   const rules = new Map(); // key → { feature, neighbour, side, at, turn, n, sets: {set: n} }
   const featureCount = new Map(); // feature part → { n, sets }
@@ -67,7 +67,8 @@ try {
         const at = [half(rel[12]), half(rel[13] / PLATE_H), half(rel[14])].join(",");
         const turn = turnSig(rel);
         const key = `${bricks[a].partId}|${bricks[c].partId}|${at}|${turn}`;
-        const r = rules.get(key) ?? { feature: bricks[a].partId, role: feat[a], neighbour: bricks[c].partId, side, at, turn, n: 0, sets: {} };
+        // The first exact relative matrix seen for this rule (glass sits a fraction of a stud in).
+        const r = rules.get(key) ?? { feature: bricks[a].partId, role: feat[a], neighbour: bricks[c].partId, side, at, turn, exact: rel.map((v) => Math.round(v * 1000) / 1000), color: bricks[c].color, n: 0, sets: {} };
         r.n++;
         r.sets[m.set] = (r.sets[m.set] ?? 0) + 1;
         rules.set(key, r);
