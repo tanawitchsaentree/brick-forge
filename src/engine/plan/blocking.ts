@@ -311,7 +311,23 @@ export function blocking(lib: Library, nodes: Node[], edges: Edge[], shrink = 2.
    */
   const waysOut = (group: number[], d: Vec3): number[][] => {
     const depth = depthAlong(group, d);
-    if (!depth) return [[...sweepSet(group, d, Infinity, [0, 0, 0], true)].sort((a, b) => a - b)];
+    if (!depth) {
+      // Nothing holds it along d (a gear once its axle is out): straight out, or a short move
+      // (a stud or two: out of the gap between two liftarms) and then away another way.
+      const straight = [...sweepSet(group, d, Infinity, [0, 0, 0], true)].sort((a, b) => a - b);
+      if (!straight.length) return [straight];
+      const ways = [straight];
+      for (const leg of [20, 40]) {
+        const first = sweepSet(group, d, leg, [0, 0, 0], true);
+        if (first.size) continue;
+        const off: Vec3 = [d[0] * leg, d[1] * leg, d[2] * leg];
+        for (const e of AXES) {
+          if (Math.abs(dot(e, d)) > 0.99) continue;
+          ways.push([...sweepSet(group, e, Infinity, off, false)].sort((a, b) => a - b));
+        }
+      }
+      return ways.filter((w, k) => !ways.some((v, q) => q !== k && v.length < w.length && v.every((x) => w.includes(x))));
+    }
     const leg = depth + 1;
     const first = sweepSet(group, d, leg, [0, 0, 0], true);
     const off: Vec3 = [d[0] * leg, d[1] * leg, d[2] * leg];
