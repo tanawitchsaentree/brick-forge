@@ -110,3 +110,26 @@ Next:
 1. Hip and gable ends.
 2. One roof colour, the roof's majority.
 3. All corpus houses, leave-one-out: only one house has been tried, which proves nothing general.
+
+## Step 6: the roof grammar on all 35 corpus houses
+
+Leave-one-out, the bench's settings, baseline vs `ROOF` (one roof colour, hip ends; no oracle features):
+
+| | mean PARITY_v2 | pieces (mean) |
+|---|---|---|
+| baseline | 0.316 | 1082 |
+| roof grammar | **0.331** | 1055 |
+
+- Results: 24 wins, 10 losses, 1 tie. The grammar placed 31 roof parts per house on average (0 to 119).
+- Best: 31038-1 0.442 → 0.511, 31048-1 0.505 → 0.574, 31063-1 0.364 → 0.423.
+- Worst: 6365-1 0.137 → 0.107, 4954-housewithtruck-1 0.142 → 0.113, 4954-school 0.133 → 0.117.
+
+Picture (`/tmp/prev/houses-roof.png`):
+- 31048: the roof reads as two clean red faces.
+- 31038: still ragged at the gable.
+- 6365: the house has two roofs at different heights (garage and house), but the grammar reads one eave and one ridge, so the lower roof's bands are cut wrong.
+
+Next:
+1. Find roofs per connected part above the eaves (several roofs per house).
+2. Gable ends.
+3. Window and door slots proposed by the DNA, to replace the oracle.
