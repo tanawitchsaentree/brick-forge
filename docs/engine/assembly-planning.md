@@ -73,6 +73,21 @@ Data between layers, all plain JSON-able:
 
 ### A — Geometry and the connectivity graph (`library.ts`, `ldraw.ts`, `graph.ts`)
 
+**Default since 76c56dc:** connectors from the LDraw primitives alone, `primitiveSnaps`:
+
+| primitives | connector |
+|---|---|
+| stud* (r 6, y 0…−4) | stud |
+| connect*, confric* | pin halves, r 6 × 20 |
+| peghole*, beamhol*, connhol*, npeghol* | pin holes |
+| axle, axlehol*, axl*hol* | axle cross sections, 1 LDU stretched by the reference |
+
+- An axle cross section is male if the part has axle ends (axleend*, axl*end), and female otherwise.
+- Coaxial segments of one part are merged (an axle drawn in pieces, a hole drawn as two rims).
+- System parts receive studs on the stud grid under their footprint.
+- Clips, bars, hinges and balls aren't in it yet; they fall back to fit/contact.
+- The shadow library below is optional (`makeLibrary(read, ldraw, "booklets/shadow")`) and local only (CC BY-SA). The user's decision.
+
 **Parsing.**
 - Type-1 lines with 3×3 matrices, LDU units (stud 20, plate 8, brick 24), −y up.
 - MPD `FILE` sections are flattened, keeping the sub-model path. A part embedded in the file (LDraw.org header or its own geometry) is reported as unknown rather than walked.
@@ -246,13 +261,33 @@ Ladder: 30190 (32 parts), 31009 cottage (260, System), 42021 (183, Technic, no s
 
 | model | parts | typed edges | inferred | forced | together | official✗ | ρ (file order) | unstable / sampled | reorient | ms total |
 |---|---|---|---|---|---|---|---|---|---|---|
-| 30190-1 | 32 | 33 | 2 | 0 | 0 | 6.2% | -0.047 (0.987) | 0/1 | 1 | 66 |
-| 31009-1-310091 | 260 | 342 | 2 | 4 | 0 | 1.9% | 0.54 (1) | 1/1 | 14 | 547 |
-| 42021-1-420211 | 183 | 250 | 8 | 10 | 5 | 4.9% | n/a (no STEP lines) (None) | 8/8 | 25 | 873 |
-| 42064-1 | 1316 | 2153 | 86 | 71 | 2 | 13.3% | -0.132 (1) | 2/3 | 234 | 13253 |
-| 8258-1 | 1663 | 2996 | 90 | 102 | 1 | 13.9% | 0.23 (1) | 1/1 | 249 | 15707 |
-| 42043-1-420431 | 2752 | 4951 | 127 | 52 | 6 | 14.5% | 0.384 (1) | 8/8 | 418 | 34670 |
-| 42055-1 | 3826 | 6997 | 142 | 95 | 8 | 9.2% | 0.196 (1) | 2/2 | 532 | 58875 |
+| 30190-1 | 32 | 25 | 9 | 0 | 0 | 0.0% | 0.015 (0.987) | 0/1 | 4 | 79 |
+| 31009-1-310091 | 260 | 346 | 6 | 0 | 1 | 1.9% | 0.66 (1) | 1/1 | 10 | 471 |
+| 42021-1-420211 | 183 | 203 | 20 | 14 | 3 | 0.5% | n/a (no STEP lines) (None) | 8/8 | 34 | 759 |
+| 42064-1 | 1316 | 1905 | 44 | 5 | 6 | 11.2% | 0.403 (1) | 3/3 | 207 | 11247 |
+| 8258-1 | 1663 | 2497 | 74 | 69 | 4 | 13.0% | 0.169 (1) | 1/1 | 256 | 12588 |
+| 42043-1-420431 | 2752 | 4273 | 166 | 37 | 3 | 12.5% | 0.415 (1) | 8/8 | 447 | 22045 |
+| 42055-1 | 3826 | 5708 | 56 | 69 | 4 | 6.8% | 0.229 (1) | 2/2 | 614 | 43615 |
+
+The default connectors since 76c56dc come from the LDraw primitives only, with no shadow library (§3 A): the shippable version, more accurate than the shadow library on every model. With the shadow library (`CONNECTORS=shadow`), the false alarms were 42043 14.5%, 42055 9.2%, 8258 13.9% and 42064 13.3%.
+
+Ordering, ρ vs the booklet, before and after this round:
+
+| model | before | after |
+|---|---|---|
+| 31009 | 0.54 | 0.66 |
+| 42064 | −0.13 | 0.40 |
+| 42043 | 0.36 | 0.42 |
+| 42055 | 0.22 | 0.23 |
+
+What changed:
+- weights chosen on 17 booklets and checked on 7 held out (held-out ρ 0.561 → 0.604);
+- the first unit stands on the table, and a piece left in the air costs;
+- landscape last;
+- Louvain sub-assemblies "auto": planned with and without, keeping the one with fewer relaxations;
+- booklet-sized steps (3–12 parts, growing with the model).
+
+Pictures: `scripts/plan-steps-render.mjs` (booklet / planner / the app's default, after step k). The planner is on in the app (af, `src/scene/planSteps.ts`) for models without booklet steps.
 
 Typed edges include "touch" joints: a pin end flush with a hole, which carries no load but which it slides through.
 

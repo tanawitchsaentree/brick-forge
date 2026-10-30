@@ -14,7 +14,7 @@
   "steps": 33,
   "clusters": 0,
   "forced": 0,
-  "joinsPieces": 0,
+  "joinsPieces": 1,
   "together": {
    "steps": 0,
    "maxUnits": 0,
@@ -28,7 +28,7 @@
   },
   "validity": true,
   "collisionFree": 1,
-  "reorientations": 1,
+  "reorientations": 4,
   "stability": {
    "sampled": 1,
    "unstable": 0,
@@ -36,7 +36,7 @@
    "minMargin": 0.993,
    "ms": 5
   },
-  "spearmanVsOfficial": 0.024,
+  "spearmanVsOfficial": 0.015,
   "fileOrderVsOfficial": 0.987,
   "officialFlaggedInfeasible": {
    "all": 0,
@@ -48,10 +48,10 @@
   "ms": {
    "flatten": 0,
    "graph": 2,
-   "blocking": 44,
-   "plan": 26
+   "blocking": 50,
+   "plan": 27
   },
-  "heapMB": 11
+  "heapMB": 19
  },
  {
   "name": "31009-1-310091",
@@ -65,24 +65,24 @@
    "contact": 7
   },
   "inferredJoints": 6,
-  "steps": 272,
-  "clusters": 1,
-  "forced": 6,
-  "joinsPieces": 10,
+  "steps": 270,
+  "clusters": 0,
+  "forced": 0,
+  "joinsPieces": 12,
   "together": {
-   "steps": 0,
-   "maxUnits": 0,
-   "maxParts": 0
+   "steps": 1,
+   "maxUnits": 2,
+   "maxParts": 2
   },
   "violations": {
-   "blocked": 5,
+   "blocked": 0,
    "disconnected": 0,
-   "noDirection": 1,
+   "noDirection": 0,
    "validator": 0
   },
-  "validity": false,
-  "collisionFree": 0.9816,
-  "reorientations": 14,
+  "validity": true,
+  "collisionFree": 1,
+  "reorientations": 10,
   "stability": {
    "sampled": 1,
    "unstable": 1,
@@ -90,9 +90,9 @@
     "0:2540"
    ],
    "minMargin": 0.746,
-   "ms": 955
+   "ms": 1057
   },
-  "spearmanVsOfficial": 0.564,
+  "spearmanVsOfficial": 0.66,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
    "all": 5,
@@ -102,12 +102,12 @@
    "rate": 0.0192
   },
   "ms": {
-   "flatten": 14,
-   "graph": 30,
-   "blocking": 222,
-   "plan": 205
+   "flatten": 29,
+   "graph": 29,
+   "blocking": 224,
+   "plan": 189
   },
-  "heapMB": 5
+  "heapMB": 47
  },
  {
   "name": "42021-1-420211",
@@ -123,12 +123,12 @@
    "fit": 34
   },
   "inferredJoints": 20,
-  "steps": 196,
+  "steps": 195,
   "clusters": 0,
   "forced": 14,
   "joinsPieces": 2,
   "together": {
-   "steps": 2,
+   "steps": 3,
    "maxUnits": 3,
    "maxParts": 16
   },
@@ -139,23 +139,23 @@
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9286,
-  "reorientations": 30,
+  "collisionFree": 0.9282,
+  "reorientations": 34,
   "stability": {
    "sampled": 8,
    "unstable": 8,
    "unstableAt": [
-    "5:4519",
+    "4:4519",
     "10:4519",
-    "16:15379",
+    "15:15379",
     "21:4519",
-    "27:15379",
-    "32:15379",
-    "38:15379",
-    "43:15379"
+    "26:15379",
+    "31:32556",
+    "37:15379",
+    "42:15379"
    ],
    "minMargin": 1,
-   "ms": 8767
+   "ms": 9329
   },
   "spearmanVsOfficial": null,
   "fileOrderVsOfficial": null,
@@ -167,12 +167,12 @@
    "rate": 0.0055
   },
   "ms": {
-   "flatten": 20,
-   "graph": 5,
-   "blocking": 326,
-   "plan": 400
+   "flatten": 36,
+   "graph": 4,
+   "blocking": 322,
+   "plan": 397
   },
-  "heapMB": -30
+  "heapMB": -111
  },
  {
   "name": "42064-1",
@@ -190,35 +190,36 @@
    "fit": 101
   },
   "inferredJoints": 44,
-  "steps": 1336,
-  "clusters": 3,
-  "forced": 39,
-  "joinsPieces": 66,
+  "steps": 1332,
+  "clusters": 0,
+  "forced": 5,
+  "joinsPieces": 82,
   "together": {
-   "steps": 5,
+   "steps": 6,
    "maxUnits": 3,
-   "maxParts": 3
+   "maxParts": 14
   },
   "violations": {
-   "blocked": 35,
+   "blocked": 5,
    "disconnected": 0,
-   "noDirection": 4,
+   "noDirection": 0,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9738,
-  "reorientations": 210,
+  "collisionFree": 0.9962,
+  "reorientations": 207,
   "stability": {
    "sampled": 3,
-   "unstable": 2,
+   "unstable": 3,
    "unstableAt": [
+    "0:6141",
     "1:6141",
     "2:6141"
    ],
    "minMargin": 0.987,
-   "ms": 17471
+   "ms": 33326
   },
-  "spearmanVsOfficial": -0.272,
+  "spearmanVsOfficial": 0.403,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
    "all": 147,
@@ -228,12 +229,12 @@
    "rate": 0.1117
   },
   "ms": {
-   "flatten": 34,
-   "graph": 46,
-   "blocking": 4867,
-   "plan": 7099
+   "flatten": 63,
+   "graph": 44,
+   "blocking": 4940,
+   "plan": 6200
   },
-  "heapMB": 24
+  "heapMB": 19
  },
  {
   "name": "8258-1",
@@ -251,24 +252,24 @@
    "fit": 127
   },
   "inferredJoints": 74,
-  "steps": 1935,
-  "clusters": 2,
-  "forced": 79,
-  "joinsPieces": 13,
+  "steps": 1928,
+  "clusters": 0,
+  "forced": 69,
+  "joinsPieces": 18,
   "together": {
-   "steps": 1,
-   "maxUnits": 2,
+   "steps": 4,
+   "maxUnits": 3,
    "maxParts": 16
   },
   "violations": {
-   "blocked": 76,
-   "disconnected": 0,
-   "noDirection": 3,
+   "blocked": 67,
+   "disconnected": 1,
+   "noDirection": 1,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9607,
-  "reorientations": 215,
+  "collisionFree": 0.9652,
+  "reorientations": 256,
   "stability": {
    "sampled": 1,
    "unstable": 1,
@@ -276,9 +277,9 @@
     "0:32062"
    ],
    "minMargin": 0.824,
-   "ms": 25618
+   "ms": 14554
   },
-  "spearmanVsOfficial": 0.268,
+  "spearmanVsOfficial": 0.169,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
    "all": 216,
@@ -288,12 +289,12 @@
    "rate": 0.1299
   },
   "ms": {
-   "flatten": 49,
-   "graph": 59,
-   "blocking": 4754,
-   "plan": 7488
+   "flatten": 51,
+   "graph": 61,
+   "blocking": 4710,
+   "plan": 7766
   },
-  "heapMB": 58
+  "heapMB": 68
  },
  {
   "name": "42043-1-420431",
@@ -311,10 +312,10 @@
    "contact": 276
   },
   "inferredJoints": 166,
-  "steps": 2805,
-  "clusters": 2,
-  "forced": 38,
-  "joinsPieces": 112,
+  "steps": 2804,
+  "clusters": 1,
+  "forced": 37,
+  "joinsPieces": 119,
   "together": {
    "steps": 3,
    "maxUnits": 4,
@@ -323,12 +324,12 @@
   "violations": {
    "blocked": 25,
    "disconnected": 0,
-   "noDirection": 13,
+   "noDirection": 12,
    "validator": 0
   },
   "validity": false,
   "collisionFree": 0.9911,
-  "reorientations": 371,
+  "reorientations": 447,
   "stability": {
    "sampled": 8,
    "unstable": 8,
@@ -342,10 +343,10 @@
     "99:2780",
     "113:2780"
    ],
-   "minMargin": 0.628,
-   "ms": 217306
+   "minMargin": 0.678,
+   "ms": 264166
   },
-  "spearmanVsOfficial": 0.414,
+  "spearmanVsOfficial": 0.415,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
    "all": 343,
@@ -355,12 +356,12 @@
    "rate": 0.1246
   },
   "ms": {
-   "flatten": 39,
-   "graph": 92,
-   "blocking": 10486,
-   "plan": 19188
+   "flatten": 37,
+   "graph": 90,
+   "blocking": 10736,
+   "plan": 11182
   },
-  "heapMB": 9
+  "heapMB": 26
  },
  {
   "name": "42055-1",
@@ -378,24 +379,24 @@
    "fit": 296
   },
   "inferredJoints": 56,
-  "steps": 3897,
-  "clusters": 8,
-  "forced": 77,
-  "joinsPieces": 180,
+  "steps": 3895,
+  "clusters": 6,
+  "forced": 69,
+  "joinsPieces": 174,
   "together": {
    "steps": 4,
    "maxUnits": 3,
    "maxParts": 23
   },
   "violations": {
-   "blocked": 59,
+   "blocked": 55,
    "disconnected": 0,
-   "noDirection": 18,
+   "noDirection": 14,
    "validator": 0
   },
   "validity": false,
-  "collisionFree": 0.9849,
-  "reorientations": 518,
+  "collisionFree": 0.9859,
+  "reorientations": 614,
   "stability": {
    "sampled": 2,
    "unstable": 2,
@@ -404,9 +405,9 @@
     "1:2780"
    ],
    "minMargin": 0.96,
-   "ms": 52225
+   "ms": 42137
   },
-  "spearmanVsOfficial": 0.224,
+  "spearmanVsOfficial": 0.229,
   "fileOrderVsOfficial": 1,
   "officialFlaggedInfeasible": {
    "all": 261,
@@ -416,11 +417,11 @@
    "rate": 0.0682
   },
   "ms": {
-   "flatten": 17,
-   "graph": 139,
-   "blocking": 15881,
-   "plan": 37919
+   "flatten": 29,
+   "graph": 133,
+   "blocking": 16791,
+   "plan": 26662
   },
-  "heapMB": -24
+  "heapMB": -69
  }
 ]
