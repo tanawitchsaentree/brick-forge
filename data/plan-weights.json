@@ -1,0 +1,40 @@
+{
+ "weights": {
+  "height": 2,
+  "outward": 0.3,
+  "sameDir": -0.5,
+  "near": 0.4,
+  "leaf": 0.4,
+  "split": 4
+ },
+ "train": [
+  "10190-1-2.mpd",
+  "10277-1-3.mpd",
+  "20015-1.mpd",
+  "31048-1-observatory.mpd",
+  "31063-1-310631.mpd",
+  "31066-1-shuttle.mpd",
+  "31088-1-whale-1.mpd",
+  "31092-1-powerboat.mpd",
+  "346-2.mpd",
+  "40335-1.mpd",
+  "41612-1-1.mpd",
+  "42047-1.mpd",
+  "5766-1-57661.mpd",
+  "5766-1-bridgehouse.mpd",
+  "5891-1-holidayhouse.mpd",
+  "6331-1.mpd",
+  "6349-1.mpd"
+ ],
+ "heldOut": [
+  "10214-1.mpd",
+  "30193-1.mpd",
+  "31031-1-fish.mpd",
+  "31045-1-aircraft.mpd",
+  "40448-1.mpd",
+  "42044-1.mpd",
+  "6363-1-1.mpd"
+ ],
+ "trainRho": 0.6220504561838297,
+ "heldOutRho": 0.53380956041558
+}

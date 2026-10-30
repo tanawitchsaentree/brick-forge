@@ -1,0 +1,403 @@
+[
+ {
+  "name": "30190-1",
+  "parts": 32,
+  "flexLeftOut": 0,
+  "unknown": 0,
+  "edges": 55,
+  "types": {
+   "stud": 32,
+   "bar": 1,
+   "fit": 14,
+   "contact": 8
+  },
+  "inferredJoints": 2,
+  "steps": 33,
+  "clusters": 0,
+  "forced": 0,
+  "joinsPieces": 0,
+  "violations": {
+   "blocked": 0,
+   "disconnected": 0,
+   "noDirection": 0,
+   "validator": 0
+  },
+  "validity": true,
+  "collisionFree": 1,
+  "reorientations": 4,
+  "stability": {
+   "sampled": 1,
+   "unstable": 0,
+   "unstableAt": [],
+   "minMargin": 0.989,
+   "ms": 5
+  },
+  "spearmanVsOfficial": 0.21,
+  "fileOrderVsOfficial": 0.987,
+  "officialFlaggedInfeasible": {
+   "all": 4,
+   "blocked": 2,
+   "noDirection": 2,
+   "rate": 0.125
+  },
+  "ms": {
+   "flatten": 0,
+   "graph": 3,
+   "blocking": 57,
+   "plan": 32
+  },
+  "heapMB": -56
+ },
+ {
+  "name": "31009-1-310091",
+  "parts": 260,
+  "flexLeftOut": 0,
+  "unknown": 0,
+  "edges": 408,
+  "types": {
+   "stud": 334,
+   "pin": 7,
+   "bar": 1,
+   "contact": 55,
+   "fit": 11
+  },
+  "inferredJoints": 2,
+  "steps": 272,
+  "clusters": 1,
+  "forced": 3,
+  "joinsPieces": 1,
+  "violations": {
+   "blocked": 1,
+   "disconnected": 0,
+   "noDirection": 2,
+   "validator": 0
+  },
+  "validity": false,
+  "collisionFree": 0.9963,
+  "reorientations": 12,
+  "stability": {
+   "sampled": 1,
+   "unstable": 1,
+   "unstableAt": [
+    "0:3899"
+   ],
+   "minMargin": 0.878,
+   "ms": 1842
+  },
+  "spearmanVsOfficial": 0.52,
+  "fileOrderVsOfficial": 1,
+  "officialFlaggedInfeasible": {
+   "all": 8,
+   "blocked": 1,
+   "noDirection": 7,
+   "rate": 0.0308
+  },
+  "ms": {
+   "flatten": 56,
+   "graph": 42,
+   "blocking": 226,
+   "plan": 200
+  },
+  "heapMB": 38
+ },
+ {
+  "name": "42021-1-420211",
+  "parts": 183,
+  "flexLeftOut": 0,
+  "unknown": 0,
+  "edges": 228,
+  "types": {
+   "axle": 64,
+   "axleFree": 27,
+   "pin": 81,
+   "bar": 40,
+   "ball": 8,
+   "fit": 8
+  },
+  "inferredJoints": 8,
+  "steps": 200,
+  "clusters": 0,
+  "forced": 20,
+  "joinsPieces": 5,
+  "violations": {
+   "blocked": 18,
+   "disconnected": 0,
+   "noDirection": 2,
+   "validator": 0
+  },
+  "validity": false,
+  "collisionFree": 0.91,
+  "reorientations": 35,
+  "stability": {
+   "sampled": 12,
+   "unstable": 12,
+   "unstableAt": [
+    "3:32062",
+    "7:4519",
+    "11:4519",
+    "14:4519",
+    "18:4519",
+    "22:4519",
+    "26:4519",
+    "30:32073",
+    "34:32556",
+    "37:32062",
+    "41:32062",
+    "45:32062"
+   ],
+   "minMargin": 1,
+   "ms": 1304
+  },
+  "spearmanVsOfficial": null,
+  "fileOrderVsOfficial": null,
+  "officialFlaggedInfeasible": {
+   "all": 9,
+   "blocked": 1,
+   "noDirection": 8,
+   "rate": 0.0492
+  },
+  "ms": {
+   "flatten": 42,
+   "graph": 10,
+   "blocking": 403,
+   "plan": 449
+  },
+  "heapMB": 16
+ },
+ {
+  "name": "42064-1",
+  "parts": 1316,
+  "flexLeftOut": 6,
+  "unknown": 208,
+  "edges": 1847,
+  "types": {
+   "pin": 999,
+   "axle": 423,
+   "axleFree": 180,
+   "stud": 30,
+   "bar": 20,
+   "gear": 3,
+   "fit": 110,
+   "contact": 82
+  },
+  "inferredJoints": 80,
+  "steps": 1343,
+  "clusters": 3,
+  "forced": 81,
+  "joinsPieces": 133,
+  "violations": {
+   "blocked": 74,
+   "disconnected": 0,
+   "noDirection": 7,
+   "validator": 0
+  },
+  "validity": false,
+  "collisionFree": 0.9449,
+  "reorientations": 277,
+  "stability": {
+   "sampled": 3,
+   "unstable": 2,
+   "unstableAt": [
+    "1:3705",
+    "2:3705"
+   ],
+   "minMargin": 0.996,
+   "ms": 31206
+  },
+  "spearmanVsOfficial": -0.122,
+  "fileOrderVsOfficial": 1,
+  "officialFlaggedInfeasible": {
+   "all": 253,
+   "blocked": 158,
+   "noDirection": 95,
+   "rate": 0.1922
+  },
+  "ms": {
+   "flatten": 81,
+   "graph": 69,
+   "blocking": 5022,
+   "plan": 7293
+  },
+  "heapMB": -60
+ },
+ {
+  "name": "8258-1",
+  "parts": 1663,
+  "flexLeftOut": 0,
+  "unknown": 533,
+  "edges": 2404,
+  "types": {
+   "pin": 1250,
+   "axle": 589,
+   "axleFree": 322,
+   "stud": 73,
+   "bar": 6,
+   "ball": 8,
+   "gear": 23,
+   "fit": 96,
+   "contact": 37
+  },
+  "inferredJoints": 82,
+  "steps": 1936,
+  "clusters": 2,
+  "forced": 124,
+  "joinsPieces": 92,
+  "violations": {
+   "blocked": 116,
+   "disconnected": 0,
+   "noDirection": 8,
+   "validator": 0
+  },
+  "validity": false,
+  "collisionFree": 0.9401,
+  "reorientations": 315,
+  "stability": {
+   "sampled": 1,
+   "unstable": 1,
+   "unstableAt": [
+    "0:4519"
+   ],
+   "minMargin": 0.889,
+   "ms": 33470
+  },
+  "spearmanVsOfficial": 0.245,
+  "fileOrderVsOfficial": 1,
+  "officialFlaggedInfeasible": {
+   "all": 412,
+   "blocked": 345,
+   "noDirection": 67,
+   "rate": 0.2477
+  },
+  "ms": {
+   "flatten": 69,
+   "graph": 116,
+   "blocking": 5560,
+   "plan": 8762
+  },
+  "heapMB": 69
+ },
+ {
+  "name": "42043-1-420431",
+  "parts": 2752,
+  "flexLeftOut": 4335,
+  "unknown": 39,
+  "edges": 4170,
+  "types": {
+   "axleFree": 634,
+   "axle": 1024,
+   "pin": 1986,
+   "bar": 41,
+   "stud": 39,
+   "ball": 24,
+   "gear": 13,
+   "contact": 217,
+   "fit": 192
+  },
+  "inferredJoints": 124,
+  "steps": 2813,
+  "clusters": 4,
+  "forced": 89,
+  "joinsPieces": 284,
+  "violations": {
+   "blocked": 76,
+   "disconnected": 0,
+   "noDirection": 13,
+   "validator": 0
+  },
+  "validity": false,
+  "collisionFree": 0.973,
+  "reorientations": 489,
+  "stability": {
+   "sampled": 12,
+   "unstable": 12,
+   "unstableAt": [
+    "9:32054",
+    "19:6558",
+    "29:2780",
+    "39:2780",
+    "49:32054",
+    "59:18651",
+    "68:6536",
+    "78:6628",
+    "88:42003",
+    "98:2780",
+    "108:2780",
+    "118:2780"
+   ],
+   "minMargin": 0.898,
+   "ms": 469829
+  },
+  "spearmanVsOfficial": 0.361,
+  "fileOrderVsOfficial": 1,
+  "officialFlaggedInfeasible": {
+   "all": 590,
+   "blocked": 440,
+   "noDirection": 150,
+   "rate": 0.2144
+  },
+  "ms": {
+   "flatten": 50,
+   "graph": 154,
+   "blocking": 11488,
+   "plan": 21839
+  },
+  "heapMB": -81
+ },
+ {
+  "name": "42055-1",
+  "parts": 3826,
+  "flexLeftOut": 0,
+  "unknown": 103,
+  "edges": 6746,
+  "types": {
+   "pin": 3207,
+   "axleFree": 732,
+   "axle": 936,
+   "bar": 146,
+   "stud": 44,
+   "ball": 5,
+   "gear": 32,
+   "fit": 326,
+   "contact": 1318
+  },
+  "inferredJoints": 127,
+  "steps": 3903,
+  "clusters": 9,
+  "forced": 118,
+  "joinsPieces": 333,
+  "violations": {
+   "blocked": 95,
+   "disconnected": 0,
+   "noDirection": 23,
+   "validator": 0
+  },
+  "validity": false,
+  "collisionFree": 0.9757,
+  "reorientations": 584,
+  "stability": {
+   "sampled": 2,
+   "unstable": 2,
+   "unstableAt": [
+    "0:32316",
+    "1:3713"
+   ],
+   "minMargin": 0.958,
+   "ms": 58362
+  },
+  "spearmanVsOfficial": 0.22,
+  "fileOrderVsOfficial": 1,
+  "officialFlaggedInfeasible": {
+   "all": 535,
+   "blocked": 324,
+   "noDirection": 211,
+   "rate": 0.1398
+  },
+  "ms": {
+   "flatten": 33,
+   "graph": 250,
+   "blocking": 16792,
+   "plan": 40637
+  },
+  "heapMB": 81
+ }
+]
